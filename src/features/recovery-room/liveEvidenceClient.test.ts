@@ -83,6 +83,7 @@ describe("Live Signal Garden evidence client", () => {
     });
 
     const [, request] = fetchImplementation.mock.calls[0]!;
+    expect(fetchImplementation.mock.contexts[0]).toBe(globalThis);
     expect(request).toMatchObject({ method: "POST", cache: "no-store" });
     expect(request?.headers).toMatchObject({
       apikey: "sb_publishable_adapter_test_key",

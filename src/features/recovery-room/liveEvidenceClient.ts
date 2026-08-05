@@ -232,7 +232,7 @@ export class LiveSignalGardenEvidenceClient implements SignalGardenEvidenceClien
 
     let response: Response;
     try {
-      response = await this.fetchImplementation(this.configuration.gatewayUrl, {
+      response = await this.fetchImplementation.call(globalThis, this.configuration.gatewayUrl, {
         method: "POST",
         headers: {
           accept: "application/json",

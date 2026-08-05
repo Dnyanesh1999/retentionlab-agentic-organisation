@@ -1,3 +1,17 @@
+import {
+  ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  ChevronDown,
+  ChevronUp,
+  Clock3,
+  FileText,
+  Info,
+  Minus,
+  TrendingUp,
+  UsersRound,
+  type LucideIcon,
+} from "lucide-react";
 import { useId, useRef, type JSX, type KeyboardEvent } from "react";
 
 import type { SignalReading } from "./contracts";
@@ -17,6 +31,12 @@ const METRIC_LABELS: Record<SignalReading["code"], string> = {
   feature_adoption: "Feature adoption",
   active_users: "Active users",
   session_frequency: "Session frequency",
+};
+
+const METRIC_ICONS: Record<SignalReading["code"], LucideIcon> = {
+  feature_adoption: TrendingUp,
+  active_users: UsersRound,
+  session_frequency: Clock3,
 };
 
 /** The exact approved explanatory sentence, revealed only while expanded. */
@@ -42,14 +62,14 @@ function formatSignalValue(unit: SignalReading["unit"], value: number): string {
 function describeDirection(
   previous: number,
   current: number,
-): { key: "increased" | "decreased" | "unchanged"; glyph: string; label: string } {
+): { key: "increased" | "decreased" | "unchanged"; icon: LucideIcon; label: string } {
   if (current > previous) {
-    return { key: "increased", glyph: "↑", label: "Increased" };
+    return { key: "increased", icon: ArrowUp, label: "Increased" };
   }
   if (current < previous) {
-    return { key: "decreased", glyph: "↓", label: "Decreased" };
+    return { key: "decreased", icon: ArrowDown, label: "Decreased" };
   }
-  return { key: "unchanged", glyph: "→", label: "No change" };
+  return { key: "unchanged", icon: Minus, label: "No change" };
 }
 
 export function SignalStrand({
@@ -67,6 +87,9 @@ export function SignalStrand({
   const previousText = formatSignalValue(reading.unit, reading.previous_value);
   const currentText = formatSignalValue(reading.unit, reading.current_value);
   const direction = describeDirection(reading.previous_value, reading.current_value);
+  const MetricIcon = METRIC_ICONS[reading.code];
+  const DirectionIcon = direction.icon;
+  const DisclosureIcon = expanded ? ChevronUp : ChevronDown;
   const graphicLabel = `${label}: previous ${previousText}, current ${currentText}`;
 
   // Controlled requests only. Never call the callback when we are already in the
@@ -101,6 +124,7 @@ export function SignalStrand({
     <div
       className={rootClassName}
       data-direction={direction.key}
+      data-metric={reading.code}
       data-reduced-motion={String(Boolean(reducedMotion))}
     >
       <button
@@ -115,6 +139,9 @@ export function SignalStrand({
         onKeyDown={handleKeyDown}
       >
         <span className="signal-strand__graphic" role="img" aria-label={graphicLabel}>
+          <span className="signal-strand__icon" aria-hidden="true">
+            <MetricIcon strokeWidth={1.5} />
+          </span>
           <span className="signal-strand__label" aria-hidden="true">
             {label}
           </span>
@@ -126,7 +153,7 @@ export function SignalStrand({
             <span className="signal-strand__value-caption">previous</span>
           </span>
           <span className="signal-strand__arrow" aria-hidden="true">
-            {direction.glyph}
+            <ArrowRight strokeWidth={1.4} />
           </span>
           <span
             className="signal-strand__value signal-strand__value--current"
@@ -136,16 +163,24 @@ export function SignalStrand({
             <span className="signal-strand__value-caption">current</span>
           </span>
           <span className="signal-strand__direction" aria-hidden="true">
-            {direction.label}
+            <DirectionIcon strokeWidth={1.5} />
+            <span>{direction.label}</span>
           </span>
+          <DisclosureIcon aria-hidden="true" className="signal-strand__disclosure" strokeWidth={1.6} />
         </span>
       </button>
       {expanded ? (
         <div id={detailId} className="signal-strand__detail">
-          <p className="signal-strand__explanation">{EXPLANATION}</p>
+          <p className="signal-strand__explanation">
+            <Info aria-hidden="true" strokeWidth={1.6} />
+            <span>{EXPLANATION}</span>
+          </p>
           <p id={citationId} className="signal-strand__citation">
-            <span className="signal-strand__citation-label">Evidence:</span>{" "}
-            <span className="signal-strand__citation-key">{reading.evidence.evidence_key}</span>
+            <FileText aria-hidden="true" strokeWidth={1.6} />
+            <span>
+              <span className="signal-strand__citation-label">Evidence:</span>{" "}
+              <span className="signal-strand__citation-key">{reading.evidence.evidence_key}</span>
+            </span>
           </p>
         </div>
       ) : null}

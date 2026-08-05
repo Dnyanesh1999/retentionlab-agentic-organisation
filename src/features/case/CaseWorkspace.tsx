@@ -2,6 +2,7 @@ import { LockKeyhole } from "lucide-react";
 
 import type { CaseTabId } from "../../config/caseTabs";
 import { OrganisationView } from "../organisation/OrganisationView";
+import { RecoveryRoomRoute } from "../recovery-room/RecoveryRoomView";
 import { FeaturePreview } from "../shared/FeaturePreview";
 import { CaseTabs } from "./CaseTabs";
 
@@ -53,11 +54,9 @@ export function CaseWorkspace({ tab }: CaseWorkspaceProps) {
 
       <CaseTabs currentTab={tab} />
 
-      {tab === "organisation" ? (
-        <OrganisationView />
-      ) : (
-        <FeaturePreview {...previewCopy[tab]} />
-      )}
+      {tab === "organisation" ? <OrganisationView /> : null}
+      {tab === "recovery-room" ? <RecoveryRoomRoute /> : null}
+      {tab !== "organisation" && tab !== "recovery-room" ? <FeaturePreview {...previewCopy[tab]} /> : null}
     </main>
   );
 }
