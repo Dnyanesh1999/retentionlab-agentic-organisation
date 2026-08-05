@@ -27,6 +27,47 @@ function signal(
   };
 }
 
+function supportEvent(
+  overrides: Partial<{
+    evidence_key: string;
+    category: string;
+    severity: string;
+    status: string;
+    sentiment_score: number;
+    summary: string;
+    occurred_at: string;
+    resolved_at: string | null;
+  }> = {},
+) {
+  return {
+    evidence_key: "support:adapter-test:8-4",
+    category: "workflow",
+    severity: "high",
+    status: "open",
+    sentiment_score: -0.512,
+    summary: "Automation export step stalls intermittently for the team.",
+    occurred_at: "2026-05-11T09:00:00.000Z",
+    resolved_at: null,
+    source_updated_at: "2026-08-05T19:30:00.000Z",
+    source_system: "adapter-test-support",
+    ...overrides,
+  };
+}
+
+function preferenceProfile(overrides: Partial<{ allow_recovery_outreach: boolean }> = {}) {
+  return {
+    evidence_key: "preference:adapter-test:2",
+    allow_product_email: true,
+    allow_recovery_outreach: true,
+    allow_usage_personalisation: true,
+    preferred_channel: "email",
+    lawful_basis: "consent",
+    source_updated_at: "2026-08-05T19:30:00.000Z",
+    source_system: "adapter-test-preferences",
+    ...overrides,
+  };
+}
+
 function liveEnvelope() {
   return {
     tool: "get_account_snapshot",
@@ -48,8 +89,26 @@ function liveEnvelope() {
         signal("seat_utilisation", 68.5, "percent", null),
       ],
       billing_events: [],
-      support_events: [],
-      preference_profile: null,
+      support_events: [
+        // An older open workflow case and a resolved/non-workflow decoy prove the
+        // newest-open-workflow selection rather than "first row wins".
+        supportEvent({
+          evidence_key: "support:adapter-test:1-1",
+          occurred_at: "2026-04-01T09:00:00.000Z",
+          severity: "low",
+        }),
+        supportEvent({
+          evidence_key: "support:adapter-test:2-1",
+          category: "billing",
+        }),
+        supportEvent({
+          evidence_key: "support:adapter-test:3-1",
+          status: "resolved",
+          resolved_at: "2026-06-01T09:00:00.000Z",
+        }),
+        supportEvent(),
+      ],
+      preference_profile: preferenceProfile() as ReturnType<typeof preferenceProfile> | null,
     },
   };
 }
@@ -82,6 +141,32 @@ describe("Live Signal Garden evidence client", () => {
       retrieved_at: retrievedAt,
     });
 
+    // The newest still-open workflow case is selected; billing/resolved/older
+    // decoys are excluded, and its fields are carried verbatim from evidence.
+    expect(snapshot.support_case).toEqual({
+      reference: "support:adapter-test:8-4",
+      category: "workflow",
+      severity: "high",
+      status: "open",
+      sentiment_score: -0.512,
+      unresolved_at: "2026-05-11T09:00:00.000Z",
+      evidence: {
+        evidence_key: "support:adapter-test:8-4",
+        source_system: "adapter-test-support",
+        source_tool: "get_account_snapshot",
+        retrieved_at: retrievedAt,
+      },
+    });
+    expect(snapshot.clarification_permission).toEqual({
+      allow_recovery_outreach: true,
+      evidence: {
+        evidence_key: "preference:adapter-test:2",
+        source_system: "adapter-test-preferences",
+        source_tool: "get_account_snapshot",
+        retrieved_at: retrievedAt,
+      },
+    });
+
     const [, request] = fetchImplementation.mock.calls[0]!;
     expect(fetchImplementation.mock.contexts[0]).toBe(globalThis);
     expect(request).toMatchObject({ method: "POST", cache: "no-store" });
@@ -104,6 +189,44 @@ describe("Live Signal Garden evidence client", () => {
 
     await expect(client(fetchImplementation).getSnapshot("adapter-test")).rejects.toMatchObject({
       code: "incomplete_evidence",
+    });
+  });
+
+  it("fails closed when no open workflow support case remains after filtering", async () => {
+    const envelope = liveEnvelope();
+    // Leave only billing and resolved decoys — no open workflow case survives.
+    envelope.data.support_events = [
+      supportEvent({ evidence_key: "support:adapter-test:2-1", category: "billing" }),
+      supportEvent({
+        evidence_key: "support:adapter-test:3-1",
+        status: "resolved",
+        resolved_at: "2026-06-01T09:00:00.000Z",
+      }),
+    ];
+    const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(Response.json(envelope));
+
+    await expect(client(fetchImplementation).getSnapshot("adapter-test")).rejects.toMatchObject({
+      code: "incomplete_evidence",
+    });
+  });
+
+  it("fails closed when the preference profile is absent", async () => {
+    const envelope = liveEnvelope();
+    envelope.data.preference_profile = null;
+    const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(Response.json(envelope));
+
+    await expect(client(fetchImplementation).getSnapshot("adapter-test")).rejects.toMatchObject({
+      code: "incomplete_evidence",
+    });
+  });
+
+  it("fails closed on a malformed support case severity instead of coercing it", async () => {
+    const envelope = liveEnvelope();
+    envelope.data.support_events = [supportEvent({ severity: "urgent" })];
+    const fetchImplementation = vi.fn<typeof fetch>().mockResolvedValue(Response.json(envelope));
+
+    await expect(client(fetchImplementation).getSnapshot("adapter-test")).rejects.toMatchObject({
+      code: "invalid_contract",
     });
   });
 

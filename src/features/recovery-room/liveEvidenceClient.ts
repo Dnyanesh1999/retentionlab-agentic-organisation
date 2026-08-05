@@ -29,6 +29,30 @@ const productSignalSchema = z.object({
   source_system: z.string().min(1),
 }).strict();
 
+const supportEventSchema = z.object({
+  evidence_key: z.string().min(1),
+  category: z.string().min(1),
+  severity: z.string().min(1),
+  status: z.string().min(1),
+  sentiment_score: z.number().finite(),
+  summary: z.string().min(1),
+  occurred_at: z.iso.datetime({ offset: true }),
+  resolved_at: z.iso.datetime({ offset: true }).nullable(),
+  source_updated_at: z.iso.datetime({ offset: true }),
+  source_system: z.string().min(1),
+}).strict();
+
+const preferenceProfileSchema = z.object({
+  evidence_key: z.string().min(1),
+  allow_product_email: z.boolean(),
+  allow_recovery_outreach: z.boolean(),
+  allow_usage_personalisation: z.boolean(),
+  preferred_channel: z.string().min(1),
+  lawful_basis: z.string().min(1),
+  source_updated_at: z.iso.datetime({ offset: true }),
+  source_system: z.string().min(1),
+}).strict();
+
 const accountSnapshotEnvelopeSchema = z.object({
   tool: z.literal("get_account_snapshot"),
   source: sourceSchema,
@@ -38,8 +62,8 @@ const accountSnapshotEnvelopeSchema = z.object({
     }).passthrough(),
     product_signals: z.array(productSignalSchema),
     billing_events: z.array(z.unknown()),
-    support_events: z.array(z.unknown()),
-    preference_profile: z.unknown(),
+    support_events: z.array(supportEventSchema),
+    preference_profile: preferenceProfileSchema.nullable(),
   }).strict(),
 }).strict();
 
@@ -48,6 +72,7 @@ const gatewayErrorSchema = z.object({
 }).passthrough();
 
 type ProductSignal = z.infer<typeof productSignalSchema>;
+type SupportEvent = z.infer<typeof supportEventSchema>;
 
 export type SignalGardenClientErrorCode =
   | "invalid_request"
@@ -94,7 +119,17 @@ function newestSignal(rows: ProductSignal[], signalType: string) {
     .sort((left, right) => Date.parse(right.observed_at) - Date.parse(left.observed_at))[0];
 }
 
-function evidenceReference(row: ProductSignal, retrievedAt: string) {
+/** The single newest still-open support case in the workflow domain, if any. */
+function newestOpenWorkflowSupportCase(rows: SupportEvent[]) {
+  return [...rows]
+    .filter((row) => row.category === "workflow" && row.status === "open")
+    .sort((left, right) => Date.parse(right.occurred_at) - Date.parse(left.occurred_at))[0];
+}
+
+function evidenceReference(
+  row: { evidence_key: string; source_system: string },
+  retrievedAt: string,
+) {
   return {
     evidence_key: row.evidence_key,
     source_system: row.source_system,
@@ -166,7 +201,18 @@ function normalizeSnapshot(
     );
   }
 
-  return decodeSignalGardenSnapshot({
+  const supportCase = newestOpenWorkflowSupportCase(envelope.data.support_events);
+  const preferenceProfile = envelope.data.preference_profile;
+
+  if (!supportCase || !preferenceProfile) {
+    throw new SignalGardenClientError(
+      "incomplete_evidence",
+      "Live evidence is missing the open workflow support case or preference profile.",
+      422,
+    );
+  }
+
+  const candidate = {
     schema_version: "signal-garden-snapshot.v1",
     account_slug: requestedSlug,
     retrieved_at: envelope.source.retrieved_at,
@@ -198,7 +244,32 @@ function normalizeSnapshot(
       unit: "percent",
       evidence: evidenceReference(seatUtilisation, envelope.source.retrieved_at),
     },
-  });
+    support_case: {
+      reference: supportCase.evidence_key,
+      category: supportCase.category,
+      severity: supportCase.severity,
+      status: supportCase.status,
+      sentiment_score: supportCase.sentiment_score,
+      unresolved_at: supportCase.occurred_at,
+      evidence: evidenceReference(supportCase, envelope.source.retrieved_at),
+    },
+    clarification_permission: {
+      allow_recovery_outreach: preferenceProfile.allow_recovery_outreach,
+      evidence: evidenceReference(preferenceProfile, envelope.source.retrieved_at),
+    },
+  };
+
+  try {
+    // Final strict decode. Any residual domain, evidence-binding or range
+    // violation fails closed as a typed contract error rather than a raw throw.
+    return decodeSignalGardenSnapshot(candidate);
+  } catch {
+    throw new SignalGardenClientError(
+      "invalid_contract",
+      "Live evidence source returned a Signal Garden snapshot that violates the strict contract.",
+      502,
+    );
+  }
 }
 
 export class LiveSignalGardenEvidenceClient implements SignalGardenEvidenceClient {

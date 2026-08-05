@@ -60,6 +60,29 @@ const snapshot = decodeSignalGardenSnapshot({
       retrieved_at: "2026-06-14T08:00:00.000Z",
     },
   },
+  support_case: {
+    reference: "route:support:7-1",
+    category: "workflow",
+    severity: "medium",
+    status: "open",
+    sentiment_score: -0.22,
+    unresolved_at: "2026-06-14T08:00:00.000Z",
+    evidence: {
+      evidence_key: "route:support:7-1",
+      source_system: "test",
+      source_tool: "test",
+      retrieved_at: "2026-06-14T08:00:00.000Z",
+    },
+  },
+  clarification_permission: {
+    allow_recovery_outreach: true,
+    evidence: {
+      evidence_key: "route:preference:2",
+      source_system: "test",
+      source_tool: "test",
+      retrieved_at: "2026-06-14T08:00:00.000Z",
+    },
+  },
 });
 
 describe("Recovery Room live boundary", () => {

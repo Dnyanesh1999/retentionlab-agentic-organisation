@@ -42,6 +42,19 @@ const snapshot = decodeSignalGardenSnapshot({
     unit: "percent",
     evidence: { evidence_key: "test:seats", source_system: "test", source_tool: "test", retrieved_at: "2026-08-05T20:00:00.000Z" },
   },
+  support_case: {
+    reference: "test:support:state:1-1",
+    category: "workflow",
+    severity: "medium",
+    status: "open",
+    sentiment_score: -0.3,
+    unresolved_at: "2026-08-05T20:00:00.000Z",
+    evidence: { evidence_key: "test:support:state:1-1", source_system: "test", source_tool: "test", retrieved_at: "2026-08-05T20:00:00.000Z" },
+  },
+  clarification_permission: {
+    allow_recovery_outreach: true,
+    evidence: { evidence_key: "test:preference:state", source_system: "test", source_tool: "test", retrieved_at: "2026-08-05T20:00:00.000Z" },
+  },
 });
 
 function StateProbe({ client }: { client: SignalGardenEvidenceClient }) {

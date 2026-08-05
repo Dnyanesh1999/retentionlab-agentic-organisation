@@ -28,6 +28,19 @@ function validSnapshot() {
       unit: "percent",
       evidence: evidence("test:seats"),
     },
+    support_case: {
+      reference: "test:support:5-2",
+      category: "workflow",
+      severity: "medium",
+      status: "open",
+      sentiment_score: -0.481,
+      unresolved_at: retrievedAt,
+      evidence: evidence("test:support:5-2"),
+    },
+    clarification_permission: {
+      allow_recovery_outreach: true,
+      evidence: evidence("test:preference"),
+    },
   };
 }
 
@@ -52,5 +65,58 @@ describe("Signal Garden snapshot contract", () => {
     candidate.signals[0]!.evidence.retrieved_at = "not-a-timestamp";
 
     expect(() => decodeSignalGardenSnapshot(candidate)).toThrow();
+  });
+
+  it("accepts an evidence-bound open workflow support case and clarification permission", () => {
+    const result = decodeSignalGardenSnapshot(validSnapshot());
+
+    expect(result.support_case.reference).toBe("test:support:5-2");
+    expect(result.support_case.severity).toBe("medium");
+    expect(result.support_case.status).toBe("open");
+    expect(result.support_case.sentiment_score).toBe(-0.481);
+    expect(result.support_case.evidence.evidence_key).toBe("test:support:5-2");
+    expect(result.clarification_permission.allow_recovery_outreach).toBe(true);
+    expect(result.clarification_permission.evidence.evidence_key).toBe("test:preference");
+  });
+
+  it("rejects a support case whose reference does not match its bound evidence key", () => {
+    const candidate = validSnapshot();
+    candidate.support_case.evidence.evidence_key = "test:support:different";
+
+    expect(() => decodeSignalGardenSnapshot(candidate)).toThrow(
+      /reference must match its bound evidence key/,
+    );
+  });
+
+  it("fails closed on a support case outside the open workflow domain", () => {
+    const wrongDomain = validSnapshot();
+    wrongDomain.support_case.category = "billing";
+    expect(() => decodeSignalGardenSnapshot(wrongDomain)).toThrow();
+
+    const wrongStatus = validSnapshot();
+    wrongStatus.support_case.status = "resolved";
+    expect(() => decodeSignalGardenSnapshot(wrongStatus)).toThrow();
+
+    const wrongSeverity = validSnapshot();
+    wrongSeverity.support_case.severity = "urgent";
+    expect(() => decodeSignalGardenSnapshot(wrongSeverity)).toThrow();
+  });
+
+  it("rejects malformed support case evidence and out-of-range sentiment", () => {
+    const malformedEvidence = validSnapshot();
+    malformedEvidence.support_case.evidence.retrieved_at = "not-a-timestamp";
+    expect(() => decodeSignalGardenSnapshot(malformedEvidence)).toThrow();
+
+    const outOfRange = validSnapshot();
+    outOfRange.support_case.sentiment_score = -4.2;
+    expect(() => decodeSignalGardenSnapshot(outOfRange)).toThrow();
+  });
+
+  it("requires the minimum clarification permission boolean to be present and typed", () => {
+    const missingBoolean = validSnapshot() as Record<string, unknown>;
+    delete (missingBoolean.clarification_permission as Record<string, unknown>)
+      .allow_recovery_outreach;
+
+    expect(() => decodeSignalGardenSnapshot(missingBoolean)).toThrow();
   });
 });

@@ -56,6 +56,29 @@ const snapshot = decodeSignalGardenSnapshot({
       retrieved_at: "2026-04-02T10:00:00.000Z",
     },
   },
+  support_case: {
+    reference: "sentinel:support:canvas:6-2",
+    category: "workflow",
+    severity: "medium",
+    status: "open",
+    sentiment_score: -0.19,
+    unresolved_at: "2026-04-02T10:00:00.000Z",
+    evidence: {
+      evidence_key: "sentinel:support:canvas:6-2",
+      source_system: "test",
+      source_tool: "test",
+      retrieved_at: "2026-04-02T10:00:00.000Z",
+    },
+  },
+  clarification_permission: {
+    allow_recovery_outreach: true,
+    evidence: {
+      evidence_key: "sentinel:preference:canvas",
+      source_system: "test",
+      source_tool: "test",
+      retrieved_at: "2026-04-02T10:00:00.000Z",
+    },
+  },
 });
 
 describe("Signal Garden canvas", () => {
