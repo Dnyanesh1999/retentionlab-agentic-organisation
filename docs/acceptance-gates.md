@@ -65,6 +65,19 @@ Designer's typed predecessor.
 Gate 5 is complete. Gate 6 must begin only from the canonical, integrity-checked
 RecoveryDesignSpecification and its quality-review ledger.
 
+### Gate 6 — Maker / Noor Patel
+
+- [x] Slice 1: runtime-validated Signal Garden snapshot contract
+- [x] Slice 1: determinate Loading state and reduced-motion fallback
+- [x] Slice 1: contract, lineage and accessibility tests
+- [ ] Slice 2: live evidence adapter and loading → ready transition
+- [ ] Slice 3: SignalStrand, SignalCanvas and active inspection
+- [ ] Slice 4: clarification consent flow and persistence boundary
+- [ ] Slice 5: success, declined, error and complete visual/accessibility QA
+
+Gate 6 is in progress. Slice 1 is deliberately not routed because a partial Recovery Room
+must not remain indefinitely loading or substitute fixture evidence for a live source.
+
 ## Gate 9 — orchestration
 
 - [ ] Strict order is enforced

@@ -59,3 +59,12 @@ This log supports the assignment requirement to cite AI-generated content. Exact
 ## Open citation item
 
 The approved Case Theatre image was generated in an earlier Codex design task. Its exact image-generation model identifier and full generation prompt must be copied verbatim from that task transcript into this log before submission; they are intentionally not reconstructed from memory here.
+
+## Entry 007 — Gate 6 concept and two-model architecture review
+
+- Date: 5 August 2026
+- Tools/models: OpenAI Codex, GPT-5 family; built-in OpenAI Image Generation; GitHub Copilot app Auto model selection. Exact provider model identifiers must be copied from task/session exports when available.
+- User prompt: “Lets go bro continue our task and lets have github copilot in our team, add our new project there and continue from where we left off.”
+- AI contribution: connected a dedicated secret-safe RetentionLab repository to GitHub Copilot; generated and corrected the Signal Garden primary-screen concept; asked Copilot for a read-only Plan-mode architecture review; adjudicated its recommendations; implemented the first Maker contract and Loading-state slice.
+- Student responsibility: approve the Signal Garden visual direction and the incremental Maker scope before live evidence is displayed in the Recovery Room.
+- Verification: Copilot worked in isolated worktree `dnyanesh1999-silver-potato`, read seven allow-listed files, modified no repository files and used 2% of the displayed AI-credit quota. Codex did not approve Copilot Autopilot. The saved concept is `design/reference/signal-garden-maker-concept-v1.png`; the separate review/adjudication record is `docs/copilot-review-gate-6-slice-1.md`.
