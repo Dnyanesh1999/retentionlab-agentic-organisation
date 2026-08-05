@@ -5,7 +5,7 @@
 - Work only inside files explicitly named by the task. Do not perform broad refactors or edit another active agent's files.
 - Never read, print, edit, upload or summarize `.env`, `.env.*`, credentials, tokens or secrets. `.env.example` is the only environment file allowed.
 - Do not push, publish, deploy, create pull requests or change external services unless the task explicitly authorizes it.
-- Current implementation stage is Gate 6, Maker. Its source of truth is the canonical Gate 5 RecoveryDesignSpecification and quality-review ledger under `artifacts/gate-5/b921755d-f96a-45f0-bd72-7791ceb13ef7/`.
+- Current implementation stage is Gate 6, Maker. Copilot worktrees must use the reviewed export at `design/specifications/signal-garden-recovery-design.v1.json` and the visual source at `design/reference/signal-garden-maker-concept-v1.png`. The ignored `artifacts/` directory is not a Copilot input.
 - Preserve the existing React 19 + Vite + TypeScript architecture and Case Theatre design system. Use small focused components; keep `App` as composition glue.
 - Never hardcode or invent business evidence in frontend source. Values must arrive through typed runtime boundaries derived from Supabase/MCP evidence.
 - Preserve consent boundaries, customer decline paths, WCAG 2.2 AA behavior and `prefers-reduced-motion` support.

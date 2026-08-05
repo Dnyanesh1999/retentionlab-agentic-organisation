@@ -1,0 +1,414 @@
+{
+  "schema_version": "recovery-design.v1",
+  "stage": "designer",
+  "status": "ready_for_maker",
+  "agent": {
+    "id": "designer",
+    "name": "Luca Moretti",
+    "personality": "cinematic, systems-minded, ethically exacting"
+  },
+  "run_id": "b921755d-f96a-45f0-bd72-7791ceb13ef7",
+  "account_slug": "copper-finch",
+  "source": {
+    "research_schema_version": "research-brief.v1",
+    "research_prompt_version": "researcher.v1.1.0",
+    "research_generated_at": "2026-08-05T11:23:42.395Z",
+    "research_artifact_sha256": "a33ecd0ed9205252650824937aee757f5ecf72ad73cbc8fe77f5ae5efb172cc4"
+  },
+  "inherited_research_constraints": {
+    "priority_outcomes": [
+      "Stabilise or increase feature adoption",
+      "Increase active users count",
+      "Resolve or improve sentiment in open workflow support case"
+    ],
+    "non_negotiables": [
+      "Use only email channel for outreach",
+      "Leverage usage personalisation allowed by preference profile",
+      "Do not infer protected traits or vulnerability",
+      "Do not require knowledge of the exact workflow cause to act"
+    ],
+    "success_signals": [
+      "Month-over-month increase in feature adoption metric",
+      "Month-over-month increase in active users count",
+      "Resolution or sentiment improvement in open workflow support case"
+    ]
+  },
+  "design_thesis": "A spatial email doorway leads to a quiet, inspectable signal garden where customers encounter their account's usage patterns as tangible, non-judgmental strands. By revealing aggregate signals without interpretation, the experience invites reflection and optional clarification, honoring agency while surfacing potential friction through self-paced discovery.",
+  "experience_principles": [
+    {
+      "name": "Evidence Grounding",
+      "rationale": "Every interactive element must bind directly to a cited evidence key, preventing invention or inference beyond the ResearchBrief.",
+      "source_evidence_keys": [
+        "product:copper-finch:feature_adoption:2",
+        "product:copper-finch:active_users:2",
+        "product:copper-finch:session_frequency:2",
+        "product:copper-finch:seat_utilisation:2",
+        "support:copper-finch:2-1",
+        "support:copper-finch:2-2",
+        "billing:copper-finch:invoice:2",
+        "billing:copper-finch:payment:2"
+      ]
+    },
+    {
+      "name": "Consent as Continuity",
+      "rationale": "Email is a doorway, not the experience; any clarification sought in the web experience is optional, purpose-limited, and not persisted without explicit consent.",
+      "source_evidence_keys": [
+        "preference:copper-finch:2"
+      ]
+    },
+    {
+      "name": "Agency Over Persuasion",
+      "rationale": "The design avoids dark patterns, urgency theatre, and forced continuity, instead offering dignified paths to inspect, question, or exit.",
+      "source_evidence_keys": [
+        "preference:copper-finch:2"
+      ]
+    },
+    {
+      "name": "Accessible by Default",
+      "rationale": "Motion, contrast, focus, and reduced motion must meet WCAG 2.2 AA to ensure the experience is usable by all.",
+      "source_evidence_keys": [
+        "preference:copper-finch:2"
+      ]
+    }
+  ],
+  "recovery_concept": {
+    "name": "Signal Garden",
+    "one_line_promise": "Inspect your team's usage signals without pressure, and choose whether to explore workflow clarity.",
+    "interaction_model": "progressive_reveal",
+    "entry_state": "loading_states_and_transitions",
+    "core_moment": "signal_inspection_and_optional_clarification",
+    "exit_state": "dignified_pathways"
+  },
+  "journey": [
+    {
+      "step_id": "step-1",
+      "title": "Email Threshold",
+      "customer_goal": "Recognise a trusted, consent-safe invitation to reflect on usage patterns.",
+      "system_response": "A concise, branded email arrives with subject 'Your Copper signal garden metaphor. The body copy: 'See your signals. The email is a single sentence: Your team's usage signals' and body: 'We've noticed shifts in how your team uses Finch Copper. No action needed—just an open door to inspect your signals if curious. [Open Signal Garden]'. The button links to the Recovery Room with a single-use, non-tracking token.",
+      "source_evidence_keys": [
+        "preference:copper-finch:2"
+      ],
+      "consent_check": "Email outreach is permitted by preference profile; the email contains no persuasion, only an invitation to a self-guided inspection.",
+      "maker_acceptance_criteria": [
+        "Email sent matches approved copy and uses only allowed channel",
+        "Link directs to Recovery Room loading state with valid token",
+        "Email contains no automated sequence triggers or secondary calls to action"
+      ]
+    },
+    {
+      "step_id": "step-2",
+      "title": "Loading State",
+      "customer_goal": "Understand that the experience is preparing their personal signal garden.",
+      "system_response": "The Recovery Room loads with a soft-focus background of growing lines. A circular progress indicator shows 'Preparing your signal garden...' with ARIA label 'Loading signal garden, please wait'. No decorative animation plays; motion is limited to the determinate progress bar.",
+      "source_evidence_keys": [
+        "preference:copper-finch:2"
+      ],
+      "consent_check": "No customer data is accessed or displayed yet; the state is purely presentational.",
+      "maker_acceptance_criteria": [
+        "Component renders with role='progressbar' and aria-valuetext",
+        "No infinite loops or autoplay animation",
+        "Reduced-motion media query replaces progress bar with static text 'Loading...'"
+      ]
+    },
+    {
+      "step_id": "step-3",
+      "title": "Ready State",
+      "customer_goal": "Orient to the signal garden and understand what can be inspected.",
+      "system_response": "The interface resolves into a calm 2D canvas. Three signal strands appear: Feature Adoption (41.04% → 29.08%), Active Users (141 → 120), Session Frequency (3.77 → 4.85). Each strand is a horizontal bar with labelled current and previous values, sourced directly from evidence. Seat Utilisation (75.95%) appears as a standalone signal card. A subtle hint reads: 'Inspect any signal to learn more. No action required.' Focus proceeds through the canvas, then to the persistent exit and page navigation.",
+      "source_evidence_keys": [
+        "product:copper-finch:feature_adoption:2",
+        "product:copper-finch:active_users:2",
+        "product:copper-finch:session_frequency:2",
+        "product:copper-finch:seat_utilisation:2"
+      ],
+      "consent_check": "All displayed values are direct citations from evidence; no interpretation or aggregation beyond what is provided.",
+      "maker_acceptance_criteria": [
+        "Each signal strand binds to its evidence key and shows exact values",
+        "Seat utilisation card displays only the cited percentage",
+        "Focus order is logical and continues to the persistent exit and page navigation",
+        "Contrast ratios meet WCAG 2.2 AA for text and interactive elements"
+      ]
+    },
+    {
+      "step_id": "step-4",
+      "title": "Active Inspection",
+      "customer_goal": "Examine a signal's detail and optionally seek clarification about workflow friction.",
+      "system_response": "When a signal strand receives focus (via click, keyboard, or screen reader), it expands to reveal a tooltip: 'This shows change over the last 30 days. Values come from your account snapshot.' For the open support case, a separate inspectable element appears: 'One open medium-severity workflow support case exists (case reference: support:copper-finch:2-1). Sentiment: -0.267 (negative). Unresolved as of 2026-07-27.' A button labelled 'Clarify workflow friction?' appears below inspected signals. If",
+      "source_evidence_keys": [
+        "product:copper-finch:feature_adoption:2",
+        "product:copper-finch:active_users:2",
+        "product:copper-finch:session_frequency:2",
+        "support:copper-finch:2-1"
+      ],
+      "consent_check": "The clarification request is optional, purpose-limited to understanding workflow friction, and not persisted without explicit consent in a later step.",
+      "maker_acceptance_criteria": [
+        "Expanded view shows exact citation and values from evidence",
+        "Support case element displays only the cited case reference, sentiment, and date",
+        "Clarification button is not pre-selected and requires explicit action",
+        "No data is stored or transmitted upon button focus alone"
+      ]
+    },
+    {
+      "step_id": "step-5",
+      "title": "Clarification Choice",
+      "customer_goal": "Decide whether to share a workflow observation to help improve the product.",
+      "system_response": "If the customer activates the 'Clarify workflow friction?' button, a modal appears: 'Help us understand: Is there a specific workflow step where things feel stuck? Your response is optional and will not be used beyond improving this signal garden.' With fields: 'Optional observation (text area)' and buttons ['Share observation', 'Not now']. Choosing 'Share observation' sends the observation to a consent-logged endpoint; 'Not now' closes the modal. The modal traps focus and announces its purpose.",
+      "source_evidence_keys": [
+        "support:copper-finch:2-1",
+        "preference:copper-finch:2"
+      ],
+      "consent_check": "The observation is explicitly optional, not required to proceed, and bound to the support case evidence as its subject domain. Persistence only occurs with explicit 'Share observation' action.",
+      "maker_acceptance_criteria": [
+        "Modal has role='dialog' and aria-modal='true'",
+        "Observation field is not required and has no default value",
+        "'Share observation' button triggers API call only on explicit click",
+        "'Not now' button dismisses modal without side effects",
+        "Reduced-motion media query disables modal animation"
+      ]
+    },
+    {
+      "step_id": "step-6",
+      "title": "Success State",
+      "customer_goal": "Feel acknowledged for engaging with their signals, regardless of outcome.",
+      "system_response": "After inspecting signals or closing the clarification modal, a banner appears: 'Thank you for exploring your signal garden. Your team's patterns are yours to act on—or not.' The banner has ARIA status 'info' and fades out after 5 seconds unless reduced motion is preferred. No further action is suggested.",
+      "source_evidence_keys": [
+        "preference:copper-finch:2"
+      ],
+      "consent_check": "The message acknowledges agency and does not imply a recommended path or create obligation.",
+      "maker_acceptance_criteria": [
+        "Banner has role='status' and aria-live='polite'",
+        "Message contains no persuasion, urgency, or next-step suggestion",
+        "Banner respects reduced-motion preferences with static fallback"
+      ]
+    }
+  ],
+  "content_architecture": [
+    {
+      "region_id": "signal-canvas",
+      "label": "Main inspection area",
+      "purpose": "Displays aggregate signal strands and support case as inspect-only objects",
+      "priority": "primary"
+    },
+    {
+      "region_id": "clarification-modal",
+      "label": "Optional workflow clarification",
+      "purpose": "Captures purpose-limited, consent-gated observation about workflow friction",
+      "priority": "secondary"
+    },
+    {
+      "region_id": "acknowledgment-banner",
+      "label": "Post-interaction acknowledgment",
+      "purpose": "Thanks customer for engagement without prescribing action",
+      "priority": "secondary"
+    }
+  ],
+  "consent_design": {
+    "inherited_allowed_channels": [
+      "email"
+    ],
+    "inherited_prohibited_actions": [
+      "SMS outreach",
+      "phone calls",
+      "push notifications without consent"
+    ],
+    "permission_moments": [
+      {
+        "moment": "Email outreach",
+        "customer_control": "Opt-in via preference profile; email is a one-way invitation",
+        "decline_path": "Do not engage with email; no further contact implied"
+      },
+      {
+        "moment": "Workflow clarification request",
+        "customer_control": "Explicit button activation required to enter modal",
+        "decline_path": "'Not now' button or modal dismiss via escape/overlay click"
+      },
+      {
+        "moment": "Observation sharing",
+        "customer_control": "Explicit 'Share observation' button click",
+        "decline_path": "'Not now' button or modal dismiss"
+      }
+    ],
+    "additional_safety_patterns": [
+      "All captured data is ephemeral unless explicit consent is given for sharing observation",
+      "No data from signal inspection is stored or used for profiling",
+      "The experience never infers causality between signals or suggests diagnostic conclusions"
+    ]
+  },
+  "accessibility_requirements": {
+    "target": "WCAG 2.2 AA",
+    "keyboard": [
+      "Tab and Shift+Tab navigate between signal strands, clarification button, and modal controls",
+      "Enter/Space activates focused button or expands signal strand",
+      "Escape closes modal and returns focus to trigger",
+      "Arrow keys navigate within modal form fields in clarification modal"
+    ],
+    "screen_reader": [
+      "All signal strands have role='img' with aria-label describing the signal and its values",
+      "Clarification button has accessible name 'Clarify workflow friction?'",
+      "Modal has role='dialog', aria-labelledby, and aria-describedby",
+      "Live regions use aria-live='polite' for status updates",
+      "Images of signals use meaningful text alternatives; no reliance on color alone"
+    ],
+    "visual": [
+      "Minimum contrast ratio 4.5:1 for text, 3:1 for UI components",
+      "Focus indicators are visible and have 2px solid outline in brand color",
+      "Text scales to 200% without loss of content or function",
+      "Color is never used as the sole means of conveying information"
+    ],
+    "reduced_motion": [
+      "Respects prefers-reduced-motion: replaces all non-essential animation with static states",
+      "Progress bar becomes static text 'Loading...'",
+      "Modal and banner appear without transition",
+      "Signal expansion is instant without animation"
+    ]
+  },
+  "motion_language": {
+    "intent": "Motion communicates causality and state change, never decoration",
+    "transitions": [
+      "Entry: determinate progress bar to signal canvas (no loop)",
+      "Focus: signal strand expands to show detail (causality: user action reveals information)",
+      "Choice: clarification modal appears with scale-fade (state: optional interaction initiated)",
+      "Exit: acknowledgment banner fades or appears static (state: interaction complete)"
+    ],
+    "reduced_motion_fallback": "All motion-triggered changes become instant state shifts; no animation plays"
+  },
+  "measurement_plan": [
+    {
+      "signal": "Month-over-month increase in feature adoption metric",
+      "interpretation": "An increase suggests the recovery experience may have encouraged re-engagement with underutilised features.",
+      "source_success_signal": "Month-over-month increase in feature adoption metric",
+      "guardrail": "No individual user tracking; metric remains account-level aggregate"
+    },
+    {
+      "signal": "Month-over-month increase in active users count",
+      "interpretation": "An increase suggests the experience may have supported broader team re-engagement.",
+      "source_success_signal": "Month-over-month increase in active users count",
+      "guardrail": "No individual user tracking; metric remains account-level aggregate"
+    },
+    {
+      "signal": "Resolution or sentiment improvement in open workflow support case",
+      "interpretation": "Resolution or sentiment improvement suggests the clarification interaction may have surfaced actionable feedback.",
+      "source_success_signal": "Resolution or sentiment improvement in open workflow support case",
+      "guardrail": "No case details are stored; observation sharing is explicit and purpose-limited"
+    }
+  ],
+  "risks_and_mitigations": [
+    {
+      "risk": "Customer may perceive signal inspection as judgment despite neutral framing",
+      "mitigation": "Signal strands are labelled as observational data with explicit 'No action required' messaging; tone is curious, not corrective.",
+      "escalation_trigger": "If qualitative feedback indicates perceived judgment, pause and revisit tone."
+    },
+    {
+      "risk": "Optional clarification could feel like a soft sell",
+      "mitigation": "Clarification request is framed as helping improve the signal garden itself, not the product; observation field is optional and not required to proceed.",
+      "escalation_trigger": "If customers report feeling pressured, remove or rephrase the clarification prompt."
+    }
+  ],
+  "maker_handoff": {
+    "build_order": [
+      "Create SignalStrand component to render cited aggregate signals with current/previous values",
+      "Build SignalCanvas to layout strands and seat utilisation card with logical tab order",
+      "Implement LoadingState with determinate progress bar and reduced-motion fallback",
+      "Develop ReadyState to initialize canvas with evidence-bound signals",
+      "Add ActiveInspection logic to expand strands and show support case detail on focus",
+      "Create ClarificationModal with optional observation field and explicit consent actions",
+      "Implement SuccessState with acknowledgment banner and polite live region",
+      "Wire state transitions: loading → ready → active → (clarification optional) → success/declined/error",
+      "Apply WCAG 2.2 AA contrast, focus, keyboard, and screen-reader standards",
+      "Validate all data bindings cite exact evidence keys and values"
+    ],
+    "reusable_components": [
+      "SignalStrand",
+      "SignalCanvas",
+      "LoadingState",
+      "ReadyState",
+      "ActiveInspection",
+      "ClarificationModal",
+      "SuccessState",
+      "DeclinedState",
+      "ErrorState",
+      "ReducedMotionState"
+    ],
+    "interaction_states": [
+      "loading",
+      "ready",
+      "active",
+      "success",
+      "declined",
+      "error",
+      "reduced_motion"
+    ],
+    "data_bindings": [
+      {
+        "field_path": "feature_adoption.current_value",
+        "evidence_key": "product:copper-finch:feature_adoption:2",
+        "display_purpose": "Shows the 29.08% current value from the cited record"
+      },
+      {
+        "field_path": "feature_adoption.previous_value",
+        "evidence_key": "product:copper-finch:feature_adoption:2",
+        "display_purpose": "Shows the 41.04% previous value from the cited record"
+      },
+      {
+        "field_path": "active_users.current_value",
+        "evidence_key": "product:copper-finch:active_users:2",
+        "display_purpose": "Shows the 120 current value from the cited record"
+      },
+      {
+        "field_path": "active_users.previous_value",
+        "evidence_key": "product:copper-finch:active_users:2",
+        "display_purpose": "Shows the 141 previous value from the cited record"
+      },
+      {
+        "field_path": "session_frequency.current_value",
+        "evidence_key": "product:copper-finch:session_frequency:2",
+        "display_purpose": "Shows the 4.85 current value from the cited record"
+      },
+      {
+        "field_path": "session_frequency.previous_value",
+        "evidence_key": "product:copper-finch:session_frequency:2",
+        "display_purpose": "Shows the 3.77 previous value from the cited record"
+      },
+      {
+        "field_path": "seat_utilisation.value",
+        "evidence_key": "product:copper-finch:seat_utilisation:2",
+        "display_purpose": "Shows the 75.95% value from the cited record"
+      },
+      {
+        "field_path": "support_case.reference",
+        "evidence_key": "support:copper-finch:2-1",
+        "display_purpose": "Shows the case reference from the cited record"
+      },
+      {
+        "field_path": "support_case.sentiment",
+        "evidence_key": "support:copper-finch:2-1",
+        "display_purpose": "Shows the -0.267 sentiment value from the cited record"
+      },
+      {
+        "field_path": "support_case.status",
+        "evidence_key": "support:copper-finch:2-1",
+        "display_purpose": "Shows the 'unresolved as of 2026-07-27' status from the cited record"
+      }
+    ],
+    "acceptance_tests": [
+      ".render('LoadingState') shows progress bar with aria-valuetext",
+      ".render('ReadyState') displays three signal strands with exact values from evidence",
+      ".focus('SignalStrand[feature-adoption]') expands to show tooltip with citation",
+      ".click('Clarify workflow friction?') opens modal with optional observation field",
+      ".click('Share observation') in modal triggers consent-logged API call",
+      ".click('Not now') or escape closes modal without side effects",
+      ".render('SuccessState') shows acknowledgment banner with role='status'",
+      "All text meets 4.5:1 contrast; UI components meet 3:1",
+      "Tab order continues from the canvas to the persistent exit and page navigation",
+      "Reduced-motion media query replaces animation with static states",
+      "No data binding uses evidence key outside its semantic domain (e.g., no binding billing data to feature adoption)"
+    ]
+  },
+  "provenance": {
+    "provider": "openrouter",
+    "requested_model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "resolved_model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "prompt_version": "designer.v1.6.0",
+    "generated_at": "2026-08-05T14:21:19.845Z"
+  }
+}
