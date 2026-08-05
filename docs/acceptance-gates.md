@@ -70,13 +70,14 @@ RecoveryDesignSpecification and its quality-review ledger.
 - [x] Slice 1: runtime-validated Signal Garden snapshot contract
 - [x] Slice 1: determinate Loading state and reduced-motion fallback
 - [x] Slice 1: contract, lineage and accessibility tests
-- [ ] Slice 2: live evidence adapter and loading → ready transition
+- [x] Slice 2: live evidence adapter and loading → ready/error transition
 - [ ] Slice 3: SignalStrand, SignalCanvas and active inspection
 - [ ] Slice 4: clarification consent flow and persistence boundary
 - [ ] Slice 5: success, declined, error and complete visual/accessibility QA
 
-Gate 6 is in progress. Slice 1 is deliberately not routed because a partial Recovery Room
-must not remain indefinitely loading or substitute fixture evidence for a live source.
+Gate 6 is in progress. Slices 1–2 are deliberately not routed because a partial Recovery Room
+must not expose an unfinished ready surface or substitute fixture evidence for a live source.
+The deployed evidence gateway, strict adapter and tested state boundary are ready for Slice 3.
 
 ## Gate 9 — orchestration
 

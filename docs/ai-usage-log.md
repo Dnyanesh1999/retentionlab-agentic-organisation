@@ -68,3 +68,12 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
 - AI contribution: connected a dedicated secret-safe RetentionLab repository to GitHub Copilot; generated and corrected the Signal Garden primary-screen concept; asked Copilot for a read-only Plan-mode architecture review; adjudicated its recommendations; implemented the first Maker contract and Loading-state slice.
 - Student responsibility: approve the Signal Garden visual direction and the incremental Maker scope before live evidence is displayed in the Recovery Room.
 - Verification: Copilot worked in isolated worktree `dnyanesh1999-silver-potato`, read seven allow-listed files, modified no repository files and used 2% of the displayed AI-credit quota. Codex did not approve Copilot Autopilot. The saved concept is `design/reference/signal-garden-maker-concept-v1.png`; the separate review/adjudication record is `docs/copilot-review-gate-6-slice-1.md`.
+
+## Entry 008 — Gate 6 live evidence boundary review
+
+- Date: 5 August 2026
+- Tools/models: OpenAI Codex, GPT-5 family; GitHub Copilot app Auto model selection. Exact provider model identifiers must be copied from task/session exports when available.
+- User prompt: “lets get continue make sure you use github copilot to you help side by side”.
+- AI contribution: Copilot independently reviewed the existing Edge Function/MCP boundary and proposed security, cancellation, freshness and no-fallback checks. Codex checked the findings against current Supabase documentation, corrected Copilot's overbroad treatment of publishable keys, implemented the adapter and state boundary, and deployed the browser CORS update.
+- Student responsibility: review the accepted/deferred findings and approve Slice 2 before the visible Signal Garden canvas is implemented.
+- Verification: Copilot worked in isolated worktree `dnyanesh1999-psychic-adventure`, changed no repository files and was not approved for Autopilot. Supabase Edge Function version 2 passed live preflight, cross-origin POST, strict adapter normalization and the existing seven-tool MCP smoke. The adjudication is stored in `docs/copilot-review-gate-6-slice-2.md`.

@@ -37,10 +37,17 @@ const allowedTools = new Set([
 const accountSlugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const evidenceKeyPattern = /^[a-z]+:[a-z0-9-]+:[a-z0-9_-]+(?::[a-z0-9-]+)?$/;
 
+const browserCorsHeaders = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
+  "access-control-allow-methods": "POST, OPTIONS",
+} as const;
+
 function responseJson(body: unknown, status = 200) {
   return Response.json(body, {
     status,
     headers: {
+      ...browserCorsHeaders,
       "cache-control": "no-store, max-age=0",
       "content-type": "application/json; charset=utf-8",
       "x-content-type-options": "nosniff",
@@ -316,6 +323,15 @@ async function invokeTool(tool: string, args: JsonRecord) {
 
 Deno.serve(async (request: Request) => {
   try {
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          ...browserCorsHeaders,
+          "cache-control": "no-store, max-age=0",
+        },
+      });
+    }
     if (request.method !== "POST") throw new GatewayError("Method not allowed", 405);
     requireAllowedCaller(request);
     if (!request.headers.get("content-type")?.toLowerCase().includes("application/json")) {
