@@ -31,6 +31,7 @@
         "npm:@types/react-dom@^19.2.4",
         "npm:@types/react@^19.2.18",
         "npm:@vitejs/plugin-react@^6.0.5",
+        "npm:axe-core@^4.13.0",
         "npm:eslint-plugin-react-hooks@^7.1.1",
         "npm:eslint-plugin-react-refresh@~0.5.3",
         "npm:eslint@^10.8.0",

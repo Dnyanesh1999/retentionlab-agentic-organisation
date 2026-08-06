@@ -15,6 +15,7 @@ export type UseClarificationFlowInput = {
   preferenceEvidenceKey: string;
   client: ClarificationClient | null;
   createRequestId?: () => string;
+  onShared?: (receipt: ClarificationReceipt) => void;
 };
 
 const closedState: ClarificationFlowState = {
@@ -30,6 +31,7 @@ export function useClarificationFlow({
   preferenceEvidenceKey,
   client,
   createRequestId = () => crypto.randomUUID(),
+  onShared,
 }: UseClarificationFlowInput) {
   const [state, setState] = useState<ClarificationFlowState>(closedState);
   const requestIdRef = useRef<string | null>(null);
@@ -79,6 +81,7 @@ export function useClarificationFlow({
       }, requestId, controller.signal);
       requestIdRef.current = null;
       setState({ status: "shared", observation: "", error: null, receipt });
+      onShared?.(receipt);
     } catch {
       if (!controller.signal.aborted) {
         setState({
@@ -92,7 +95,7 @@ export function useClarificationFlow({
       submittingRef.current = false;
       if (controllerRef.current === controller) controllerRef.current = null;
     }
-  }, [accountSlug, client, createRequestId, preferenceEvidenceKey, state, supportEvidenceKey]);
+  }, [accountSlug, client, createRequestId, onShared, preferenceEvidenceKey, state, supportEvidenceKey]);
 
   return {
     available: client !== null,

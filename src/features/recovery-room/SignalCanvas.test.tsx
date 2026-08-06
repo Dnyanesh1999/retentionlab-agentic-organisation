@@ -147,6 +147,13 @@ describe("Signal Garden canvas", () => {
     await user.click(screen.getByRole("button", { name: "Clarify workflow friction?" }));
     await user.click(screen.getByRole("button", { name: "Not now" }));
     expect(share).not.toHaveBeenCalled();
+    expect(screen.getByRole("status")).toHaveAttribute("data-outcome", "declined");
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Thank you for exploring your signal garden. Your team's patterns are yours to act on—or not.",
+    );
+    await waitFor(() => expect(
+      screen.getByRole("button", { name: "Clarify workflow friction?" }),
+    ).toHaveFocus());
 
     await user.click(screen.getByRole("button", { name: "Clarify workflow friction?" }));
     await user.click(screen.getByRole("button", { name: "Share observation" }));
@@ -158,6 +165,40 @@ describe("Signal Garden canvas", () => {
       preference_evidence_key: "sentinel:preference:canvas",
       observation: null,
     });
+    await waitFor(() => expect(screen.getByRole("status")).toHaveAttribute(
+      "data-outcome",
+      "shared",
+    ));
+    expect(screen.queryByRole("button", { name: "Clarify workflow friction?" })).not.toBeInTheDocument();
+  });
+
+  it("keeps a failed Share in the dialog with the draft intact and no acknowledgment", async () => {
+    const user = userEvent.setup();
+    const share = vi.fn<ClarificationClient["share"]>().mockRejectedValue(new Error("offline"));
+
+    render(<SignalCanvas snapshot={snapshot} clarificationClient={{ share }} />);
+    await user.click(screen.getByRole("button", { name: "Clarify workflow friction?" }));
+    await user.type(screen.getByRole("textbox"), "The export step feels stuck.");
+    await user.click(screen.getByRole("button", { name: "Share observation" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Observation not shared. Your text is still here.",
+    );
+    expect(screen.getByRole("textbox")).toHaveValue("The export step feels stuck.");
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("acknowledges a completed signal inspection without adding a next step", async () => {
+    const user = userEvent.setup();
+    render(<SignalCanvas snapshot={snapshot} reducedMotion />);
+    const adoption = screen.getByRole("button", { name: /Feature adoption:/ });
+
+    await user.click(adoption);
+    await user.keyboard("{Escape}");
+
+    expect(screen.getByRole("status")).toHaveAttribute("data-outcome", "inspected");
+    expect(screen.getByRole("status")).toHaveAttribute("data-reduced-motion", "true");
+    expect(screen.getByRole("link", { name: "Exit signal garden" })).toBeInTheDocument();
   });
 
   it("does not offer clarification without both live permission and a capability client", () => {

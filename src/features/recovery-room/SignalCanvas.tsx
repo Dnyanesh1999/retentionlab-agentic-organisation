@@ -1,7 +1,11 @@
 import { ArrowUpRight, LogOut, Sprout, UsersRound } from "lucide-react";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { HashLink } from "../../components/HashLink";
+import {
+  AcknowledgmentBanner,
+  type AcknowledgmentOutcome,
+} from "./AcknowledgmentBanner";
 import { ClarificationDialog } from "./ClarificationDialog";
 import type { ClarificationClient } from "./clarificationClient";
 import type { SignalGardenSnapshot, SignalReading } from "./contracts";
@@ -25,11 +29,23 @@ export type SignalCanvasProps = {
   reducedMotion?: boolean;
 };
 
+type AcknowledgmentState = {
+  outcome: AcknowledgmentOutcome;
+  sequence: number;
+};
+
 export function SignalCanvas({ snapshot, clarificationClient = null, reducedMotion }: SignalCanvasProps) {
   const [expandedSignal, setExpandedSignal] = useState<SignalReading["code"] | null>(null);
   const [supportExpanded, setSupportExpanded] = useState(false);
+  const [acknowledgment, setAcknowledgment] = useState<AcknowledgmentState | null>(null);
+  const acknowledgmentSequence = useRef(0);
   const clarificationTriggerRef = useRef<HTMLButtonElement>(null);
   const readingsByCode = new Map(snapshot.signals.map((reading) => [reading.code, reading]));
+  const showAcknowledgment = useCallback((outcome: AcknowledgmentOutcome) => {
+    acknowledgmentSequence.current += 1;
+    setAcknowledgment({ outcome, sequence: acknowledgmentSequence.current });
+  }, []);
+  const acknowledgeShared = useCallback(() => showAcknowledgment("shared"), [showAcknowledgment]);
   const clarification = useClarificationFlow({
     accountSlug: snapshot.account_slug,
     supportEvidenceKey: snapshot.support_case.evidence.evidence_key,
@@ -37,10 +53,14 @@ export function SignalCanvas({ snapshot, clarificationClient = null, reducedMoti
     client: snapshot.clarification_permission.allow_recovery_outreach
       ? clarificationClient
       : null,
+    onShared: acknowledgeShared,
   });
+
+  const expireAcknowledgment = useCallback(() => setAcknowledgment(null), []);
 
   const dismissClarification = () => {
     clarification.dismiss();
+    showAcknowledgment("declined");
     requestAnimationFrame(() => clarificationTriggerRef.current?.focus());
   };
 
@@ -66,6 +86,7 @@ export function SignalCanvas({ snapshot, clarificationClient = null, reducedMoti
               key={code}
               onExpandedChange={(expanded) => {
                 if (expanded) setSupportExpanded(false);
+                if (!expanded) showAcknowledgment("inspected");
                 setExpandedSignal((current) => {
                   if (expanded) return code;
                   return current === code ? null : current;
@@ -82,6 +103,7 @@ export function SignalCanvas({ snapshot, clarificationClient = null, reducedMoti
           onExpandedChange={(expanded) => {
             setSupportExpanded(expanded);
             if (expanded) setExpandedSignal(null);
+            else showAcknowledgment("inspected");
           }}
           reducedMotion={reducedMotion}
           supportCase={snapshot.support_case}
@@ -101,6 +123,15 @@ export function SignalCanvas({ snapshot, clarificationClient = null, reducedMoti
             <ArrowUpRight aria-hidden="true" strokeWidth={1.6} />
           </button>
         </div>
+      ) : null}
+
+      {acknowledgment ? (
+        <AcknowledgmentBanner
+          key={acknowledgment.sequence}
+          onExpired={expireAcknowledgment}
+          outcome={acknowledgment.outcome}
+          reducedMotion={reducedMotion}
+        />
       ) : null}
 
       <div

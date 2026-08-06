@@ -73,11 +73,12 @@ RecoveryDesignSpecification and its quality-review ledger.
 - [x] Slice 2: live evidence adapter and loading → ready/error transition
 - [x] Slice 3: SignalStrand, SignalCanvas and active inspection
 - [x] Slice 4: clarification consent flow and persistence boundary
-- [ ] Slice 5: success, declined, error and complete visual/accessibility QA
+- [x] Slice 5: success, declined, error and complete visual/accessibility QA
 
-Gate 6 is in progress. Slice 4 is routed with evidence-bound support inspection, capability-gated
-optional clarification, atomic private persistence and live desktop/mobile verification. Slice 5
-owns the post-submit success/declined/error presentation and complete visual/accessibility QA.
+Gate 6 is complete. The Maker now includes evidence-bound inspection, capability-gated optional
+clarification, atomic private persistence, explicit success/declined/error states, reduced-motion
+behavior and complete desktop/mobile visual and accessibility verification. Gate 9 orchestration is
+the next implementation gate; public release remains gated by Gate 10.
 
 ## Gate 9 — orchestration
 

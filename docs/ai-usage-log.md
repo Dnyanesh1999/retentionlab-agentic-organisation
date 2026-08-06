@@ -95,3 +95,12 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
 - AI contribution: Codex generated corrected desktop/mobile clarification concepts, implemented strict consent contracts, the dialog, capability handling, flow integration, private Supabase persistence and live browser QA. Claude independently implemented the support-evidence contract, adapter and expandable strand in an isolated worktree; Codex reviewed and merged commit `a5cc853`. Copilot was assigned a final read-only Slice 4 review after integration.
 - Student responsibility: review the live clarification interaction and approve Slice 4 before the post-submit states and full release QA begin.
 - Verification: the browser discovered and drove correction of a real offset-timestamp adapter defect. Live QA proved that “Not now” left the capability active with no submission, while an empty optional Share consumed it once and stored `NULL` with the exact consent action/version. Copilot's final findings were independently checked; false positives and one Slice 5 visual-regression deferral are recorded in `docs/copilot-review-gate-6-slice-4.md`. Full evidence is in `docs/qa-gate-6-slice-4.md`.
+
+## Entry 011 — Gate 6 acknowledgment and accessibility completion
+
+- Date: 6 August 2026
+- Tools/models: OpenAI Codex, GPT-5 family; built-in OpenAI Image Generation. Exact provider model identifiers must be copied from task/session exports when available.
+- User prompt: “lets move ahead bro”, continuing the approved feature-by-feature Maker delivery.
+- AI contribution: Codex extracted the canonical Slice 5 states, generated desktop/mobile acknowledgment concepts, rejected an initial mobile candidate that invented unsupported metrics, implemented the reusable botanical status response and outcome wiring, added axe-core accessibility coverage, and completed responsive browser and visual-fidelity QA.
+- Student responsibility: review and approve the completed Maker interaction before Gate 9 orchestration begins.
+- Verification: exact-copy, five-second expiry, static reduced-motion, declined focus return, successful-trigger removal and failed-share draft preservation tests passed. The complete suite passed 114 Vitest tests, four Deno tests, two data-invariant tests, typecheck, lint and production build. Rendered contrast, 390 px mobile containment and 200%-equivalent reflow are recorded in `docs/qa-gate-6-slice-5.md`.
