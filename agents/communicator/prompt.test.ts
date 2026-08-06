@@ -13,8 +13,11 @@ describe("Communicator prompt", () => {
   });
 
   it("passes the complete Maker artefact into the task", () => {
-    const task = buildCommunicatorTask(makeCommunicatorInput());
+    const input = makeCommunicatorInput();
+    const task = buildCommunicatorTask(input);
     expect(task).toContain("RecoveryRoomArtefact");
     expect(task).toContain("maker.v1.1.0");
+    expect(task).toContain("byte-for-byte");
+    expect(task).toContain(input.recovery_room_artifact.communicator_handoff.supported_claims[0]!.claim);
   });
 });

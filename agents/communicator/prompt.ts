@@ -38,11 +38,15 @@ export function buildCommunicatorTask(
   input: CommunicatorInput,
   revision?: { validation_error: string; previous_output: string },
 ) {
+  const exactSourceClaims = input.recovery_room_artifact.communicator_handoff.supported_claims
+    .map((item) => item.claim);
   const sections = [
     "Create the CommunicationPlan from this validated RecoveryRoomArtefact predecessor:",
     JSON.stringify(input),
     "Return the communication draft. Runtime-owned identity, lineage and inherited boundaries will be sealed after validation.",
     "Final copy check: customer-facing strings must contain zero colon-delimited evidence identifiers; audit identifiers belong only in message_claims.evidence_keys.",
+    "For every message_claims[].source_claims entry, COPY one or more strings byte-for-byte from this exact allow-list. Public message text may be rewritten, but source_claims is an audit field and must never be paraphrased:",
+    JSON.stringify(exactSourceClaims, null, 2),
   ];
   if (revision) sections.push(
     "Your previous output failed deterministic validation. Correct only the reported defect:",

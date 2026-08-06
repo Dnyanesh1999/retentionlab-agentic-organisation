@@ -31,7 +31,11 @@ export function assertCommunicatorIntegrity(input: CommunicatorInput, plan: Comm
   for (const message of plan.message_claims) {
     const citedClaims = message.source_claims.map((claim) => {
       const source = sourceClaims.get(claim);
-      if (!source) throw new Error("Communicator cited a claim absent from the Maker handoff.");
+      if (!source) {
+        throw new Error(
+          `Communicator cited a claim absent from the Maker handoff. Copy source_claims byte-for-byte from this exact allow-list: ${JSON.stringify([...sourceClaims.keys()])}`,
+        );
+      }
       return source;
     });
     const allowedKeys = new Set(citedClaims.flatMap((claim) => claim.source_evidence_keys));

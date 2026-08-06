@@ -1,7 +1,7 @@
 import { OpenRouter } from "@openrouter/sdk";
 import { z } from "zod";
 
-import { communicationDraftSchema, type CommunicatorInput } from "./contracts.js";
+import { COMMUNICATOR_PROMPT_VERSION, communicationDraftSchema, type CommunicatorInput } from "./contracts.js";
 import { buildCommunicatorTask, COMMUNICATOR_SYSTEM_PROMPT } from "./prompt.js";
 
 export type CommunicatorModelResult = { text: string; resolvedModel: string };
@@ -43,7 +43,7 @@ export class OpenRouterCommunicatorModel implements CommunicatorModelAdapter {
             strict: true,
           },
         },
-        metadata: { project: "retentionlab", agent: "communicator", run_id: input.run_id, prompt_version: "communicator.v1.2.0" },
+        metadata: { project: "retentionlab", agent: "communicator", run_id: input.run_id, prompt_version: COMMUNICATOR_PROMPT_VERSION },
       },
     }, {
       timeoutMs: 300_000,

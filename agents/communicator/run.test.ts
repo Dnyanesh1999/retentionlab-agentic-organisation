@@ -33,6 +33,7 @@ describe("Communicator runtime", () => {
     const plan = await runCommunicator({ input, model });
     expect(plan.status).toBe("ready_for_manager");
     expect(revisions[0]).toContain("claim absent from the Maker handoff");
+    expect(revisions[0]).toContain(input.recovery_room_artifact.communicator_handoff.supported_claims[0]!.claim);
   });
 
   it("rejects coercive copy even when its evidence citation is valid", async () => {

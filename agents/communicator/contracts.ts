@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { makerPromptVersionSchema, recoveryRoomArtifactSchema } from "../maker/contracts.js";
 
-export const COMMUNICATOR_PROMPT_VERSION = "communicator.v1.2.0" as const;
+export const COMMUNICATOR_PROMPT_VERSION = "communicator.v1.3.0" as const;
 export const COMMUNICATION_PLAN_SCHEMA_VERSION = "communication-plan.v1" as const;
 
 const evidenceKeySchema = z.string().regex(/^[a-z]+:[a-z0-9-]+:[a-z0-9_-]+(?::[a-z0-9-]+)?$/).max(160);
@@ -91,7 +91,7 @@ export const communicationPlanSchema = communicationDraftSchema.extend({
     provider: z.literal("openrouter"),
     requested_model: z.string().min(1),
     resolved_model: z.string().min(1),
-    prompt_version: z.enum(["communicator.v1.0.0", "communicator.v1.1.0", COMMUNICATOR_PROMPT_VERSION]),
+    prompt_version: z.enum(["communicator.v1.0.0", "communicator.v1.1.0", "communicator.v1.2.0", COMMUNICATOR_PROMPT_VERSION]),
     generated_at: z.string().datetime({ offset: true }),
   }).strict(),
 }).strict();
