@@ -137,8 +137,8 @@ a local lock, and exports a deterministic, source-backed JSON + Markdown transcr
 executable `agent:pipeline` CLI (fresh UUID run or explicit resume). A revision rerun currently **fails
 closed** rather than fabricate applied `required_changes`; that bounded typed path stays unchecked. All
 of this is proven by adversarial Vitest tests with fake agent dependencies — no live model or Supabase
-call is made during implementation. The final checklist item stays **unchecked**: the complete pipeline
-transcript is proven only when Codex performs and reviews the accepted live run. Evidence is in
+call was made during slice implementation. At that point the final checklist item remained unchecked;
+it was subsequently proven by the accepted live run and recovery recorded below. Slice evidence is in
 `docs/qa-gate-9-orchestration-slice-2.md`.
 
 A failed-stage recovery slice adds a bounded, append-only, operator-initiated retry of a run stalled at

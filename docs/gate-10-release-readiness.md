@@ -29,7 +29,7 @@ npm run release:check    # consolidated report -> output/release/gate-10-release
 | Submit a ZIP of the **complete** codebase | **Automated** | `npm run release:zip` builds a `git archive` ZIP (tracked files only) and verifies it. Manifest: `output/release/*.manifest.json`. |
 | Dynamic access verified (not hardcoded/cached) | Implemented | Guard tests across Gates 3–9; assessed live run transcript (Gate 9). |
 | Submit a GitHub Pages URL, reachable ≥8 weeks | **Manual / external — NOT complete** | Build is Pages-ready (`base: "./"`, hash routing, `.nojekyll`, `404.html`, workflow `.github/workflows/deploy-pages.yml`). Enabling Pages, deploying, and keeping it live is the student's action. |
-| **Do not commit any secret/API key/credential** | **Automated** | `npm run release:scan` (repo) and the ZIP verifier both fail closed. Scanner: `scripts/release/secret-scan.mjs` (+ 9 unit tests). Server-only vars are named without values in `.env.example`. |
+| **Do not commit any secret/API key/credential** | **Automated** | `npm run release:scan` (repo) and the ZIP verifier both fail closed. Scanner: `scripts/release/secret-scan.mjs` (+ 10 unit tests). Server-only vars are named without values in `.env.example`. |
 
 ## What to Submit — document section readiness
 
