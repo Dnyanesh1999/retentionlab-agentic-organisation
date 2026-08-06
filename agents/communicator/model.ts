@@ -46,8 +46,8 @@ export class OpenRouterCommunicatorModel implements CommunicatorModelAdapter {
         metadata: { project: "retentionlab", agent: "communicator", run_id: input.run_id, prompt_version: "communicator.v1.2.0" },
       },
     }, {
-      timeoutMs: 120_000,
-      signal: AbortSignal.timeout(120_000),
+      timeoutMs: 300_000,
+      signal: AbortSignal.timeout(300_000),
       retries: {
         strategy: "backoff",
         retryConnectionErrors: true,
