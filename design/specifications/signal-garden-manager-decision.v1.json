@@ -1,0 +1,92 @@
+{
+  "decision": "approve",
+  "executive_summary": "The chain demonstrates genuine cumulative work: ResearchBrief identified declining feature adoption and active users with rising session frequency; RecoveryDesignSpecification transformed this into a consent-safe Signal Garden email experience; RecoveryRoomArtefact implemented the design with evidence-bound signals and optional clarification; CommunicationPlan delivered a proportionate, consent-safe invitation. All stages cite and transform their predecessor rather than restating it.",
+  "rationale": "The chain is coherent, evidence is traceable, and the customer-facing plan is proportionate and consent-safe. Each stage contributes concrete value: ResearchBrief provides observations and hypotheses; Designer creates the Signal Garden thesis and journey; Maker implements the artefact with exact data bindings; Communicator crafts an email invitation that preserves aggregate framing and avoids persuasion. Trust dimensions are satisfied: evidence traceability is explicit via citations; consent and human control are honored through optional, purpose-limited interactions; claim discipline is maintained with no invented or causal claims; accessibility and safety meet WCAG 2.2 AA. The Communicator did not pause the plan for revision, so approval is appropriate.",
+  "chain_assessment": [
+    {
+      "stage": "researcher",
+      "cumulative_contribution": "Provided forensic observations of declining feature adoption (41.04% to 29.08%) and active users (141 to 120) alongside rising session frequency (3.77 to 4.85), identified one open medium-severity workflow support case with negative sentiment, and established consent boundaries permitting email outreach for recovery and personalisation under preference profile.",
+      "concerns": []
+    },
+    {
+      "stage": "designer",
+      "cumulative_contribution": "Transformed research insights into the Signal Garden thesis: a spatial email doorway to an inspectable signal garden where usage patterns are revealed as tangible strands without interpretation, honoring agency through optional clarification and evidence-grounded design principles.",
+      "concerns": []
+    },
+    {
+      "stage": "maker",
+      "cumulative_contribution": "Implemented the Signal Garden artefact with exact evidence bindings for all signals (feature adoption, active users, session frequency, seat utilisation) and the open support case, built inspect-only strands, optional clarification modal with explicit consent, and success banner, all meeting WCAG 2.2 AA accessibility and reduced motion standards.",
+      "concerns": []
+    },
+    {
+      "stage": "communicator",
+      "cumulative_contribution": "Crafted a plain-spoken, evidence-disciplined email invitation that presents aggregate signals as inspect-only objects, clarifies the optional and purpose-limited nature of observation sharing, and includes a transparency section explaining data boundaries and complete decline paths without implied obligation.",
+      "concerns": []
+    }
+  ],
+  "trust_evaluation": {
+    "evidence_traceability": {
+      "status": "pass",
+      "finding": "Every claim in the chain is bound to exact evidence keys from the ResearchBrief, with no invention or calculation beyond cited values; data bindings in the artefact and claims in the communication plan trace directly to source evidence."
+    },
+    "consent_and_human_control": {
+      "status": "pass",
+      "finding": "Email outreach is permitted by preference profile; clarification and observation sharing require explicit user action; all decline paths (non-engagement, 'Not now', modal dismiss) are honored without side effects or follow-up."
+    },
+    "claim_discipline": {
+      "status": "pass",
+      "finding": "All claims describe observable, aggregate signals or case details without inferring causality, vulnerability, or protected traits; no outcome promises, urgency, or persuasion is used."
+    },
+    "accessibility_and_safety": {
+      "status": "pass",
+      "finding": "The artefact implements WCAG 2.2 AA standards for contrast, focus, keyboard navigation, screen-reader access, and reduced motion; the communication plan contains no prohibited channels or urgency/scarcity/fear language."
+    }
+  },
+  "human_review_focus": [
+    "Verify that the email invitation body contains only aggregate-level framing and avoids any personal, individual, diagnostic, or causal language.",
+    "Confirm that all claims in the email and transparency section are traceable to exact source evidence without added interpretation.",
+    "Ensure the CTA is limited to viewing the Signal Garden and free of any request to book, buy, upgrade, call, or share data beyond optional observation sharing.",
+    "Check that the transparency section fully explains why the email was received, the data boundary (account-level observations only), and the complete decline path (email non-engagement, 'Not now' in modal, or modal dismiss) with no implied obligation.",
+    "Validate that no prohibited channels (SMS, phone, push) or urgency/scarcity/fear language appear in the draft."
+  ],
+  "schema_version": "manager-operational-decision.v1",
+  "stage": "manager",
+  "agent": {
+    "id": "manager",
+    "name": "Elias Grant",
+    "personality": "calm, accountable, adversarially constructive"
+  },
+  "run_id": "b921755d-f96a-45f0-bd72-7791ceb13ef7",
+  "account_slug": "copper-finch",
+  "lineage": {
+    "research_brief_sha256": "a33ecd0ed9205252650824937aee757f5ecf72ad73cbc8fe77f5ae5efb172cc4",
+    "design_specification_sha256": "360884592e00ebf6bbf96cc7b77dcf54f5aac6cb3405c53cb3c6c238d4b4dced",
+    "recovery_room_artifact_sha256": "df105e8fa5a14ef2fa1f60746d0b5bc0b5b68150441f8498f0488f8c810868d0",
+    "communication_plan_sha256": "2657c2af9b872cdd39125250861e1955881cb6f3d31a5e2540999243694b198d",
+    "verified_links": {
+      "researcher_to_designer": true,
+      "designer_to_maker": true,
+      "maker_to_communicator": true
+    },
+    "chain_verified": true
+  },
+  "governance": {
+    "human_approval_required": true,
+    "autonomous_external_actions": false,
+    "permitted_next_action": "await_human_approval",
+    "boundaries": [
+      "Never send email, launch a campaign or contact a customer.",
+      "Never publish, deploy or expose any artefact outside this review.",
+      "Never mutate, delete or transfer customer, billing or account data.",
+      "Never self-approve; an approval only clears the chain for a named human decision.",
+      "Never take an autonomous external action; every downstream effect waits for explicit human approval."
+    ]
+  },
+  "provenance": {
+    "provider": "openrouter",
+    "requested_model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "resolved_model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "prompt_version": "manager.v1.1.0",
+    "generated_at": "2026-08-06T14:21:47.949Z"
+  }
+}

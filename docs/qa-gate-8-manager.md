@@ -83,6 +83,11 @@ revision path are unchanged.
 - ESLint and production build: passed.
 - The OpenRouter adapter, config and `agent:manager` CLI mirror the pinned non-streaming provider
   contract used by the earlier agents; no unrelated frontend behaviour was changed.
+- A fresh live `manager.v1.1.0` run passed the output-quality gate and returned `approve` with the
+  complete lineage verified, `human_approval_required = true`, `autonomous_external_actions = false`
+  and `permitted_next_action = await_human_approval`. The accepted decision is preserved at
+  `design/specifications/signal-garden-manager-decision.v1.json`; the earlier defective v1.0 output
+  remains preserved separately as rejected evidence.
 
 Gate 8 does not implement orchestration. Gate 9 sequences the five runtimes, enforces order, resumes
 interrupted runs and propagates the Manager's bounded revisions downstream.
