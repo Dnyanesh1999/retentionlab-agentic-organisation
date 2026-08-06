@@ -9,10 +9,11 @@ import { buildDesignerTask, DESIGNER_SYSTEM_PROMPT } from "./prompt.js";
 
 export type DesignerModelResult = { text: string; resolvedModel: string };
 export type DesignerRevisionFeedback = { validation_error: string; previous_output: string };
+export type DesignerMakerCapabilities = { reusable_components: readonly string[] };
 
 export interface DesignerModelAdapter {
   readonly requestedModel: string;
-  generate(input: DesignerInput, revision?: DesignerRevisionFeedback): Promise<DesignerModelResult>;
+  generate(input: DesignerInput, revision?: DesignerRevisionFeedback, makerCapabilities?: DesignerMakerCapabilities): Promise<DesignerModelResult>;
 }
 
 export class OpenRouterDesignerModel implements DesignerModelAdapter {
@@ -24,7 +25,7 @@ export class OpenRouterDesignerModel implements DesignerModelAdapter {
     this.client = new OpenRouter({ apiKey: configuration.apiKey });
   }
 
-  async generate(input: DesignerInput, revision?: DesignerRevisionFeedback): Promise<DesignerModelResult> {
+  async generate(input: DesignerInput, revision?: DesignerRevisionFeedback, makerCapabilities?: DesignerMakerCapabilities): Promise<DesignerModelResult> {
     const response = await this.client.chat.send({
       appTitle: "RetentionLab Designer",
       appCategories: "education,agent,design",
@@ -32,7 +33,7 @@ export class OpenRouterDesignerModel implements DesignerModelAdapter {
         model: this.requestedModel,
         messages: [
           { role: "system", content: DESIGNER_SYSTEM_PROMPT },
-          { role: "user", content: buildDesignerTask(input, revision) },
+          { role: "user", content: buildDesignerTask(input, revision, makerCapabilities) },
         ],
         stream: false,
         maxCompletionTokens: 8_000,
@@ -52,7 +53,7 @@ export class OpenRouterDesignerModel implements DesignerModelAdapter {
           project: "retentionlab",
           agent: "designer",
           run_id: input.run_id,
-          prompt_version: "designer.v1.7.0",
+          prompt_version: "designer.v1.8.0",
         },
       },
     }, {

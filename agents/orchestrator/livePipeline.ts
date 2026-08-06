@@ -380,6 +380,9 @@ export function createLiveProducers(config: LiveProducersConfig): PipelineProduc
       return runners.runDesigner({
         input: { run_id: ctx.runId, research_brief: brief },
         model: config.models.designer,
+        makerCapabilities: {
+          reusable_components: implementation.component_sources.map((item) => item.contract_component),
+        },
         now: ctx.now,
       });
     },

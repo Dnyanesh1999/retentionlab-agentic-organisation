@@ -9,7 +9,7 @@ import {
   type DesignerInput,
   type RecoveryDesignSpecification,
 } from "./contracts.js";
-import type { DesignerModelAdapter } from "./model.js";
+import type { DesignerMakerCapabilities, DesignerModelAdapter } from "./model.js";
 
 export function hashResearchBrief(brief: DesignerInput["research_brief"]) {
   return createHash("sha256").update(JSON.stringify(brief)).digest("hex");
@@ -139,6 +139,7 @@ export function assertDesignerIntegrity(input: DesignerInput, specification: Rec
 export async function runDesigner(options: {
   input: DesignerInput;
   model: DesignerModelAdapter;
+  makerCapabilities?: DesignerMakerCapabilities;
   now?: () => Date;
 }): Promise<RecoveryDesignSpecification> {
   const input = designerInputSchema.parse(options.input);
@@ -146,7 +147,7 @@ export async function runDesigner(options: {
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= 2; attempt += 1) {
-    const generated = await options.model.generate(input, revision);
+    const generated = await options.model.generate(input, revision, options.makerCapabilities);
     try {
       const rawCandidate = JSON.parse(generated.text) as Record<string, unknown>;
       const rawConsent = typeof rawCandidate.consent_design === "object" && rawCandidate.consent_design !== null
@@ -202,10 +203,12 @@ export async function runDesigner(options: {
         },
         maker_handoff: {
           ...candidate.maker_handoff,
-          reusable_components: normalizeComponentNames(
-            candidate.maker_handoff.reusable_components,
-            candidate.content_architecture,
-          ),
+          reusable_components: options.makerCapabilities
+            ? [...options.makerCapabilities.reusable_components]
+            : normalizeComponentNames(
+              candidate.maker_handoff.reusable_components,
+              candidate.content_architecture,
+            ),
         },
         provenance: {
           provider: "openrouter",

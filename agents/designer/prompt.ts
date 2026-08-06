@@ -81,7 +81,9 @@ export function buildDesignerTask(input: {
     hypotheses: Array<{ supporting_evidence_keys: string[] }>;
     consent_boundaries: { citations: Array<{ evidence_key: string }> };
   };
-}, revision?: { validation_error: string; previous_output: string }) {
+}, revision?: { validation_error: string; previous_output: string }, makerCapabilities?: {
+  reusable_components: readonly string[];
+}) {
   const allowedEvidenceKeys = [...new Set([
     ...input.research_brief.observations.flatMap((item) => item.citations.map((citation) => citation.evidence_key)),
     ...input.research_brief.hypotheses.flatMap((item) => item.supporting_evidence_keys),
@@ -96,6 +98,13 @@ export function buildDesignerTask(input: {
     JSON.stringify(allowedEvidenceKeys, null, 2),
     "Treat the ResearchBrief as immutable. Produce a design transformation, not new research.",
   ];
+  if (makerCapabilities) {
+    task.push(
+      "The reviewed React implementation exposes EXACTLY these reusable components:",
+      JSON.stringify(makerCapabilities.reusable_components, null, 2),
+      "COPY this complete component inventory EXACTLY into maker_handoff.reusable_components. Do not add, rename, or omit a component.",
+    );
+  }
   if (revision) {
     task.push(
       "REVISION REQUIRED: the previous output failed deterministic validation.",

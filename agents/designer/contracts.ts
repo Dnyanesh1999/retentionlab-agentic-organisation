@@ -6,7 +6,7 @@ import {
   researchBriefSchema,
 } from "../researcher/contracts.js";
 
-export const DESIGNER_PROMPT_VERSION = "designer.v1.7.0" as const;
+export const DESIGNER_PROMPT_VERSION = "designer.v1.8.0" as const;
 export const DESIGN_SPEC_SCHEMA_VERSION = "recovery-design.v1" as const;
 export const designerPromptVersionSchema = z.enum([
   "designer.v1.0.0",
@@ -16,6 +16,7 @@ export const designerPromptVersionSchema = z.enum([
   "designer.v1.4.0",
   "designer.v1.5.0",
   "designer.v1.6.0",
+  "designer.v1.7.0",
   DESIGNER_PROMPT_VERSION,
 ]);
 

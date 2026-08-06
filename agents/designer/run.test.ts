@@ -41,6 +41,28 @@ describe("Designer runtime", () => {
     expect(artifact).toMatchObject({ stage: "designer", status: "ready_for_maker" });
   });
 
+  it("seals the reviewed Maker component inventory into the live handoff", async () => {
+    const input = makeDesignerInput();
+    const candidate = makeDesignSpecification(input);
+    candidate.maker_handoff.reusable_components = ["InventedCard", "InventedPanel", "InventedRegion"];
+    const reviewed = ["SignalStrand", "SignalCanvas", "ClarificationModal"];
+    const model: DesignerModelAdapter = {
+      requestedModel: "openrouter/free",
+      generate: async (_input, _revision, capabilities) => {
+        expect(capabilities?.reusable_components).toEqual(reviewed);
+        return { text: JSON.stringify(candidate), resolvedModel: "example/design-free" };
+      },
+    };
+
+    const specification = await runDesigner({
+      input,
+      model,
+      makerCapabilities: { reusable_components: reviewed },
+    });
+    expect(specification.maker_handoff.reusable_components).toEqual(reviewed);
+    expect(specification.provenance.prompt_version).toBe("designer.v1.8.0");
+  });
+
   it("rejects evidence and success metrics absent from the ResearchBrief", async () => {
     const input = makeDesignerInput();
     const candidate = makeDesignSpecification(input);
