@@ -1,0 +1,204 @@
+{
+  "schema_version": "research-brief.v1",
+  "stage": "researcher",
+  "status": "completed",
+  "agent": {
+    "id": "researcher",
+    "name": "Nia Calder",
+    "personality": "forensic, humane, constructively sceptical"
+  },
+  "run_id": "b921755d-f96a-45f0-bd72-7791ceb13ef7",
+  "account_slug": "copper-finch",
+  "brief_summary": "Copper Finch shows declining feature adoption and active users despite rising session frequency and high seat utilisation, with an open medium-severity workflow support case indicating friction. Consent allows email outreach for recovery and personalisation.",
+  "observations": [
+    {
+      "claim": "Feature adoption decreased from 41.04% to 29.08% over the previous 30 days.",
+      "significance": "low",
+      "confidence": 0.9,
+      "citations": [
+        {
+          "evidence_key": "product:copper-finch:feature_adoption:2",
+          "source_tool": "get_account_snapshot",
+          "source_system": "Supabase Postgres",
+          "retrieved_at": "2026-08-05T11:22:51.091Z"
+        }
+      ]
+    },
+    {
+      "claim": "Active users decreased from 141 to 120 over the previous 30 days.",
+      "significance": "low",
+      "confidence": 0.9,
+      "citations": [
+        {
+          "evidence_key": "product:copper-finch:active_users:2",
+          "source_tool": "get_account_snapshot",
+          "source_system": "Supabase Postgres",
+          "retrieved_at": "2026-08-05T11:22:51.091Z"
+        }
+      ]
+    },
+    {
+      "claim": "Session frequency increased from 3.77 to 4.85 sessions per user over the previous 30 days.",
+      "significance": "low",
+      "confidence": 0.9,
+      "citations": [
+        {
+          "evidence_key": "product:copper-finch:session_frequency:2",
+          "source_tool": "get_account_snapshot",
+          "source_system": "Supabase Postgres",
+          "retrieved_at": "2026-08-05T11:22:51.091Z"
+        }
+      ]
+    },
+    {
+      "claim": "Seat utilisation is 75.95% with no prior comparison available.",
+      "significance": "low",
+      "confidence": 0.9,
+      "citations": [
+        {
+          "evidence_key": "product:copper-finch:seat_utilisation:2",
+          "source_tool": "get_account_snapshot",
+          "source_system": "Supabase Postgres",
+          "retrieved_at": "2026-08-05T11:22:51.091Z"
+        }
+      ]
+    },
+    {
+      "claim": "One open medium-severity workflow support case exists with negative sentiment (-0.267), unresolved as of 2026-07-27.",
+      "significance": "low",
+      "confidence": 0.9,
+      "citations": [
+        {
+          "evidence_key": "support:copper-finch:2-1",
+          "source_tool": "get_account_snapshot",
+          "source_system": "Supabase Postgres",
+          "retrieved_at": "2026-08-05T11:22:51.091Z"
+        }
+      ]
+    },
+    {
+      "claim": "One resolved medium-severity workflow support case exists with positive sentiment (0.465), resolved on 2026-07-20.",
+      "significance": "low",
+      "confidence": 0.9,
+      "citations": [
+        {
+          "evidence_key": "support:copper-finch:2-2",
+          "source_tool": "get_account_snapshot",
+          "source_system": "Supabase Postgres",
+          "retrieved_at": "2026-08-05T11:22:51.091Z"
+        }
+      ]
+    },
+    {
+      "claim": "Billing shows two paid events: invoice issued 2026-07-08 (€5,614.80) and payment succeeded 2026-07-11 (€14,461.25), both in EUR.",
+      "significance": "low",
+      "confidence": 0.9,
+      "citations": [
+        {
+          "evidence_key": "billing:copper-finch:invoice:2",
+          "source_tool": "get_account_snapshot",
+          "source_system": "Supabase Postgres",
+          "retrieved_at": "2026-08-05T11:22:51.091Z"
+        },
+        {
+          "evidence_key": "billing:copper-finch:payment:2",
+          "source_tool": "get_account_snapshot",
+          "source_system": "Supabase Postgres",
+          "retrieved_at": "2026-08-05T11:22:51.091Z"
+        }
+      ]
+    },
+    {
+      "claim": "Preference profile permits product email, recovery outreach, and usage personalisation via email under consent lawful basis.",
+      "significance": "low",
+      "confidence": 0.9,
+      "citations": [
+        {
+          "evidence_key": "preference:copper-finch:2",
+          "source_tool": "get_preference_profile",
+          "source_system": "Supabase Postgres",
+          "retrieved_at": "2026-08-05T11:22:52.502Z"
+        }
+      ]
+    }
+  ],
+  "hypotheses": [
+    {
+      "statement": "Declining feature adoption and active users may indicate emerging workflow friction despite increased session frequency.",
+      "confidence": 0.6,
+      "supporting_evidence_keys": [
+        "product:copper-finch:feature_adoption:2",
+        "product:copper-finch:active_users:2",
+        "product:copper-finch:session_frequency:2",
+        "support:copper-finch:2-1"
+      ],
+      "disconfirming_evidence_needed": "Qualitative feedback from users on feature usability or workflow-specific adoption metrics to confirm if friction is causing disengagement."
+    },
+    {
+      "statement": "High seat utilisation (75.95%) with declining active users suggests potential underuse by power users or uneven distribution of engagement.",
+      "confidence": 0.5,
+      "supporting_evidence_keys": [
+        "product:copper-finch:seat_utilisation:2",
+        "product:copper-finch:active_users:2"
+      ],
+      "disconfirming_evidence_needed": "User-level activity logs or engagement segmentation to distinguish between broad disengagement and concentration of use."
+    }
+  ],
+  "consent_boundaries": {
+    "allowed_channels": [
+      "email"
+    ],
+    "prohibited_actions": [
+      "SMS outreach",
+      "phone calls",
+      "push notifications without consent"
+    ],
+    "citations": [
+      {
+        "evidence_key": "preference:copper-finch:2",
+        "source_tool": "get_preference_profile",
+        "source_system": "Supabase Postgres",
+        "retrieved_at": "2026-08-05T11:22:52.502Z"
+      }
+    ]
+  },
+  "unknowns": [
+    "Root cause of declining feature adoption and active users",
+    "Whether session users are the same as active users",
+    "Specific workflow pain points from the open support case"
+  ],
+  "designer_handoff": {
+    "design_challenge": "Create a consent-safe email-based intervention to re-engage users with underutilised features and address potential workflow friction, without requiring diagnosis of the exact cause.",
+    "priority_outcomes": [
+      "Stabilise or increase feature adoption",
+      "Increase active users count",
+      "Resolve or improve sentiment in open workflow support case"
+    ],
+    "non_negotiables": [
+      "Use only email channel for outreach",
+      "Leverage usage personalisation allowed by preference profile",
+      "Do not infer protected traits or vulnerability",
+      "Do not require knowledge of the exact workflow cause to act"
+    ],
+    "success_signals": [
+      "Month-over-month increase in feature adoption metric",
+      "Month-over-month increase in active users count",
+      "Resolution or sentiment improvement in open workflow support case"
+    ]
+  },
+  "provenance": {
+    "provider": "openrouter",
+    "requested_model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "resolved_model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "prompt_version": "researcher.v1.1.0",
+    "generated_at": "2026-08-05T11:23:42.395Z",
+    "tool_calls": [
+      "get_account_snapshot",
+      "list_product_signals",
+      "list_billing_events",
+      "list_support_events",
+      "get_preference_profile"
+    ],
+    "all_sources_no_store": true
+  }
+}
