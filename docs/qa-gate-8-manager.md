@@ -4,7 +4,8 @@ Date: 6 August 2026
 
 Agent: Elias Grant, Manager
 
-Status: complete and ready for Gate 9 orchestration
+Status: prompt `manager.v1.1.0` implemented after the first live decision was rejected; a clean
+`manager.v1.1.0` live run is still required before Gate 8 is accepted for Gate 9 orchestration.
 
 ## Agent boundary
 
@@ -41,7 +42,28 @@ Deterministic validation blocks:
 - an approval of a plan the Communicator paused for revision;
 - an approval that carries a revision directive, or a revise/reject that omits its target and changes;
 - a review that does not assess all four predecessor stages;
-- any attempt to waive human approval or enable an autonomous external action.
+- any attempt to waive human approval or enable an autonomous external action;
+- (new in `manager.v1.1.0`) any narrative field that stops mid-word or mid-sentence, or that carries a
+  CJK or other unexpected glyph.
+
+## Output-quality gate (new in manager.v1.1.0)
+
+The first live decision, `manager.v1.0.0`, was schema-valid and governance-safe but unacceptable: the
+model emitted several `executive_summary`, `chain_assessment` and `human_review_focus` strings that
+stopped mid-word, and one review item leaked a stray CJK glyph. That decision is preserved unmodified
+at `design/specifications/signal-garden-manager-decision.rejected.manager-v1.0.0.json`.
+
+`manager.v1.1.0` is now the current prompt version; `manager.v1.0.0` provenance stays valid only so the
+preserved rejected artefact can still be parsed. The prompt now demands concise, complete sentences
+that finish well below each field limit, and a deterministic `assertOutputQuality` gate runs before a
+decision is sealed. It checks `executive_summary`, `rationale`, every `cumulative_contribution`, every
+trust `finding`, every `human_review_focus` item, and — when present — the revision `reason` and each
+`required_change`. Each must end with sentence punctuation and contain no CJK or other unexpected
+glyph (a small set of common typographic symbols such as the arrow and dashes is allowed). On the first
+defect it throws precise, bounded feedback that names exactly one field, so the model corrects that one
+field within the existing two-attempt revision loop without rewriting the rest. Chain hashing, the
+same-run/same-account and status checks, the human-approval governance and the single-target bounded
+revision path are unchanged.
 
 ## Decision model
 
@@ -52,9 +74,11 @@ Deterministic validation blocks:
 
 ## Verification
 
-- Manager prompt, contracts and runtime: 12 tests passed
-  (broken hashes, mismatched runs, approving a paused plan, human boundary, bounded correction).
-- Full suite: 143 Vitest tests passed.
+- Manager prompt, contracts and runtime: 16 tests passed
+  (broken hashes, mismatched runs, approving a paused plan, human boundary, bounded correction, plus
+  the new adversarial output-quality cases: truncated prose, an unexpected CJK glyph, and a successful
+  bounded single-field correction).
+- Full suite: 147 Vitest tests passed.
 - Agent TypeScript check (`tsc -p tsconfig.agents.json`): passed.
 - ESLint and production build: passed.
 - The OpenRouter adapter, config and `agent:manager` CLI mirror the pinned non-streaming provider

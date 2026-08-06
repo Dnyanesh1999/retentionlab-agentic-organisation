@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { ManagerDecisionDraft } from "./contracts.js";
-import type { ManagerModelAdapter } from "./model.js";
+import type { ManagerModelAdapter, ManagerRevisionFeedback } from "./model.js";
 import { runManager, sha256OfArtifact } from "./run.js";
 import { makeManagerDecisionDraft, makeManagerInput } from "./testFixture.js";
 
@@ -10,6 +10,24 @@ function stubModel(draft: ManagerDecisionDraft, calls?: { count: number }): Mana
     requestedModel: "example/manager-free",
     async generate() {
       if (calls) calls.count += 1;
+      return { text: JSON.stringify(draft), resolvedModel: "example/manager-free" };
+    },
+  };
+}
+
+// Returns each queued draft in turn (repeating the last), recording the revision feedback the
+// runtime hands back so a bounded, single-field correction can be asserted.
+function sequenceModel(
+  drafts: ManagerDecisionDraft[],
+  feedback?: ManagerRevisionFeedback[],
+): ManagerModelAdapter {
+  let index = 0;
+  return {
+    requestedModel: "example/manager-free",
+    async generate(_input, revision) {
+      if (revision && feedback) feedback.push(revision);
+      const draft = drafts[Math.min(index, drafts.length - 1)];
+      index += 1;
       return { text: JSON.stringify(draft), resolvedModel: "example/manager-free" };
     },
   };
@@ -81,5 +99,44 @@ describe("Manager runtime", () => {
     draft.decision = "reject";
     await expect(runManager({ input, model: stubModel(draft) }))
       .rejects.toThrow("must target one stage");
+  });
+
+  it("rejects a schema-valid decision whose prose ends mid-sentence", async () => {
+    const input = makeManagerInput();
+    const truncated = makeManagerDecisionDraft();
+    // Schema-valid length, but the summary stops mid-word exactly like the rejected manager.v1.0.0.
+    truncated.executive_summary =
+      "The four-stage chain is coherent, evidence-traceable and consent-safe, and it is ready for a named human to make the final approval ca";
+    await expect(runManager({ input, model: stubModel(truncated) }))
+      .rejects.toThrow(/executive_summary is not a complete sentence and appears truncated/);
+  });
+
+  it("rejects a decision that leaks an unexpected CJK glyph into a review item", async () => {
+    const input = makeManagerInput();
+    const glyphed = makeManagerDecisionDraft();
+    // Ends with valid punctuation, so only the glyph check can catch the stray character.
+    glyphed.human_review_focus[0] =
+      "Confirm the named human honours every decline path with no implied 义务.";
+    await expect(runManager({ input, model: stubModel(glyphed) }))
+      .rejects.toThrow(/human_review_focus\[0\] contains an unexpected glyph/);
+  });
+
+  it("accepts the decision after a bounded single-field correction of truncated prose", async () => {
+    const input = makeManagerInput();
+    const truncated = makeManagerDecisionDraft();
+    truncated.executive_summary =
+      "The four-stage chain is coherent, evidence-traceable and consent-safe, and it is ready for a named human to make the final approval ca";
+    const feedback: ManagerRevisionFeedback[] = [];
+    const decision = await runManager({
+      input,
+      model: sequenceModel([truncated, makeManagerDecisionDraft()], feedback),
+      now: () => new Date("2026-08-06T04:00:00.000Z"),
+    });
+    expect(decision.decision).toBe("approve");
+    // The correction feedback was bounded to the single offending field.
+    expect(feedback).toHaveLength(1);
+    expect(feedback[0]?.validation_error).toContain("executive_summary");
+    expect(feedback[0]?.validation_error).toContain("complete sentence");
+    expect(decision.provenance.prompt_version).toBe("manager.v1.1.0");
   });
 });

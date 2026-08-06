@@ -8,6 +8,7 @@ import {
   managerDecisionDraftSchema,
   managerInputSchema,
   managerOperationalDecisionSchema,
+  type ManagerDecisionDraft,
   type ManagerInput,
   type ManagerOperationalDecision,
 } from "./contracts.js";
@@ -65,6 +66,85 @@ function downstreamStages(target: ManagerStage): ManagerStage[] {
   return STAGE_ORDER.slice(STAGE_ORDER.indexOf(target) + 1);
 }
 
+// Narrative prose beyond plain English + standard punctuation is treated as an unexpected glyph.
+// The arrow, dashes, ellipsis and curly quotes a careful writer may use are allowed; CJK and other
+// exotic characters (the class that leaked into the rejected manager.v1.0.0 decision) are not.
+const ALLOWED_NON_ASCII = new Set([..."→←↔—–…‘’“”•·×÷°€£"]);
+
+function findUnexpectedGlyph(text: string): string | null {
+  for (const character of text) {
+    const codePoint = character.codePointAt(0) ?? 0;
+    if (codePoint >= 0x20 && codePoint <= 0x7e) continue;
+    if (character === "\n" || character === "\t") continue;
+    if (ALLOWED_NON_ASCII.has(character)) continue;
+    return character;
+  }
+  return null;
+}
+
+// A complete sentence ends with terminal punctuation, allowing a trailing closing quote or bracket.
+function endsAsCompleteSentence(text: string): boolean {
+  const trimmed = text.replace(/\s+$/u, "").replace(/["'”’)\]]+$/u, "");
+  return /[.!?]$/u.test(trimmed);
+}
+
+// Every field the Manager writes as prose, in the deterministic order feedback should report them.
+function narrativeFields(draft: ManagerDecisionDraft): Array<{ label: string; value: string }> {
+  const fields: Array<{ label: string; value: string }> = [
+    { label: "executive_summary", value: draft.executive_summary },
+    { label: "rationale", value: draft.rationale },
+  ];
+  for (const entry of draft.chain_assessment) {
+    fields.push({
+      label: `chain_assessment[${entry.stage}].cumulative_contribution`,
+      value: entry.cumulative_contribution,
+    });
+  }
+  const trust = draft.trust_evaluation;
+  const trustDimensions = [
+    ["evidence_traceability", trust.evidence_traceability],
+    ["consent_and_human_control", trust.consent_and_human_control],
+    ["claim_discipline", trust.claim_discipline],
+    ["accessibility_and_safety", trust.accessibility_and_safety],
+  ] as const;
+  for (const [key, dimension] of trustDimensions) {
+    fields.push({ label: `trust_evaluation.${key}.finding`, value: dimension.finding });
+  }
+  draft.human_review_focus.forEach((item, index) => {
+    fields.push({ label: `human_review_focus[${index}]`, value: item });
+  });
+  if (draft.revision_directive) {
+    fields.push({ label: "revision_directive.reason", value: draft.revision_directive.reason });
+    draft.revision_directive.required_changes.forEach((change, index) => {
+      fields.push({ label: `revision_directive.required_changes[${index}]`, value: change });
+    });
+  }
+  return fields;
+}
+
+// Deterministic output-quality gate: every narrative field must be a complete, plain-English
+// sentence free of unexpected glyphs. On the first defect it throws precise, bounded correction
+// feedback naming exactly one field, so the model can fix that field without rewriting the rest.
+export function assertOutputQuality(draft: ManagerDecisionDraft): void {
+  for (const field of narrativeFields(draft)) {
+    const glyph = findUnexpectedGlyph(field.value);
+    if (glyph) {
+      const code = (glyph.codePointAt(0) ?? 0).toString(16).toUpperCase().padStart(4, "0");
+      throw new Error(
+        `Manager output quality: ${field.label} contains an unexpected glyph "${glyph}" (U+${code}). `
+          + "Rewrite only that field in plain English with standard punctuation; do not emit CJK or other exotic characters.",
+      );
+    }
+    if (!endsAsCompleteSentence(field.value)) {
+      const tail = field.value.replace(/\s+$/u, "").slice(-40);
+      throw new Error(
+        `Manager output quality: ${field.label} is not a complete sentence and appears truncated (ends "…${tail}"). `
+          + "Rewrite only that field as a concise, complete sentence that finishes below its limit and ends with '.', '!' or '?'.",
+      );
+    }
+  }
+}
+
 export function assertDecisionIntegrity(input: ManagerInput, decision: ManagerOperationalDecision) {
   if (decision.governance.human_approval_required !== true) {
     throw new Error("Manager cannot waive the human-approval requirement.");
@@ -119,6 +199,9 @@ export async function runManager(options: {
     const generated = await options.model.generate(input, revision);
     try {
       const draft = managerDecisionDraftSchema.parse(JSON.parse(generated.text) as unknown);
+      // Deterministic output-quality gate before the decision is sealed: reject truncated prose and
+      // unexpected glyphs, routing a bounded single-field correction back to the model.
+      assertOutputQuality(draft);
       const revisionDirective = draft.revision_directive
         ? { ...draft.revision_directive, downstream_stages_to_rerun: downstreamStages(draft.revision_directive.target_stage) }
         : undefined;

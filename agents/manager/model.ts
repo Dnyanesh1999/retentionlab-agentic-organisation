@@ -1,7 +1,7 @@
 import { OpenRouter } from "@openrouter/sdk";
 import { z } from "zod";
 
-import { managerDecisionDraftSchema, type ManagerInput } from "./contracts.js";
+import { MANAGER_PROMPT_VERSION, managerDecisionDraftSchema, type ManagerInput } from "./contracts.js";
 import { buildManagerTask, MANAGER_SYSTEM_PROMPT } from "./prompt.js";
 
 export type ManagerModelResult = { text: string; resolvedModel: string };
@@ -49,7 +49,7 @@ export class OpenRouterManagerModel implements ManagerModelAdapter {
           project: "retentionlab",
           agent: "manager",
           run_id: input.run_id,
-          prompt_version: "manager.v1.0.0",
+          prompt_version: MANAGER_PROMPT_VERSION,
         },
       },
     }, {

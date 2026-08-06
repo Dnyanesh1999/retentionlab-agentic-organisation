@@ -11,6 +11,12 @@ describe("Manager prompt", () => {
     expect(MANAGER_SYSTEM_PROMPT).toContain("accountable judgement");
   });
 
+  it("demands concise, complete sentences with no truncation or unexpected glyphs", () => {
+    expect(MANAGER_SYSTEM_PROMPT).toContain("concise, complete sentences");
+    expect(MANAGER_SYSTEM_PROMPT).toContain("well below its character");
+    expect(MANAGER_SYSTEM_PROMPT).toContain("never emit CJK characters or other unexpected");
+  });
+
   it("passes the complete verified chain into the task and forbids claiming execution", () => {
     const task = buildManagerTask(makeManagerInput());
     expect(task).toContain("complete, runtime-verified artefact chain");

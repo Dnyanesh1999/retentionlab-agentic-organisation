@@ -5,8 +5,12 @@ import { recoveryDesignSpecificationSchema } from "../designer/contracts.js";
 import { recoveryRoomArtifactSchema } from "../maker/contracts.js";
 import { researchBriefSchema } from "../researcher/contracts.js";
 
-export const MANAGER_PROMPT_VERSION = "manager.v1.0.0" as const;
+export const MANAGER_PROMPT_VERSION = "manager.v1.1.0" as const;
 export const MANAGER_DECISION_SCHEMA_VERSION = "manager-operational-decision.v1" as const;
+
+// The current prompt is v1.1.0. v1.0.0 provenance stays valid so the preserved, rejected
+// live decision (manager.v1.0.0) can still be parsed as an archived artefact.
+export const managerPromptVersionSchema = z.enum(["manager.v1.0.0", MANAGER_PROMPT_VERSION]);
 
 const accountSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(80);
 const sha256Schema = z.string().regex(/^[a-f0-9]{64}$/);
@@ -125,7 +129,7 @@ export const managerOperationalDecisionSchema = managerDecisionDraftSchema.exten
     provider: z.literal("openrouter"),
     requested_model: z.string().min(1),
     resolved_model: z.string().min(1),
-    prompt_version: z.enum([MANAGER_PROMPT_VERSION]),
+    prompt_version: managerPromptVersionSchema,
     generated_at: z.string().datetime({ offset: true }),
   }).strict(),
 }).strict();
