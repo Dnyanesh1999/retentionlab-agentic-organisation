@@ -86,3 +86,12 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
 - AI contribution: Claude implemented the isolated inspectable `SignalStrand` and its tests in a dedicated worktree. Codex reviewed and integrated that commit, implemented the live canvas and route, completed responsive styling, diagnosed the browser-only native-fetch binding defect, added the regression assertion and ran final browser/engineering QA.
 - Student responsibility: review the live Signal Garden interaction and approve Slice 3 before the clarification-consent persistence work begins.
 - Verification: Claude's isolated component suite passed before integration. The integrated suite, typecheck, lint, production build, browser preflight, live browser ready state, pointer/Escape interaction and seven-tool MCP smoke passed. The scope and fidelity record is stored in `docs/qa-gate-6-slice-3.md`.
+
+## Entry 010 — Gate 6 clarification consent and persistence
+
+- Date: 5–6 August 2026
+- Tools/models: OpenAI Codex, GPT-5 family; built-in OpenAI Image Generation; Claude Code, Opus 4.8 at High effort; GitHub Copilot app Auto model selection for independent review. Exact provider model identifiers must be copied from task/session exports when available.
+- User prompt: “lets move ahead now together with our team”, continuing the approved feature-by-feature Maker delivery.
+- AI contribution: Codex generated corrected desktop/mobile clarification concepts, implemented strict consent contracts, the dialog, capability handling, flow integration, private Supabase persistence and live browser QA. Claude independently implemented the support-evidence contract, adapter and expandable strand in an isolated worktree; Codex reviewed and merged commit `a5cc853`. Copilot was assigned a final read-only Slice 4 review after integration.
+- Student responsibility: review the live clarification interaction and approve Slice 4 before the post-submit states and full release QA begin.
+- Verification: the browser discovered and drove correction of a real offset-timestamp adapter defect. Live QA proved that “Not now” left the capability active with no submission, while an empty optional Share consumed it once and stored `NULL` with the exact consent action/version. Full evidence is in `docs/qa-gate-6-slice-4.md`.

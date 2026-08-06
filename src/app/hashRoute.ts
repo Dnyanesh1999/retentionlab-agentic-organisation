@@ -7,7 +7,7 @@ export function getHashRoute() {
     return defaultRoute;
   }
 
-  const value = window.location.hash.replace(/^#/, "");
+  const value = window.location.hash.replace(/^#/, "").split("?", 1)[0] ?? "";
   return value.startsWith("/") ? value : defaultRoute;
 }
 
@@ -36,4 +36,3 @@ export function pushHashRoute(path: string) {
   window.history.pushState(null, "", `#${path}`);
   window.dispatchEvent(new HashChangeEvent("hashchange"));
 }
-

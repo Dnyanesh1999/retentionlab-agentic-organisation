@@ -2,18 +2,27 @@ import { RefreshCw, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 
 import { createBrowserSignalGardenEvidenceClient } from "./browserEvidenceClient";
+import { createBrowserClarificationClient } from "./browserClarificationClient";
+import type { ClarificationClient } from "./clarificationClient";
 import type { SignalGardenEvidenceClient } from "./contracts";
 import { LoadingState } from "./LoadingState";
 import { SignalCanvas } from "./SignalCanvas";
 import { useSignalGardenSnapshot } from "./useSignalGardenSnapshot";
+import { consumeRecoveryCapability } from "./recoveryCapability";
 
 export type RecoveryRoomViewProps = {
   accountSlug: string;
   client: SignalGardenEvidenceClient;
+  clarificationClient?: ClarificationClient | null;
   reducedMotion?: boolean;
 };
 
-export function RecoveryRoomView({ accountSlug, client, reducedMotion }: RecoveryRoomViewProps) {
+export function RecoveryRoomView({
+  accountSlug,
+  client,
+  clarificationClient = null,
+  reducedMotion,
+}: RecoveryRoomViewProps) {
   const { state, retry } = useSignalGardenSnapshot(client, accountSlug);
 
   if (state.status === "loading") {
@@ -34,7 +43,13 @@ export function RecoveryRoomView({ accountSlug, client, reducedMotion }: Recover
     );
   }
 
-  return <SignalCanvas snapshot={state.snapshot} reducedMotion={reducedMotion} />;
+  return (
+    <SignalCanvas
+      clarificationClient={clarificationClient}
+      snapshot={state.snapshot}
+      reducedMotion={reducedMotion}
+    />
+  );
 }
 
 type ClientResolution =
@@ -51,6 +66,16 @@ function resolveBrowserClient(): ClientResolution {
 
 export function RecoveryRoomRoute() {
   const [resolution] = useState(resolveBrowserClient);
+  const [clarificationClient] = useState<ClarificationClient | null>(() => {
+    const capability = consumeRecoveryCapability();
+    if (!capability) return null;
+
+    try {
+      return createBrowserClarificationClient(capability);
+    } catch {
+      return null;
+    }
+  });
 
   if (resolution.status === "invalid-configuration") {
     return (
@@ -62,5 +87,11 @@ export function RecoveryRoomRoute() {
     );
   }
 
-  return <RecoveryRoomView accountSlug="copper-finch" client={resolution.client} />;
+  return (
+    <RecoveryRoomView
+      accountSlug="copper-finch"
+      clarificationClient={clarificationClient}
+      client={resolution.client}
+    />
+  );
 }

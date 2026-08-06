@@ -46,7 +46,7 @@ function supportEvent(
     status: "open",
     sentiment_score: -0.512,
     summary: "Automation export step stalls intermittently for the team.",
-    occurred_at: "2026-05-11T09:00:00.000Z",
+    occurred_at: "2026-05-11T09:00:00.000+00:00",
     resolved_at: null,
     source_updated_at: "2026-08-05T19:30:00.000Z",
     source_system: "adapter-test-support",

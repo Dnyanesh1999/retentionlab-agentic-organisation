@@ -41,7 +41,15 @@ No stage can be called successfully when its required predecessor has not passed
 - Vercel API: rate limits, schema validation, orchestration and model calls.
 - MCP server: allow-listed read tools with structured responses and source timestamps.
 - Supabase evidence gateway: deployed Edge Function with a fixed tool allow-list, strict input validation and no cached fallback.
+- Supabase clarification gateway: separate write-only Edge Function with exact-origin CORS, strict
+  payload/receipt contracts, idempotency and a short-lived single-use recovery capability that is
+  removed from the URL before live evidence is rendered.
 - Supabase: fictional records, row-level security, internal secret-key access and no real customer PII.
+
+Clarification records live in a non-exposed `private` schema. Browser roles have no schema, table
+or RPC grants. The Edge Function hashes the capability, and a service-only security-definer RPC
+atomically verifies the current synthetic account, generation run, open medium-severity workflow
+case and recovery-outreach preference before consuming the capability and writing one submission.
 
 ## Frontend information architecture
 

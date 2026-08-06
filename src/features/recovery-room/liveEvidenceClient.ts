@@ -138,6 +138,10 @@ function evidenceReference(
   };
 }
 
+function canonicalTimestamp(value: string) {
+  return new Date(value).toISOString();
+}
+
 function normalizeSnapshot(
   value: unknown,
   requestedSlug: string,
@@ -250,7 +254,7 @@ function normalizeSnapshot(
       severity: supportCase.severity,
       status: supportCase.status,
       sentiment_score: supportCase.sentiment_score,
-      unresolved_at: supportCase.occurred_at,
+      unresolved_at: canonicalTimestamp(supportCase.occurred_at),
       evidence: evidenceReference(supportCase, envelope.source.retrieved_at),
     },
     clarification_permission: {
