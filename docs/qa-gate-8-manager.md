@@ -4,8 +4,8 @@ Date: 6 August 2026
 
 Agent: Elias Grant, Manager
 
-Status: prompt `manager.v1.1.0` implemented after the first live decision was rejected; a clean
-`manager.v1.1.0` live run is still required before Gate 8 is accepted for Gate 9 orchestration.
+Status: accepted. Prompt `manager.v1.1.0` was implemented after the first live decision was rejected,
+and a clean live v1.1 decision passed the deterministic quality gate with human approval still required.
 
 ## Agent boundary
 
