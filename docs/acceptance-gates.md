@@ -117,10 +117,18 @@ runs and propagates the Manager's bounded revisions downstream.
 
 ## Gate 9 — orchestration
 
-- [ ] Strict order is enforced
-- [ ] Interrupted runs resume safely
-- [ ] Manager revisions are versioned and propagate downstream
+- [x] Strict order is enforced
+- [x] Interrupted runs resume safely
+- [x] Manager revisions are versioned and propagate downstream
 - [ ] Complete pipeline transcript proves cumulative work
+
+Slice 1 (deterministic backbone, `agents/orchestrator`) is complete: strict five-stage ordering,
+crash-safe resume by verified event replay, and versioned Manager revision propagation are proven by
+63 adversarial Vitest tests. The Manager seals completion and its validated decision in one atomic
+`manager_decided` event, so no interrupted run can strand a completed-but-undecided Manager — every
+valid persisted prefix resumes without manual repair. This slice makes no live OpenRouter call, so the
+final item — a complete live pipeline transcript — remains open until the five agents are composed
+through this backbone. Evidence is in `docs/qa-gate-9-orchestration-slice-1.md`.
 
 ## Gate 10 — release and assessment
 
