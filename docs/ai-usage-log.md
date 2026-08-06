@@ -122,3 +122,12 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
 - AI contribution: Codex designed Maeve Quinn's prompt/contracts/runtime, implemented exact Maker-claim inheritance and consent-safe communication guards, then ran and reviewed the live stage. A truncated, identifier-leaking first candidate was rejected; two bounded prompt revisions separated public copy from internal audit citations before acceptance.
 - Student responsibility: review the email invitation and Manager decision packet, including whether the aggregate metrics should remain in the final customer copy.
 - Verification: `communicator.v1.2.0` produced a complete email-only plan with a view-only CTA, no automated follow-up and status `ready_for_manager`. Full evidence is in `docs/qa-gate-7-communicator.md`.
+
+## Entry 014 — Gate 8 Manager
+
+- Date: 6 August 2026
+- Tools/models: Claude Code, Opus 4.8, for implementation and verification. Live Manager synthesis uses OpenRouter `nvidia/nemotron-3-super-120b-a12b:free` at run time; the exact resolved model identifier is sealed into each decision's provenance.
+- User prompt: “Implement Gate 8 Manager agent for RetentionLab and commit the completed work… Build agents/manager for Elias Grant, a calm, accountable, adversarially constructive leader.”
+- AI contribution: implemented Elias Grant's versioned `manager.v1.0.0` prompt, the strict complete-chain Zod input and `ManagerOperationalDecision` output contracts, the deterministic runtime that verifies same-run/same-account, required completed statuses and the exact SHA-256 lineage before any model use, the runtime-owned identity/lineage/provenance and fixed human-approval governance, the approve/revise/reject decision path with single-target bounded revisions, the OpenRouter adapter/config/CLI, and the prompt, contract and runtime tests.
+- Student responsibility: review the Manager decision contract and human-approval boundary, and confirm that no approval path can send a message, publish, mutate customer data or bypass a human before Gate 9 orchestration begins.
+- Verification: 12 Manager tests (broken hashes, mismatched runs, approving a paused plan, human boundary, bounded correction) plus the full 143-test suite, the agent TypeScript check, ESLint and the production build passed. Gate 8 deliberately implements no orchestration. Full evidence is in `docs/qa-gate-8-manager.md`.

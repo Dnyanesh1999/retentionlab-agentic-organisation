@@ -4,8 +4,8 @@ This file is the build-time source of truth for the final-project pass/fail gate
 
 | Brief requirement | Implementation decision | Evidence required | Status |
 |---|---|---|---|
-| Exactly five agents | Researcher, Designer, Maker, Communicator, Manager | Five full system prompts and five distinct output contracts | Four implemented; Manager pending |
-| Distinct personality and domain expertise | Named personas with non-overlapping mandates and evaluation criteria | Prompt appendix and pipeline transcript | Four implemented; Manager pending |
+| Exactly five agents | Researcher, Designer, Maker, Communicator, Manager | Five full system prompts and five distinct output contracts | Implemented — Gates 4–8 |
+| Distinct personality and domain expertise | Named personas with non-overlapping mandates and evaluation criteria | Prompt appendix and pipeline transcript | Implemented — Gates 4–8 |
 | Unbroken handoff chain | Typed, versioned artefact envelope; the server blocks out-of-order execution | Orchestrator tests and run timeline | Planned |
 | Genuine cumulative output | Every stage cites and transforms its predecessor artefact | Complete five-stage run evidence | Planned |
 | Live external source queried at moment of use | Researcher invokes RetentionLab MCP tools backed by Supabase | Network trace, MCP transcript, source timestamp and code inspection | MCP data path implemented — Gate 3; Researcher pending |

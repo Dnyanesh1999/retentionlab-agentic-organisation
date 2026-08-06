@@ -98,6 +98,23 @@ Gate 7 is complete. The accepted communication plan is `ready_for_manager`; it c
 message or launch a campaign. Gate 8 will give Elias Grant the complete-chain review contract and
 human-approval boundary.
 
+### Gate 8 — Manager / Elias Grant
+
+- [x] Full versioned prompt and distinct personality
+- [x] Strict complete-chain input and ManagerOperationalDecision output contracts
+- [x] Same-run, same-account and required completed-status enforcement
+- [x] Exact SHA-256 lineage Researcher → Designer → Maker → Communicator verified before model use
+- [x] Runtime-owned identity, lineage, provenance and human-approval governance
+- [x] Approve, revise and reject decisions with single-target, bounded downstream revisions
+- [x] Human boundary: no send, publish, data mutation, self-approval or approval bypass
+- [x] OpenRouter adapter, config and `agent:manager` CLI
+- [x] Broken-hash, mismatched-run, paused-plan, human-boundary and bounded-correction tests
+
+Gate 8 is complete. The Manager reviews the complete versioned chain and produces a traceable
+approve/revise/reject decision that always defers the irreversible action to a named human. It does
+not implement orchestration. Gate 9 sequences the five runtimes, enforces order, resumes interrupted
+runs and propagates the Manager's bounded revisions downstream.
+
 ## Gate 9 — orchestration
 
 - [ ] Strict order is enforced
