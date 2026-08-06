@@ -113,3 +113,12 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
 - AI contribution: Codex re-audited the professor's PDF, identified that the functional Maker still lacked its required typed agent handoff, implemented Noor Patel's prompt/contracts/runtime, bound the real build evidence and ran the live Maker stage. Codex rejected a superficially valid first candidate, strengthened aggregate-evidence language and corrected an overbroad causality guard before accepting the next result.
 - Student responsibility: review the accepted Maker artefact and its rejected predecessor before the Communicator stage is promoted.
 - Verification: the accepted `maker.v1.1.0` artefact is SHA-256 bound to the reviewed Designer output, records commit `c38febd`, preserves all seven interaction states and is `ready_for_communication`. Full evidence is in `docs/qa-gate-6-maker-agent.md`.
+
+## Entry 013 — Gate 7 Communicator
+
+- Date: 6 August 2026
+- Tools/models: OpenAI Codex, GPT-5 family, for implementation and verification; OpenRouter `nvidia/nemotron-3-super-120b-a12b:free` for live Communicator synthesis.
+- User prompt: “lets go then”, continuing the corrected five-agent sequence.
+- AI contribution: Codex designed Maeve Quinn's prompt/contracts/runtime, implemented exact Maker-claim inheritance and consent-safe communication guards, then ran and reviewed the live stage. A truncated, identifier-leaking first candidate was rejected; two bounded prompt revisions separated public copy from internal audit citations before acceptance.
+- Student responsibility: review the email invitation and Manager decision packet, including whether the aggregate metrics should remain in the final customer copy.
+- Verification: `communicator.v1.2.0` produced a complete email-only plan with a view-only CTA, no automated follow-up and status `ready_for_manager`. Full evidence is in `docs/qa-gate-7-communicator.md`.

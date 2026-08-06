@@ -15,6 +15,7 @@
     "agent:designer": "node --env-file-if-exists=.env.local --import tsx agents/designer/cli.ts",
     "agent:designer:promote": "node --env-file-if-exists=.env.local --import tsx agents/designer/reviewCli.ts",
     "agent:maker": "node --env-file-if-exists=.env.local --import tsx agents/maker/cli.ts",
+    "agent:communicator": "node --env-file-if-exists=.env.local --import tsx agents/communicator/cli.ts",
     "lint": "eslint .",
     "test": "vitest run",
     "test:data": "node --test scripts/generate-demo-data.node-test.mjs",

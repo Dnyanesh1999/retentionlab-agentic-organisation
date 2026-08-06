@@ -1,0 +1,185 @@
+{
+  "status": "ready_for_manager",
+  "campaign_thesis": "Invite account holders to inspect aggregate usage signals in a pressure-free environment, with optional, consent-gated sharing of workflow observations.",
+  "tone_rules": [
+    "Plain-spoken and empathetic",
+    "Evidence-disciplined: every claim must be traceable to exact source evidence",
+    "No urgency, scarcity, fear, or outcome promises",
+    "Treat customer attention as borrowed, never owed"
+  ],
+  "email_invitation": {
+    "subject": "Your team's usage signals are ready to inspect",
+    "preheader": "Explore patterns at your own pace—no action required",
+    "body_paragraphs": [
+      "You are receiving this email because your account holds aggregate usage data for Copper Finch.",
+      "This invitation lets you inspect your team's Feature Adoption (29.08% current / 41.04% previous), Active Users (120 current / 141 previous), Session Frequency (4.85 current / 3.77 previous), and Seat Utilisation (75.95%) as inspect-only objects.",
+      "You may also see an open medium-severity workflow support case if relevant to your team's signals.",
+      "The experience is optional and pressure-free: you can explore signals, share an observation about workflow friction (not required), or decline at any point without consequence.",
+      "After engaging or closing, you will see a thank-you message that prescribes no next step: 'Thank you for exploring your signal garden. Your team's patterns are yours to act on—or not.'"
+    ],
+    "cta_label": "View your signal garden",
+    "landing_route": "#/cases/recovery-room"
+  },
+  "message_claims": [
+    {
+      "message": "Customers can inspect their team's Feature Adoption signal showing a current value of 29.08% and previous value of 41.04%.",
+      "source_claims": [
+        "Customers can inspect their team's Feature Adoption signal showing a current value of 29.08% and previous value of 41.04%."
+      ],
+      "evidence_keys": [
+        "product:copper-finch:feature_adoption:2"
+      ],
+      "qualification": "Value is sourced directly from the cited evidence key; no interpretation or calculation is applied."
+    },
+    {
+      "message": "Customers can inspect their team's Active Users signal showing a current value of 120 and previous value of 141.",
+      "source_claims": [
+        "Customers can inspect their team's Active Users signal showing a current value of 120 and previous value of 141."
+      ],
+      "evidence_keys": [
+        "product:copper-finch:active_users:2"
+      ],
+      "qualification": "Value is sourced directly from the cited evidence key; no interpretation or calculation is applied."
+    },
+    {
+      "message": "Customers can inspect their team's Session Frequency signal showing a current value of 4.85 and previous value of 3.77.",
+      "source_claims": [
+        "Customers can inspect their team's Session Frequency signal showing a current value of 4.85 and previous value of 3.77."
+      ],
+      "evidence_keys": [
+        "product:copper-finch:session_frequency:2"
+      ],
+      "qualification": "Value is sourced directly from the cited evidence key; no interpretation or calculation is applied."
+    },
+    {
+      "message": "Customers can inspect their team's Seat Utilisation signal showing a value of 75.95%.",
+      "source_claims": [
+        "Customers can inspect their team's Seat Utilisation signal showing a value of 75.95%."
+      ],
+      "evidence_keys": [
+        "product:copper-finch:seat_utilisation:2"
+      ],
+      "qualification": "Value is sourced directly from the cited evidence key; no interpretation or calculation is applied."
+    },
+    {
+      "message": "Customers can inspect an open medium-severity workflow support case with reference support:copper-finch:2-1, sentiment -0.267, and status unresolved as of 2026-07-27.",
+      "source_claims": [
+        "Customers can inspect an open medium-severity workflow support case with reference support:copper-finch:2-1, sentiment -0.267, and status unresolved as of 2026-07-27."
+      ],
+      "evidence_keys": [
+        "support:copper-finch:2-1"
+      ],
+      "qualification": "Detail is sourced directly from the cited evidence key; no interpretation or inference is applied."
+    },
+    {
+      "message": "The clarification request is optional and not required to proceed; customers may choose 'Not now' or dismiss the modal without consequence.",
+      "source_claims": [
+        "The clarification request is optional and not required to proceed; customers may choose 'Not now' or dismiss the modal without consequence."
+      ],
+      "evidence_keys": [
+        "preference:copper-finch:2"
+      ],
+      "qualification": "Modal behavior requires explicit button activation for entry and explicit 'Share observation' for data persistence; decline paths are honored without side effects."
+    },
+    {
+      "message": "After engaging with signals or closing the clarification modal, customers see an acknowledgment banner stating: 'Thank you for exploring your signal garden. Your team's patterns are yours to act on—or not.'",
+      "source_claims": [
+        "After engaging with signals or closing the clarification modal, customers see an acknowledgment banner stating: 'Thank you for exploring your signal garden. Your team's patterns are yours to act on—or not.'"
+      ],
+      "evidence_keys": [
+        "preference:copper-finch:2"
+      ],
+      "qualification": "Banner is rendered with role='status' and aria-live='polite'; message contains no persuasion, urgency, or suggested next step."
+    }
+  ],
+  "transparency": {
+    "why_received": "You are receiving this email because your account holds aggregate usage data for Copper Finch.",
+    "data_boundary": "All signals are account-level observations for Copper Finch; they are not personal, individual, user-level, diagnostic, or causal explanations for any change.",
+    "choice_statement": "You may inspect signals, share an observation about workflow friction (optional, not required), or decline at any point. Non-response is not consent and triggers no follow-up. All decline paths—email non-engagement, 'Not now' in modal, or modal dismiss—are complete and valid outcomes with no implied obligation."
+  },
+  "follow_up_policy": "none_without_new_explicit_consent",
+  "measurement_plan": [
+    {
+      "signal": "email_open_rate",
+      "interpretation": "Indicates initial attention to the invitation; not a signal of interest or intent to act",
+      "guardrail": "Must not be used to infer customer satisfaction or product value"
+    },
+    {
+      "signal": "click_through_to_signal_garden",
+      "interpretation": "Indicates willingness to inspect signals; not a signal of product satisfaction or desired outcome",
+      "guardrail": "Must not be used to infer success of the experience or future behavior"
+    },
+    {
+      "signal": "observation_share_rate",
+      "interpretation": "Indicates explicit consent to share workflow friction for signal garden improvement; not a signal of product dissatisfaction",
+      "guardrail": "Must not be used to infer negative sentiment or required for product changes"
+    }
+  ],
+  "manager_handoff": {
+    "launch_recommendation": "proceed_to_review",
+    "executive_summary": "The Signal Garden experience is built as specified: aggregate signals are inspect-only, observation sharing is explicit and optional, and all decline paths are honored without side effects. Communication uses only the email channel and avoids urgency, persuasion, or outcome promises.",
+    "decision_questions": [
+      "Does the email body preserve aggregate-level framing and avoid any personal, individual, diagnostic, or causal language?",
+      "Are all claims in the email and transparency copy traceable to exact source evidence without added interpretation?",
+      "Is the CTA limited to viewing the Signal Garden and free of any request to book, buy, upgrade, call, or share data beyond optional observation sharing?",
+      "Does the transparency section fully explain why the email was received, the data boundary, and the complete decline path?",
+      "Are there any prohibited channels (SMS, phone, push) or urgency/scarcity/fear language present in the draft?"
+    ],
+    "operational_dependencies": [
+      "Email deployment must use only the approved recipient list: account holders of Copper Finch who have not opted out of product communications",
+      "Landing route #/cases/recovery-room must be accessible and render the Recovery Room artefact as validated",
+      "No automated sequence or follow-up may be triggered without new explicit consent from the customer"
+    ],
+    "risks": [
+      {
+        "risk": "Customer may perceive signal inspection as judgment despite neutral framing.",
+        "mitigation": "Signal strands are labelled as observational data with explicit 'No action required' messaging; tone is curious, not corrective."
+      },
+      {
+        "risk": "Optional clarification could feel like a soft sell.",
+        "mitigation": "Clarification request is framed as helping improve the signal garden itself, not the product; observation field is optional and not required to proceed."
+      }
+    ]
+  },
+  "schema_version": "communication-plan.v1",
+  "stage": "communicator",
+  "agent": {
+    "id": "communicator",
+    "name": "Maeve Quinn",
+    "personality": "plain-spoken, empathetic, evidence-disciplined"
+  },
+  "run_id": "b921755d-f96a-45f0-bd72-7791ceb13ef7",
+  "account_slug": "copper-finch",
+  "source": {
+    "maker_schema_version": "recovery-room-artifact.v1",
+    "maker_prompt_version": "maker.v1.1.0",
+    "maker_generated_at": "2026-08-06T01:21:16.906Z",
+    "maker_artifact_sha256": "df105e8fa5a14ef2fa1f60746d0b5bc0b5b68150441f8498f0488f8c810868d0",
+    "implementation_commit_sha": "c38febd"
+  },
+  "inherited_boundaries": {
+    "available_channels": [
+      "email"
+    ],
+    "prohibited_claims": [
+      "SMS outreach",
+      "phone calls",
+      "push notifications without consent"
+    ],
+    "required_disclosures": [
+      "The experience uses only the email channel for outreach, as permitted by the preference profile.",
+      "No data from signal inspection is stored, used for profiling, or persisted without explicit consent to share an observation.",
+      "The observation sharing is explicit, purpose-limited to improving the signal garden, and not required to proceed.",
+      "All aggregate signals are account-level observations; they are not personal, individual, user-level, diagnostic, or causal explanations for any change.",
+      "The experience respects WCAG 2.2 AA standards for contrast, focus, keyboard navigation, screen-reader access, and reduced motion.",
+      "A decline at any point (email non-engagement, 'Not now' in modal, or modal dismiss) is a complete and valid outcome with no implied obligation or follow-up."
+    ]
+  },
+  "provenance": {
+    "provider": "openrouter",
+    "requested_model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "resolved_model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "prompt_version": "communicator.v1.2.0",
+    "generated_at": "2026-08-06T01:42:53.371Z"
+  }
+}

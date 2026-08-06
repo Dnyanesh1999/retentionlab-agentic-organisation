@@ -85,6 +85,19 @@ clarification, atomic private persistence, explicit success/declined/error state
 behavior and complete desktop/mobile visual and accessibility verification. Gate 9 orchestration is
 preceded by the Communicator and Manager runtimes; public release remains gated by Gate 10.
 
+### Gate 7 — Communicator / Maeve Quinn
+
+- [x] Full versioned prompt and distinct personality
+- [x] Strict Maker input and CommunicationPlan output contracts
+- [x] Exact source-claim, evidence-key and numeric-claim inheritance
+- [x] Email-only consent boundary and no-automatic-follow-up policy
+- [x] Coercion, overclaim, CTA, identifier-leak and incomplete-copy guards
+- [x] Live OpenRouter run with rejected candidate preserved
+
+Gate 7 is complete. The accepted communication plan is `ready_for_manager`; it cannot send a
+message or launch a campaign. Gate 8 will give Elias Grant the complete-chain review contract and
+human-approval boundary.
+
 ## Gate 9 — orchestration
 
 - [ ] Strict order is enforced

@@ -4,14 +4,14 @@ This file is the build-time source of truth for the final-project pass/fail gate
 
 | Brief requirement | Implementation decision | Evidence required | Status |
 |---|---|---|---|
-| Exactly five agents | Researcher, Designer, Maker, Communicator, Manager | Five full system prompts and five distinct output contracts | Planned |
-| Distinct personality and domain expertise | Named personas with non-overlapping mandates and evaluation criteria | Prompt appendix and pipeline transcript | Planned |
+| Exactly five agents | Researcher, Designer, Maker, Communicator, Manager | Five full system prompts and five distinct output contracts | Four implemented; Manager pending |
+| Distinct personality and domain expertise | Named personas with non-overlapping mandates and evaluation criteria | Prompt appendix and pipeline transcript | Four implemented; Manager pending |
 | Unbroken handoff chain | Typed, versioned artefact envelope; the server blocks out-of-order execution | Orchestrator tests and run timeline | Planned |
 | Genuine cumulative output | Every stage cites and transforms its predecessor artefact | Complete five-stage run evidence | Planned |
 | Live external source queried at moment of use | Researcher invokes RetentionLab MCP tools backed by Supabase | Network trace, MCP transcript, source timestamp and code inspection | MCP data path implemented — Gate 3; Researcher pending |
 | Synthetic data stored in a real queryable source | Fictional B2B SaaS account data lives in Supabase, never in prompts or frontend source | Supabase table evidence and row-change demonstration | Implemented — Gate 2 |
 | No hardcoded or cached pipeline evidence | Business evidence is fetched per assessed run; resilience replay is visibly labelled and excluded from live evidence | Automated guard tests and assessed run recording | Live MCP proof implemented — Gate 3; assessed agent run pending |
-| Functional Maker artefact | Maker emits a validated Recovery Room definition rendered as an interactive customer experience | Working choices, state transitions and Maker artefact trace | Planned |
+| Functional Maker artefact | Maker emits a validated Recovery Room definition rendered as an interactive customer experience | Working choices, state transitions and Maker artefact trace | Implemented — Gate 6 |
 | Public GitHub Pages URL without login | Hash-routed React application | Public URL test | Planned |
 | Live connections available for eight weeks | Vercel and Supabase deployment retention checklist | Post-submission availability record | Planned |
 | Complete codebase ZIP | Frontend, API, MCP, schemas, prompts and tests included | Clean ZIP audit | Planned |

@@ -7,6 +7,7 @@ import {
 
 export const MAKER_PROMPT_VERSION = "maker.v1.1.0" as const;
 export const RECOVERY_ROOM_ARTIFACT_SCHEMA_VERSION = "recovery-room-artifact.v1" as const;
+export const makerPromptVersionSchema = z.enum(["maker.v1.0.0", MAKER_PROMPT_VERSION]);
 
 const accountSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(80);
 const evidenceKeySchema = z.string().regex(/^[a-z]+:[a-z0-9-]+:[a-z0-9_-]+(?::[a-z0-9-]+)?$/).max(160);
@@ -127,7 +128,7 @@ export const recoveryRoomArtifactSchema = makerDraftSchema.extend({
     provider: z.literal("openrouter"),
     requested_model: z.string().min(1),
     resolved_model: z.string().min(1),
-    prompt_version: z.enum(["maker.v1.0.0", MAKER_PROMPT_VERSION]),
+    prompt_version: makerPromptVersionSchema,
     generated_at: z.string().datetime({ offset: true }),
   }).strict(),
 }).strict();
