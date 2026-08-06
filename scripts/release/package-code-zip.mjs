@@ -66,9 +66,11 @@ function extractTree(ref, into) {
   // Extract the archive bytes to disk so verification runs on the exact content
   // that will be zipped (git archive tar and zip share the same tree filter).
   const tarPath = join(into, "tree.tar");
-  execFileSync("sh", ["-c", `git archive --format=tar ${ref} > ${JSON.stringify(tarPath)}`], {
+  const tarBytes = execFileSync("git", ["archive", "--format=tar", ref], {
     cwd: REPO_ROOT,
+    maxBuffer: 256 * 1024 * 1024,
   });
+  writeFileSync(tarPath, tarBytes, { flag: "wx" });
   const treeDir = join(into, "tree");
   mkdirSync(treeDir, { recursive: true });
   execFileSync("tar", ["-xf", tarPath, "-C", treeDir]);
@@ -82,7 +84,7 @@ function extractTree(ref, into) {
  */
 export function packageCodeZip({ ref = "HEAD", outDir } = {}) {
   const commit = resolveRef(ref);
-  const name = buildArchiveName(ref);
+  const name = buildArchiveName(commit);
   const resolvedOutDir = outDir ?? join(REPO_ROOT, "output", "release");
   const zipPath = join(resolvedOutDir, `${name}.zip`);
   const manifestPath = join(resolvedOutDir, `${name}.manifest.json`);
@@ -121,16 +123,13 @@ export function packageCodeZip({ ref = "HEAD", outDir } = {}) {
 
     // Produce the verified ZIP deterministically from the same ref.
     mkdirSync(resolvedOutDir, { recursive: true });
-    execFileSync(
-      "sh",
-      [
-        "-c",
-        `git archive --format=zip --prefix=${name}/ ${ref} > ${JSON.stringify(zipPath)}`,
-      ],
-      { cwd: REPO_ROOT },
+    const zipBytes = execFileSync(
+      "git",
+      ["archive", "--format=zip", `--prefix=${name}/`, commit],
+      { cwd: REPO_ROOT, maxBuffer: 256 * 1024 * 1024 },
     );
+    writeFileSync(zipPath, zipBytes);
 
-    const zipBytes = readFileSync(zipPath);
     const sha256 = createHash("sha256").update(zipBytes).digest("hex");
     const manifest = {
       schema: "retentionlab-code-zip-manifest.v1",

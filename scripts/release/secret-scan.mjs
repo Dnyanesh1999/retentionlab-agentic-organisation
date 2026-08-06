@@ -148,12 +148,6 @@ function lineNumberAt(content, index) {
 export function scanContent(path, content) {
   if (BINARY_EXTENSIONS.has(extensionOf(path))) return [];
   if (typeof content !== "string") return [];
-  // Explicit, auditable escape hatch for files whose PURPOSE is to carry
-  // synthetic credential fixtures (e.g. this scanner's own tests, which include
-  // the canonical AWS docs dummy key). The marker must be committed in the file
-  // itself so any reviewer can see exactly which files are exempt and why.
-  if (content.includes("secret-scan:allow-file")) return [];
-
   const findings = [];
 
   for (const rule of CREDENTIAL_RULES) {

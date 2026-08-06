@@ -1,7 +1,8 @@
 # Publishes the built Vite SPA to GitHub Pages.
 #
-# This workflow is INERT until the student enables Pages for the repository
-# (Settings → Pages → Source: "GitHub Actions"). It performs no live-data
+# This workflow builds on pushes to main, but cannot publish successfully until
+# the student enables Pages for the repository (Settings → Pages → Source:
+# "GitHub Actions"). It performs no live-data
 # connection and carries no secrets: the build embeds only browser-safe VITE_*
 # values, which must be provided as repository "Variables" (not Secrets) if the
 # live Supabase gateway is to be reachable from the public page. With none set,

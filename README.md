@@ -12,9 +12,9 @@ The assessed pipeline is fixed and unbroken:
 - Gate 1 — application shell and design system: complete
 - Gate 2 — live Supabase data: complete
 - Gate 3 — MCP evidence tools: complete
-- Gates 4–8 — five agents, implemented in order: pending
-- Gate 9 — orchestration and revisions: pending
-- Gate 10 — deployment and assessment evidence: pending
+- Gates 4–8 — five agents, implemented and live-validated in order: complete
+- Gate 9 — crash-safe orchestration and accepted cumulative transcript: complete
+- Gate 10 — local release readiness: complete; public deployment and student submission remain open
 
 No interface state may be described as live until the runtime Supabase query and MCP tool path have been implemented and verified.
 
