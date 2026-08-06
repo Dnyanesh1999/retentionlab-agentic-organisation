@@ -1,0 +1,92 @@
+{
+  "decision": "approve",
+  "executive_summary": "The artefact chain demonstrates genuine cumulative work: each stage cites and transforms its predecessor, adding concrete value without restatement. ResearchBrief establishes evidence-based observations and hypotheses; RecoveryDesignSpecification translates these into a consent-safe, evidence-grounded Signal Garden experience with clear principles and interaction model; RecoveryRoomArtefact implements the design faithfully with exact data bindings and accessibility compliance; CommunicationPlan delivers a proportionate, consent-aligned email invitation that mirrors the experience without overclaiming. Trust is upheld across evidence traceability, consent and human control, claim discipline, and accessibility and safety. The customer-facing plan is proportionate and consent-safe, with no prohibited channels, no causal claims, and full respect for decline paths. The Communicator did not pause the plan for revision. All non-negotiables from the ResearchBrief are honored. The chain is coh",
+  "rationale": "The chain is coherent, evidence is traceable to exact source keys, and the customer-facing plan is proportionate and consent-safe. Each stage made a concrete contribution: ResearchBrief identified declining feature adoption and active users with rising session frequency and a workflow support case; Designer conceived the Signal Garden as an inspect-only, evidence-bound experience that avoids inference and respects agency; Maker implemented it with precise data bindings, WCAG 2.2 AA compliance, and explicit consent moments; Communicator delivered an email invitation that accurately reflects the experience without persuasion, urgency, or overreach. No stage violated trust dimensions: all claims are evidence-backed, consent is continuously honored, no data is stored without explicit sharing, and accessibility is built in. The plan does not require diagnosis of the workflow cause, uses only email, and offers dignified paths to engage or decline. The human reviewer should verify: (1) email body matches approved copy and uses only allowed channel, (2) all claims in email and transparency copy are traceable to exact evidence keys without interpretation, (3) CTA links to #/cases/recovery-room and contains no secondary requests, (4) transparency section fully explains data boundary and complete decline paths, (5) no prohibited channels or urgency/scarcity/fear language is present. Approval clears the chain for a named human to make the final call.",
+  "chain_assessment": [
+    {
+      "stage": "researcher",
+      "cumulative_contribution": "Established evidence-based foundation: quantified declines in feature adoption (41.04% → 29.08%) and active users (141 → 120), rising session frequency (3.77 → 4.85), high seat utilisation (75.95%), and an open medium-severity workflow support case (sentiment -0.267); confirmed consent permits email outreach for recovery and personalisation; framed hypotheses around workflow friction without asserting causality.",
+      "concerns": []
+    },
+    {
+      "stage": "designer",
+      "cumulative_contribution": "Transformed research into the Signal Garden concept: a consent-safe, inspect-only email-linked experience where aggregate signals are presented as tangible strands without interpretation; defined experience principles (Evidence Grounding, Consent as Continuity, Agency Over Persuasion, Accessible by Default); specified interaction model, journey steps, content architecture, consent design, accessibility requirements (WCAG 2.2 AA), measurement plan, and risks/mitigations; all elements bound to.c",
+      "concerns": []
+    },
+    {
+      "stage": "maker",
+      "cumulative_contribution": "Implemented the Signal Garden faithfully: built components (SignalStrand, SignalCanvas, LoadingState, etc.) with exact data bindings to evidence keys; implemented states (loading, ready, active, success, declined, error, reduced_motion); honored consent moments (email as invitation, optional clarification, explicit observation sharing); met WCAG 2.2 AA for contrast, focus, keyboard, screen reader, and reduced motion; verification shows 114 tests passed, build succeeded, and visual evidence align",
+      "concerns": []
+    },
+    {
+      "stage": "communicator",
+      "cumulative_contribution": "Delivered a proportionate, consent-aligned email invitation: invites inspection of aggregate signals (Feature Adoption, Active Users, Session Frequency, Seat Utilisation) and optional workflow clarification; preserves evidence-disciplined tone (no urgency, scarcity, fear, or outcome promises); transparency section explains why email was received, data boundary (account-level only), and complete decline paths; measurement plan avoids inferring satisfaction or intent from opens/clicks; all claims",
+      "concerns": []
+    }
+  ],
+  "trust_evaluation": {
+    "evidence_traceability": {
+      "status": "pass",
+      "finding": "Every claim across all stages traces to an exact evidence key in the ResearchBrief (e.g., product:copper-finch:feature_adoption:2, support:copper-finch:2-1). No stage introduces data outside cited sources. Data bindings in Maker and claims in Communicator are verbatim from evidence."
+    },
+    "consent_and_human_control": {
+      "status": "pass",
+      "finding": "Consent is continuously honored: email outreach permitted by preference profile; clarification requires explicit button activation; observation sharing requires explicit 'Share observation' click; all decline paths (non-engagement, 'Not now', modal dismiss) are honored without side effects or implied obligation. No data is stored without explicit consent for sharing."
+    },
+    "claim_discipline": {
+      "status": "pass",
+      "finding": "All claims are strictly observational and traceable: e.g., 'Feature Adoption: 29.08% current / 41.04% previous' is a direct restatement of evidence, not a causal or diagnostic claim. No stage infers vulnerability, protected traits, or causality between signals. The experience avoids persuasion, urgency, and outcome promises."
+    },
+    "accessibility_and_safety": {
+      "status": "pass",
+      "finding": "Accessibility is built in: WCAG 2.2 AA targeted; contrast ratios, focus indicators, keyboard navigation, screen-reader labels, and reduced-motion fallbacks specified and implemented. Safety patterns ensure no data from inspection is stored or used for profiling; observation sharing is explicit, purpose-limited, and not required to proceed."
+    }
+  },
+  "human_review_focus": [
+    "Verify email body matches approved copy: 'You are receiving this email because your account holds aggregate usage data for Copper Finch. This invitation lets you inspect your team's Feature Adoption (29.08% current / 41.04% previous), Active Users (120 current / 141 previous), Session Frequency (4.8",
+    "Confirm all claims in email and transparency copy are traceable to exact evidence keys without added interpretation or calculation.",
+    "Ensure CTA label 'View your signal garden' links to #/cases/recovery-room and contains no secondary requests (e.g., no booking, upgrading, or data sharing beyond optional observation).",
+    "Check transparency section fully explains: why email was received (aggregate usage data), data boundary (account-level observations only, not personal/user-level/diagnostic/causal), and complete decline paths (email non-engagement, 'Not now' in modal, modal dismiss — all valid with no implied义务).",
+    "Confirm absence of prohibited channels (SMS, phone, push) and urgency/scarcity/fear language in email, transparency, or measurement plan."
+  ],
+  "schema_version": "manager-operational-decision.v1",
+  "stage": "manager",
+  "agent": {
+    "id": "manager",
+    "name": "Elias Grant",
+    "personality": "calm, accountable, adversarially constructive"
+  },
+  "run_id": "b921755d-f96a-45f0-bd72-7791ceb13ef7",
+  "account_slug": "copper-finch",
+  "lineage": {
+    "research_brief_sha256": "a33ecd0ed9205252650824937aee757f5ecf72ad73cbc8fe77f5ae5efb172cc4",
+    "design_specification_sha256": "360884592e00ebf6bbf96cc7b77dcf54f5aac6cb3405c53cb3c6c238d4b4dced",
+    "recovery_room_artifact_sha256": "df105e8fa5a14ef2fa1f60746d0b5bc0b5b68150441f8498f0488f8c810868d0",
+    "communication_plan_sha256": "2657c2af9b872cdd39125250861e1955881cb6f3d31a5e2540999243694b198d",
+    "verified_links": {
+      "researcher_to_designer": true,
+      "designer_to_maker": true,
+      "maker_to_communicator": true
+    },
+    "chain_verified": true
+  },
+  "governance": {
+    "human_approval_required": true,
+    "autonomous_external_actions": false,
+    "permitted_next_action": "await_human_approval",
+    "boundaries": [
+      "Never send email, launch a campaign or contact a customer.",
+      "Never publish, deploy or expose any artefact outside this review.",
+      "Never mutate, delete or transfer customer, billing or account data.",
+      "Never self-approve; an approval only clears the chain for a named human decision.",
+      "Never take an autonomous external action; every downstream effect waits for explicit human approval."
+    ]
+  },
+  "provenance": {
+    "provider": "openrouter",
+    "requested_model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "resolved_model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "prompt_version": "manager.v1.0.0",
+    "generated_at": "2026-08-06T14:09:08.536Z"
+  }
+}
