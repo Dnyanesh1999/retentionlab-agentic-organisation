@@ -1,0 +1,140 @@
+{
+  "schema_version": "research-brief.v1",
+  "stage": "researcher",
+  "status": "completed",
+  "agent": {
+    "id": "researcher",
+    "name": "Nia Calder",
+    "personality": "forensic, humane, constructively sceptical"
+  },
+  "run_id": "a9f629aa-2a87-4723-8711-0a8039077adc",
+  "account_slug": "copper-finch",
+  "brief_summary": "Investigation into Copper Finch reveals a high-value Scale tier account in a renewal lifecycle stage, exhibiting concerning downward trends in feature adoption and active user counts. While session frequency is increasing, an open medium-severity workflow support case with negative sentiment suggests friction in user experience. Recovery efforts should focus on re-engaging users with core features via email, respecting the existing consent for recovery outreach.",
+  "observations": [
+    {
+      "claim": "Feature adoption has decreased from 41.04% to 29.08% over the last 30 days.",
+      "significance": "high",
+      "confidence": 1,
+      "citations": [
+        {
+          "evidence_key": "product:copper-finch:feature_adoption:2",
+          "source_tool": "list_product_signals",
+          "source_system": "Supabase Postgres",
+          "retrieved_at": "2026-08-06T16:15:04.523Z"
+        }
+      ]
+    },
+    {
+      "claim": "Active user count has dropped from 141 to 120 in the last 30 days.",
+      "significance": "high",
+      "confidence": 1,
+      "citations": [
+        {
+          "evidence_key": "product:copper-finch:active_users:2",
+          "source_tool": "list_product_signals",
+          "source_system": "Supabase Postgres",
+          "retrieved_at": "2026-08-06T16:15:04.523Z"
+        }
+      ]
+    },
+    {
+      "claim": "There is an open medium-severity workflow support case with negative sentiment (-0.267).",
+      "significance": "medium",
+      "confidence": 1,
+      "citations": [
+        {
+          "evidence_key": "support:copper-finch:2-1",
+          "source_tool": "list_support_events",
+          "source_system": "Supabase Postgres",
+          "retrieved_at": "2026-08-06T16:15:06.540Z"
+        }
+      ]
+    },
+    {
+      "claim": "Session frequency per user has increased from 3.77 to 4.85.",
+      "significance": "low",
+      "confidence": 1,
+      "citations": [
+        {
+          "evidence_key": "product:copper-finch:session_frequency:2",
+          "source_tool": "list_product_signals",
+          "source_system": "Supabase Postgres",
+          "retrieved_at": "2026-08-06T16:15:04.523Z"
+        }
+      ]
+    }
+  ],
+  "hypotheses": [
+    {
+      "statement": "Declining feature adoption is driving the reduction in active users.",
+      "confidence": 0.6,
+      "supporting_evidence_keys": [
+        "product:copper-finch:feature_adoption:2",
+        "product:copper-finch:active_users:2"
+      ],
+      "disconfirming_evidence_needed": "Evidence showing feature adoption is stable while active users decline, or evidence that seat utilisation is the primary driver of user drop-off."
+    },
+    {
+      "statement": "The open workflow support case is contributing to user frustration and potential churn risk.",
+      "confidence": 0.5,
+      "supporting_evidence_keys": [
+        "support:copper-finch:2-1"
+      ],
+      "disconfirming_evidence_needed": "Evidence that the support case is unrelated to core product value or that sentiment improves without intervention."
+    }
+  ],
+  "consent_boundaries": {
+    "allowed_channels": [
+      "email"
+    ],
+    "prohibited_actions": [
+      "Outreach via non-email channels",
+      "Bypassing consent for recovery outreach"
+    ],
+    "citations": [
+      {
+        "evidence_key": "preference:copper-finch:2",
+        "source_tool": "get_preference_profile",
+        "source_system": "Supabase Postgres",
+        "retrieved_at": "2026-08-06T16:15:06.925Z"
+      }
+    ]
+  },
+  "unknowns": [
+    "Specific cause for the decline in feature adoption",
+    "Impact of the open support case on renewal probability"
+  ],
+  "designer_handoff": {
+    "design_challenge": "Create a Signal Garden recovery experience that addresses declining feature adoption and active user counts, while acknowledging recent workflow friction, delivered via email.",
+    "priority_outcomes": [
+      "Increase feature adoption rate",
+      "Stabilize or increase active user count",
+      "Improve sentiment regarding workflow processes"
+    ],
+    "non_negotiables": [
+      "Must use email as the primary communication channel",
+      "Must address the decline in feature adoption",
+      "Must not ignore the open support case sentiment"
+    ],
+    "success_signals": [
+      "Increase in feature_adoption metric",
+      "Increase in active_users count",
+      "Resolution of open support case with positive sentiment"
+    ]
+  },
+  "provenance": {
+    "provider": "openrouter",
+    "requested_model": "google/gemma-4-26b-a4b-it:free",
+    "resolved_model": "google/gemma-4-26b-a4b-it:free",
+    "prompt_version": "researcher.v1.1.0",
+    "generated_at": "2026-08-06T16:17:50.021Z",
+    "tool_calls": [
+      "get_account_snapshot",
+      "list_product_signals",
+      "list_billing_events",
+      "list_support_events",
+      "get_preference_profile"
+    ],
+    "all_sources_no_store": true
+  }
+}

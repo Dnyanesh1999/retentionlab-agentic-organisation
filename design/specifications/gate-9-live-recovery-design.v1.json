@@ -1,0 +1,286 @@
+{
+  "schema_version": "recovery-design.v1",
+  "stage": "designer",
+  "status": "ready_for_maker",
+  "agent": {
+    "id": "designer",
+    "name": "Luca Moretti",
+    "personality": "cinematic, systems-minded, ethically exacting"
+  },
+  "run_id": "a9f629aa-2a87-4723-8711-0a8039077adc",
+  "account_slug": "copper-finch",
+  "source": {
+    "research_schema_version": "research-brief.v1",
+    "research_prompt_version": "researcher.v1.1.0",
+    "research_generated_at": "2026-08-06T16:17:50.021Z",
+    "research_artifact_sha256": "56a9566f816b453b0aa5c64ccac770c85f5d14f6b503df4095c5d0ab5719f515"
+  },
+  "inherited_research_constraints": {
+    "priority_outcomes": [
+      "Increase feature adoption rate",
+      "Stabilize or increase active user count",
+      "Improve sentiment regarding workflow processes"
+    ],
+    "non_negotiables": [
+      "Must use email as the primary communication channel",
+      "Must address the decline in feature adoption",
+      "Must not ignore the open support case sentiment"
+    ],
+    "success_signals": [
+      "Increase in feature_adoption metric",
+      "Increase in active_users count",
+      "Resolution of open support case with positive sentiment"
+    ]
+  },
+  "design_thesis": "The 'Signal Garden' concept moves away from a corrective dashboard toward a spatial, reflective experience. Instead of presenting data as a failure, we present it as a landscape of activity. Users navigate through 'SignalStrands' that visualize the current state of their ecosystem. By acknowledging the friction of the open support case as a known element in the landscape, we build trust through transparency rather than ignoring the elephant in the room.",
+  "experience_principles": [
+    {
+      "name": "Transparency of State",
+      "rationale": "Users must understand exactly why they are seeing this view and what the data represents.",
+      "source_evidence_keys": [
+        "product:copper-finch:feature_adoption:2",
+        "product:copper-finch:active_users:2"
+      ]
+    },
+    {
+      "name": "Dignified Exit",
+      "rationale": "Recovery should never feel like a trap; users must be able to leave the experience at any time.",
+      "source_evidence_keys": [
+        "preference:copper-finch:2"
+      ]
+    },
+    {
+      "name": "Empathetic Friction Management",
+      "rationale": "Acknowledge existing support issues to validate user experience without overstepping.",
+      "source_evidence_keys": [
+        "support:copper-finch:2-1"
+      ]
+    }
+  ],
+  "recovery_concept": {
+    "name": "Signal Garden",
+    "one_line_promise": "A reflective space to view your ecosystem's health and choose your next step.",
+    "interaction_model": "choice_canvas",
+    "entry_state": "LoadingState transitioning to ReadyState with SignalCanvas.",
+    "core_moment": "The moment the user inspects a SignalStrand and is presented with an optional path to clarify their needs.",
+    "exit_state": "SuccessState (if path chosen) or DeclinedState (if exit chosen)."
+  },
+  "journey": [
+    {
+      "step_id": "step-1",
+      "title": "Arrival",
+      "customer_goal": "Understand why I was sent this link.",
+      "system_response": "Displaying the current state of your Copper Finch ecosystem.",
+      "source_evidence_keys": [
+        "product:copper-finch:feature_adoption:2",
+        "product:copper-finch:active_users:2"
+      ],
+      "consent_check": "Implicit via email link entry.",
+      "maker_acceptance_criteria": [
+        "LoadingState displays during data fetch",
+        "ReadyState shows SignalCanvas with aggregate signals"
+      ]
+    },
+    {
+      "step_id": "step-2",
+      "title": "Inspection",
+      "customer_goal": "See the specific trends in my account.",
+      "system_response": "Visualizing adoption and user trends.",
+      "source_evidence_keys": [
+        "product:copper-finch:feature_adoption:2",
+        "product:copper-finch:active_users:2",
+        "product:copper-finch:session_frequency:2"
+      ],
+      "consent_check": "User clicks a SignalStrand to expand.",
+      "maker_acceptance_criteria": [
+        "SignalStrand shows current vs comparison values",
+        "ActiveInspection shows detailed signal data"
+      ]
+    },
+    {
+      "step_id": "step-3",
+      "title": "Resolution",
+      "customer_goal": "Choose a path forward or exit.",
+      "system_response": "Select a path to re-engage or provide feedback.",
+      "source_evidence_keys": [
+        "support:copper-finch:2-1"
+      ],
+      "consent_check": "Explicit choice of recovery path or exit.",
+      "maker_acceptance_criteria": [
+        "SuccessState displays upon path selection",
+        "DeclinedState displays upon exit"
+      ]
+    }
+  ],
+  "content_architecture": [
+    {
+      "region_id": "signal-overview",
+      "label": "Signal Overview",
+      "purpose": "Present aggregate signals showing adoption and user trends",
+      "priority": "primary"
+    },
+    {
+      "region_id": "support-context",
+      "label": "Friction Acknowledgment",
+      "purpose": "Acknowledge the open support case without speculation",
+      "priority": "secondary"
+    },
+    {
+      "region_id": "action-zone",
+      "label": "Recovery Options",
+      "purpose": "Provide paths for re-engagement or clarification",
+      "priority": "primary"
+    }
+  ],
+  "consent_design": {
+    "inherited_allowed_channels": [
+      "email"
+    ],
+    "inherited_prohibited_actions": [
+      "Outreach via non-email channels",
+      "Bypassing consent for recovery outreach"
+    ],
+    "permission_moments": [
+      {
+        "moment": "Core interaction after signal inspection",
+        "customer_control": "Optional selection of a recovery path",
+        "decline_path": "Immediate exit to dashboard"
+      },
+      {
+        "moment": "ClarificationModal trigger",
+        "customer_control": "Optional clarification of feature usage needs",
+        "decline_path": "Close modal without saving"
+      }
+    ],
+    "additional_safety_patterns": [
+      "Explicit exit path that does not persist state",
+      "No forced continuity or subscription traps",
+      "Optional clarification interaction"
+    ]
+  },
+  "accessibility_requirements": {
+    "target": "WCAG 2.2 AA",
+    "keyboard": [
+      "Sequential tab order through all interactive signal strands",
+      "Visible focus indicators for all clickable elements",
+      "Escape key to dismiss ClarificationModal",
+      "Logical tab flow for the exit path"
+    ],
+    "screen_reader": [
+      "Aria-live regions for state changes (loading, success, error)",
+      "Descriptive labels for all signal strands",
+      "Semantic heading structure for the recovery room",
+      "Role='status' for active inspection updates"
+    ],
+    "visual": [
+      "Minimum 4.5:1 contrast ratio for all text",
+      "No reliance on color alone to convey signal direction",
+      "Clear visual distinction between active and inactive states"
+    ],
+    "reduced_motion": [
+      "Disable all non-essential transitions",
+      "Use instant state changes for all component transitions",
+      "No parallax or ambient motion effects"
+    ]
+  },
+  "motion_language": {
+    "intent": "Motion must communicate causality and state, not decorate or obstruct.",
+    "transitions": [
+      "Fade-in on entry",
+      "Slide-up for ClarificationModal",
+      "Scale-up for ActiveInspection"
+    ],
+    "reduced_motion_fallback": "Instant state changes with no transitions."
+  },
+  "measurement_plan": [
+    {
+      "signal": "Increase in feature_adoption metric",
+      "interpretation": "Direct correlation with re-engagement success.",
+      "source_success_signal": "Increase in feature_adoption metric",
+      "guardrail": "Ensure adoption increase is not driven by trial period expiration."
+    },
+    {
+      "signal": "Increase in active_users count",
+      "interpretation": "Indicates successful return of dormant users.",
+      "source_success_signal": "Increase in active_users count",
+      "guardrail": "Monitor for artificial spikes from single-session users."
+    },
+    {
+      "signal": "Resolution of open support case with positive sentiment",
+      "interpretation": "Indicates friction reduction.",
+      "source_success_signal": "Resolution of open support case with positive sentiment",
+      "guardrail": "Ensure resolution is verified by user sentiment, not just case closure."
+    }
+  ],
+  "risks_and_mitigations": [
+    {
+      "risk": "User feels monitored due to granular signal display.",
+      "mitigation": "Use aggregate signals only; never show individual user events.",
+      "escalation_trigger": "High bounce rate from the Recovery Room."
+    },
+    {
+      "risk": "Support case sentiment exacerbates frustration.",
+      "mitigation": "Acknowledge the case as a known item without making promises.",
+      "escalation_trigger": "Negative feedback in ClarificationModal."
+    }
+  ],
+  "maker_handoff": {
+    "build_order": [
+      "Implement core SignalCanvas and SignalStrand components.",
+      "Implement state management for Loading, Ready, and Active states.",
+      "Implement ClarificationModal and Success/Declined/Error states.",
+      "Apply accessibility and reduced motion overrides."
+    ],
+    "reusable_components": [
+      "SignalStrand",
+      "SignalCanvas",
+      "LoadingState",
+      "ReadyState",
+      "ActiveInspection",
+      "ClarificationModal",
+      "SuccessState",
+      "DeclinedState",
+      "ErrorState",
+      "ReducedMotionState"
+    ],
+    "interaction_states": [
+      "loading",
+      "ready",
+      "active",
+      "success",
+      "declined",
+      "error",
+      "reduced_motion"
+    ],
+    "data_bindings": [
+      {
+        "field_path": "feature_adoption_rate",
+        "evidence_key": "product:copper-finch:feature_adoption:2",
+        "display_purpose": "Show the percentage of feature adoption."
+      },
+      {
+        "field_path": "active_user_count",
+        "evidence_key": "product:copper-finch:active_users:2",
+        "display_purpose": "Show the current active user count."
+      },
+      {
+        "field_path": "open_case_exists",
+        "evidence_key": "support:copper-finch:2-1",
+        "display_purpose": "Acknowledge the existence of an open case."
+      }
+    ],
+    "acceptance_tests": [
+      "Verify SignalStrand correctly binds to aggregate metrics.",
+      "Ensure ClarificationModal is dismissible via Escape key.",
+      "Confirm ReducedMotionState removes all CSS transitions.",
+      "Validate that no new features are named or created in the UI."
+    ]
+  },
+  "provenance": {
+    "provider": "openrouter",
+    "requested_model": "google/gemma-4-26b-a4b-it:free",
+    "resolved_model": "google/gemma-4-26b-a4b-it:free",
+    "prompt_version": "designer.v1.8.0",
+    "generated_at": "2026-08-06T16:22:21.935Z"
+  }
+}

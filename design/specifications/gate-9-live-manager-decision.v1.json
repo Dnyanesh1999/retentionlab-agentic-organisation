@@ -1,0 +1,90 @@
+{
+  "decision": "approve",
+  "executive_summary": "The recovery chain for Copper Finch is coherent and demonstrates high trust standards. The 'Signal Garden' approach successfully addresses declining engagement and support friction through aggregate-only data visualization and transparent communication.",
+  "rationale": "The chain shows excellent cumulative work. The researcher provided high-confidence evidence for declining adoption and user counts. The designer correctly translated these risks into a non-intrusive 'Signal Garden' concept that avoids the 'trap' feeling of traditional recovery tools. The maker implemented the design with rigorous accessibility and state management. Finally, the communicator maintained strict claim discipline, ensuring the email only references aggregate metrics and explicitly states the data's limitations. The use of aggregate data is a key mitigation for the risk of user monitoring concerns.",
+  "chain_assessment": [
+    {
+      "stage": "researcher",
+      "cumulative_contribution": "Identified declining feature adoption and active user counts for Copper Finch, alongside an open support case with negative sentiment.",
+      "concerns": []
+    },
+    {
+      "stage": "designer",
+      "cumulative_contribution": "Transformed research findings into the 'Signal Garden' concept, focusing on aggregate data visualization and empathetic friction management.",
+      "concerns": []
+    },
+    {
+      "stage": "maker",
+      "cumulative_contribution": "Implemented the Signal Garden using React 19, ensuring accessibility compliance and state management for all interaction paths.",
+      "concerns": []
+    },
+    {
+      "stage": "communicator",
+      "cumulative_contribution": "Drafted an empathetic email invitation that adheres to consent boundaries and emphasizes aggregate-only data transparency.",
+      "concerns": []
+    }
+  ],
+  "trust_evaluation": {
+    "evidence_traceability": {
+      "status": "pass",
+      "finding": "Every stage cites specific product and support signals from the research brief to justify its decisions."
+    },
+    "consent_and_human_control": {
+      "status": "pass",
+      "finding": "The plan respects email-only outreach and provides explicit exit paths from the recovery experience."
+    },
+    "claim_discipline": {
+      "status": "pass",
+      "finding": "All claims in the communication and design stages are qualified by the aggregate nature of the data."
+    },
+    "accessibility_and_safety": {
+      "status": "pass",
+      "finding": "The design and implementation include robust accessibility features (WCAG 2.2 AA) and a clear exit path for users."
+    }
+  },
+  "human_review_focus": [
+    "Verify that the aggregate-only data view in the Signal Garden prevents any perception of individual user monitoring.",
+    "Confirm the 'Signal Garden' brand tone aligns with the broader Copper Finch account management strategy.",
+    "Ensure the email invitation's subject line is appropriate for the customer's current sentiment level."
+  ],
+  "schema_version": "manager-operational-decision.v1",
+  "stage": "manager",
+  "agent": {
+    "id": "manager",
+    "name": "Elias Grant",
+    "personality": "calm, accountable, adversarially constructive"
+  },
+  "run_id": "a9f629aa-2a87-4723-8711-0a8039077adc",
+  "account_slug": "copper-finch",
+  "lineage": {
+    "research_brief_sha256": "56a9566f816b453b0aa5c64ccac770c85f5d14f6b503df4095c5d0ab5719f515",
+    "design_specification_sha256": "852c48229086b3160d481bed7c84c43a1de4a1f7778bf4d88ec19bfaf4ec4899",
+    "recovery_room_artifact_sha256": "be01166f32c134cc90abd0a4fd213dd96357bfb994cc47d4b3065bd61ec93807",
+    "communication_plan_sha256": "175695ed9c416b09ad205f40d77200eefbf7e100d40cb45ef4b295b493baadac",
+    "verified_links": {
+      "researcher_to_designer": true,
+      "designer_to_maker": true,
+      "maker_to_communicator": true
+    },
+    "chain_verified": true
+  },
+  "governance": {
+    "human_approval_required": true,
+    "autonomous_external_actions": false,
+    "permitted_next_action": "await_human_approval",
+    "boundaries": [
+      "Never send email, launch a campaign or contact a customer.",
+      "Never publish, deploy or expose any artefact outside this review.",
+      "Never mutate, delete or transfer customer, billing or account data.",
+      "Never self-approve; an approval only clears the chain for a named human decision.",
+      "Never take an autonomous external action; every downstream effect waits for explicit human approval."
+    ]
+  },
+  "provenance": {
+    "provider": "openrouter",
+    "requested_model": "google/gemma-4-26b-a4b-it:free",
+    "resolved_model": "google/gemma-4-26b-a4b-it:free",
+    "prompt_version": "manager.v1.1.0",
+    "generated_at": "2026-08-06T16:57:18.606Z"
+  }
+}

@@ -1,0 +1,430 @@
+{
+  "transcript_schema_version": "gate9.transcript.v1",
+  "run": {
+    "run_id": "a9f629aa-2a87-4723-8711-0a8039077adc",
+    "account_slug": "copper-finch",
+    "objective": "Identify evidence-backed retention risks and consent-safe recovery opportunities, then compose a review-ready Signal Garden recovery experience for named human approval.",
+    "initiated_at": "2026-08-06T16:15:01.583Z",
+    "requires_human_approval": true,
+    "final_status": "awaiting_human_approval",
+    "event_count": 14
+  },
+  "events": [
+    {
+      "seq": 0,
+      "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "hash": "f92688f5cd99f2c0c431b9920f47489edfca8c2932f9a2ef917a079e619bbe16",
+      "event": {
+        "type": "run_started",
+        "run_id": "a9f629aa-2a87-4723-8711-0a8039077adc",
+        "account_slug": "copper-finch",
+        "requires_human_approval": true,
+        "created_at": "2026-08-06T16:15:01.585Z"
+      }
+    },
+    {
+      "seq": 1,
+      "prev_hash": "f92688f5cd99f2c0c431b9920f47489edfca8c2932f9a2ef917a079e619bbe16",
+      "hash": "0a4815b919f96955bf2143068a685ef139d433b0308f48592e4abb804f5c3f42",
+      "event": {
+        "type": "stage_started",
+        "stage": "researcher",
+        "version": 1,
+        "reason": "sequential_start",
+        "created_at": "2026-08-06T16:15:01.586Z"
+      }
+    },
+    {
+      "seq": 2,
+      "prev_hash": "0a4815b919f96955bf2143068a685ef139d433b0308f48592e4abb804f5c3f42",
+      "hash": "8110e5f6ee9b4fae7124fa5f56e94ad7917cd001ab5f1491e4b275fc00e26494",
+      "event": {
+        "type": "stage_completed",
+        "stage": "researcher",
+        "version": 1,
+        "artifact": {
+          "stage": "researcher",
+          "version": 1,
+          "sha256": "56a9566f816b453b0aa5c64ccac770c85f5d14f6b503df4095c5d0ab5719f515",
+          "status_label": "completed",
+          "produced_at": "2026-08-06T16:17:50.021Z"
+        },
+        "created_at": "2026-08-06T16:17:50.027Z"
+      }
+    },
+    {
+      "seq": 3,
+      "prev_hash": "8110e5f6ee9b4fae7124fa5f56e94ad7917cd001ab5f1491e4b275fc00e26494",
+      "hash": "996562205218be4581020bc4b3ef31068c36b0f30bd5902d73663305a0e5ecc1",
+      "event": {
+        "type": "stage_started",
+        "stage": "designer",
+        "version": 1,
+        "reason": "sequential_start",
+        "created_at": "2026-08-06T16:17:50.028Z"
+      }
+    },
+    {
+      "seq": 4,
+      "prev_hash": "996562205218be4581020bc4b3ef31068c36b0f30bd5902d73663305a0e5ecc1",
+      "hash": "f7788c75d430ea64809fc27031c8b67de7552093f729981d99029457c6b45faf",
+      "event": {
+        "type": "stage_completed",
+        "stage": "designer",
+        "version": 1,
+        "artifact": {
+          "stage": "designer",
+          "version": 1,
+          "sha256": "852c48229086b3160d481bed7c84c43a1de4a1f7778bf4d88ec19bfaf4ec4899",
+          "status_label": "ready_for_maker",
+          "produced_at": "2026-08-06T16:22:21.935Z"
+        },
+        "created_at": "2026-08-06T16:22:21.938Z"
+      }
+    },
+    {
+      "seq": 5,
+      "prev_hash": "f7788c75d430ea64809fc27031c8b67de7552093f729981d99029457c6b45faf",
+      "hash": "f33756ef5b35a13ace9d5c6de3c9b7f9428abb73b66fbf122794db0e240684ca",
+      "event": {
+        "type": "stage_started",
+        "stage": "maker",
+        "version": 1,
+        "reason": "sequential_start",
+        "created_at": "2026-08-06T16:22:21.939Z"
+      }
+    },
+    {
+      "seq": 6,
+      "prev_hash": "f33756ef5b35a13ace9d5c6de3c9b7f9428abb73b66fbf122794db0e240684ca",
+      "hash": "0c73a0f54ef0900c1ebd779a43e2edd3a8398ab49933ec4be73ebec82d87c006",
+      "event": {
+        "type": "stage_completed",
+        "stage": "maker",
+        "version": 1,
+        "artifact": {
+          "stage": "maker",
+          "version": 1,
+          "sha256": "be01166f32c134cc90abd0a4fd213dd96357bfb994cc47d4b3065bd61ec93807",
+          "status_label": "ready_for_communication",
+          "produced_at": "2026-08-06T16:23:43.719Z"
+        },
+        "created_at": "2026-08-06T16:23:43.728Z"
+      }
+    },
+    {
+      "seq": 7,
+      "prev_hash": "0c73a0f54ef0900c1ebd779a43e2edd3a8398ab49933ec4be73ebec82d87c006",
+      "hash": "f3bf13d6df1eb7e7cf3763af7086fbe30d6fbccd2fb1565a96235d2e1d209b60",
+      "event": {
+        "type": "stage_started",
+        "stage": "communicator",
+        "version": 1,
+        "reason": "sequential_start",
+        "created_at": "2026-08-06T16:23:43.729Z"
+      }
+    },
+    {
+      "seq": 8,
+      "prev_hash": "f3bf13d6df1eb7e7cf3763af7086fbe30d6fbccd2fb1565a96235d2e1d209b60",
+      "hash": "324321ed6468f399b1d4678782db5d8ec92109503510d9627aeefe04f42618ec",
+      "event": {
+        "type": "stage_failed",
+        "stage": "communicator",
+        "version": 1,
+        "error": "Communicator cited a claim absent from the Maker handoff.",
+        "created_at": "2026-08-06T16:25:22.842Z"
+      }
+    },
+    {
+      "seq": 9,
+      "prev_hash": "324321ed6468f399b1d4678782db5d8ec92109503510d9627aeefe04f42618ec",
+      "hash": "b5fef7110d516db313c863bad65254f8eae1ec020086249cb3dff9603cdfed1b",
+      "event": {
+        "type": "failed_stage_retry_requested",
+        "stage": "communicator",
+        "failed_version": 1,
+        "operator_reason": "Named operator retry after integrating communicator.v1.3 exact Maker-claim citation correction.",
+        "created_at": "2026-08-06T16:53:44.200Z"
+      }
+    },
+    {
+      "seq": 10,
+      "prev_hash": "b5fef7110d516db313c863bad65254f8eae1ec020086249cb3dff9603cdfed1b",
+      "hash": "b3690683b0c9ffe12906da3357125889f5823c8109760d60e61c37f7378950ab",
+      "event": {
+        "type": "stage_started",
+        "stage": "communicator",
+        "version": 2,
+        "reason": "revision_rerun_start",
+        "created_at": "2026-08-06T16:53:44.201Z"
+      }
+    },
+    {
+      "seq": 11,
+      "prev_hash": "b3690683b0c9ffe12906da3357125889f5823c8109760d60e61c37f7378950ab",
+      "hash": "27c81252438471b0a815da172dc24806b0ef3dd6407da7193acde9369edec601",
+      "event": {
+        "type": "stage_completed",
+        "stage": "communicator",
+        "version": 2,
+        "artifact": {
+          "stage": "communicator",
+          "version": 2,
+          "sha256": "175695ed9c416b09ad205f40d77200eefbf7e100d40cb45ef4b295b493baadac",
+          "status_label": "ready_for_manager",
+          "produced_at": "2026-08-06T16:54:16.591Z"
+        },
+        "created_at": "2026-08-06T16:54:16.598Z"
+      }
+    },
+    {
+      "seq": 12,
+      "prev_hash": "27c81252438471b0a815da172dc24806b0ef3dd6407da7193acde9369edec601",
+      "hash": "e3e3b6f233eefbe881bb5a4acba0434f65f8fb9dad901cb3aedcb329b15cbb1b",
+      "event": {
+        "type": "stage_started",
+        "stage": "manager",
+        "version": 1,
+        "reason": "sequential_start",
+        "created_at": "2026-08-06T16:54:16.599Z"
+      }
+    },
+    {
+      "seq": 13,
+      "prev_hash": "e3e3b6f233eefbe881bb5a4acba0434f65f8fb9dad901cb3aedcb329b15cbb1b",
+      "hash": "a35e54b80fb77404cdc657db017a4112c6198e47b3ecd59fb311642c717b202f",
+      "event": {
+        "type": "manager_decided",
+        "version": 1,
+        "artifact": {
+          "stage": "manager",
+          "version": 1,
+          "sha256": "d313369f31abf42324793efbf7227c5153a8d6726bc0cede561f5cfd519e1fa2",
+          "status_label": "approve",
+          "produced_at": "2026-08-06T16:57:18.606Z"
+        },
+        "outcome": {
+          "decision": "approve",
+          "governance": {
+            "human_approval_required": true,
+            "permitted_next_action": "await_human_approval"
+          }
+        },
+        "created_at": "2026-08-06T16:57:18.613Z"
+      }
+    }
+  ],
+  "stage_attempts": [
+    {
+      "stage": "researcher",
+      "version": 1,
+      "is_current": true,
+      "file": "researcher.research-brief.v1.json",
+      "sha256": "56a9566f816b453b0aa5c64ccac770c85f5d14f6b503df4095c5d0ab5719f515",
+      "status_label": "completed",
+      "produced_at": "2026-08-06T16:17:50.021Z",
+      "provenance": {
+        "requested_model": "google/gemma-4-26b-a4b-it:free",
+        "resolved_model": "google/gemma-4-26b-a4b-it:free",
+        "prompt_version": "researcher.v1.1.0"
+      }
+    },
+    {
+      "stage": "designer",
+      "version": 1,
+      "is_current": true,
+      "file": "designer.recovery-design.v1.json",
+      "sha256": "852c48229086b3160d481bed7c84c43a1de4a1f7778bf4d88ec19bfaf4ec4899",
+      "status_label": "ready_for_maker",
+      "produced_at": "2026-08-06T16:22:21.935Z",
+      "provenance": {
+        "requested_model": "google/gemma-4-26b-a4b-it:free",
+        "resolved_model": "google/gemma-4-26b-a4b-it:free",
+        "prompt_version": "designer.v1.8.0"
+      }
+    },
+    {
+      "stage": "maker",
+      "version": 1,
+      "is_current": true,
+      "file": "maker.recovery-room-artifact.v1.json",
+      "sha256": "be01166f32c134cc90abd0a4fd213dd96357bfb994cc47d4b3065bd61ec93807",
+      "status_label": "ready_for_communication",
+      "produced_at": "2026-08-06T16:23:43.719Z",
+      "provenance": {
+        "requested_model": "google/gemma-4-26b-a4b-it:free",
+        "resolved_model": "google/gemma-4-26b-a4b-it:free",
+        "prompt_version": "maker.v1.1.0"
+      }
+    },
+    {
+      "stage": "communicator",
+      "version": 2,
+      "is_current": true,
+      "file": "communicator.communication-plan.v2.json",
+      "sha256": "175695ed9c416b09ad205f40d77200eefbf7e100d40cb45ef4b295b493baadac",
+      "status_label": "ready_for_manager",
+      "produced_at": "2026-08-06T16:54:16.591Z",
+      "provenance": {
+        "requested_model": "google/gemma-4-26b-a4b-it:free",
+        "resolved_model": "google/gemma-4-26b-a4b-it:free",
+        "prompt_version": "communicator.v1.3.0"
+      }
+    },
+    {
+      "stage": "manager",
+      "version": 1,
+      "is_current": true,
+      "file": "manager.operational-decision.v1.json",
+      "sha256": "d313369f31abf42324793efbf7227c5153a8d6726bc0cede561f5cfd519e1fa2",
+      "status_label": "approve",
+      "produced_at": "2026-08-06T16:57:18.606Z",
+      "provenance": {
+        "requested_model": "google/gemma-4-26b-a4b-it:free",
+        "resolved_model": "google/gemma-4-26b-a4b-it:free",
+        "prompt_version": "manager.v1.1.0"
+      }
+    }
+  ],
+  "lineage": [
+    {
+      "stage": "designer",
+      "links": [
+        {
+          "predecessor": "researcher",
+          "embedded_sha256": "56a9566f816b453b0aa5c64ccac770c85f5d14f6b503df4095c5d0ab5719f515",
+          "matches_predecessor": true
+        }
+      ]
+    },
+    {
+      "stage": "maker",
+      "links": [
+        {
+          "predecessor": "designer",
+          "embedded_sha256": "852c48229086b3160d481bed7c84c43a1de4a1f7778bf4d88ec19bfaf4ec4899",
+          "matches_predecessor": true
+        }
+      ]
+    },
+    {
+      "stage": "communicator",
+      "links": [
+        {
+          "predecessor": "maker",
+          "embedded_sha256": "be01166f32c134cc90abd0a4fd213dd96357bfb994cc47d4b3065bd61ec93807",
+          "matches_predecessor": true
+        }
+      ]
+    },
+    {
+      "stage": "manager",
+      "links": [
+        {
+          "predecessor": "researcher",
+          "embedded_sha256": "56a9566f816b453b0aa5c64ccac770c85f5d14f6b503df4095c5d0ab5719f515",
+          "matches_predecessor": true
+        },
+        {
+          "predecessor": "designer",
+          "embedded_sha256": "852c48229086b3160d481bed7c84c43a1de4a1f7778bf4d88ec19bfaf4ec4899",
+          "matches_predecessor": true
+        },
+        {
+          "predecessor": "maker",
+          "embedded_sha256": "be01166f32c134cc90abd0a4fd213dd96357bfb994cc47d4b3065bd61ec93807",
+          "matches_predecessor": true
+        },
+        {
+          "predecessor": "communicator",
+          "embedded_sha256": "175695ed9c416b09ad205f40d77200eefbf7e100d40cb45ef4b295b493baadac",
+          "matches_predecessor": true
+        }
+      ]
+    }
+  ],
+  "revisions": [],
+  "stage_failures": [
+    {
+      "stage": "communicator",
+      "version": 1,
+      "error": "Communicator cited a claim absent from the Maker handoff.",
+      "created_at": "2026-08-06T16:25:22.842Z",
+      "recovered": true
+    }
+  ],
+  "failed_stage_retries": [
+    {
+      "stage": "communicator",
+      "failed_version": 1,
+      "rerun_version": 2,
+      "operator_reason": "Named operator retry after integrating communicator.v1.3 exact Maker-claim citation correction.",
+      "failure_error": "Communicator cited a claim absent from the Maker handoff.",
+      "created_at": "2026-08-06T16:53:44.200Z"
+    }
+  ],
+  "manager_outcome": {
+    "decided": true,
+    "decision": "approve",
+    "permitted_next_action": "await_human_approval",
+    "human_approval_required": true,
+    "autonomous_external_actions": false,
+    "chain_verified": true
+  },
+  "cumulative_work_proof": [
+    {
+      "stage": "researcher",
+      "metrics": {
+        "observations": 4,
+        "hypotheses": 2,
+        "priority_outcomes": 3,
+        "success_signals": 3,
+        "allowed_channels": 1
+      },
+      "transformation": "The Researcher grounded 4 cited observations and 2 hypotheses into 3 priority outcomes and 3 success signals for the Designer."
+    },
+    {
+      "stage": "designer",
+      "metrics": {
+        "experience_principles": 3,
+        "journey_steps": 3,
+        "reusable_components": 10,
+        "interaction_states": 7,
+        "references_research_sha256": "56a9566f816b453b0aa5c64ccac770c85f5d14f6b503df4095c5d0ab5719f515"
+      },
+      "transformation": "The Designer transformed the Researcher handoff into 3 experience principles, 3 journey steps and 10 reusable components across 7 interaction states, linked to research 56a9566f816b453b0aa5c64ccac770c85f5d14f6b503df4095c5d0ab5719f515."
+    },
+    {
+      "stage": "maker",
+      "metrics": {
+        "regions": 3,
+        "supported_claims": 2,
+        "implemented_states": 7,
+        "commit_sha": "c38febd",
+        "references_design_sha256": "852c48229086b3160d481bed7c84c43a1de4a1f7778bf4d88ec19bfaf4ec4899"
+      },
+      "transformation": "The Maker realised the design into 3 regions and 2 evidence-backed claims over commit c38febd, linked to design 852c48229086b3160d481bed7c84c43a1de4a1f7778bf4d88ec19bfaf4ec4899."
+    },
+    {
+      "stage": "communicator",
+      "metrics": {
+        "message_claims": 2,
+        "email_subject": "A space for reflection on your ecosystem health",
+        "available_channels": 1,
+        "references_maker_sha256": "be01166f32c134cc90abd0a4fd213dd96357bfb994cc47d4b3065bd61ec93807"
+      },
+      "transformation": "The Communicator distilled the Maker handoff into 2 sourced message claims and one view-only email invitation, linked to the Maker artefact be01166f32c134cc90abd0a4fd213dd96357bfb994cc47d4b3065bd61ec93807."
+    },
+    {
+      "stage": "manager",
+      "metrics": {
+        "decision": "approve",
+        "permitted_next_action": "await_human_approval",
+        "assessed_stages": 4,
+        "human_review_focus": 3
+      },
+      "transformation": "The Manager assessed all 4 predecessor stages and reached decision \"approve\", permitting only \"await_human_approval\"."
+    }
+  ]
+}

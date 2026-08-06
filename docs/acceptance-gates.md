@@ -120,7 +120,7 @@ runs and propagates the Manager's bounded revisions downstream.
 - [x] Strict order is enforced
 - [x] Interrupted runs resume safely
 - [x] Manager revisions are versioned and propagate downstream
-- [ ] Complete pipeline transcript proves cumulative work
+- [x] Complete pipeline transcript proves cumulative work
 
 Slice 1 (deterministic backbone, `agents/orchestrator`) is complete: strict five-stage ordering,
 crash-safe resume by verified event replay, and versioned Manager revision propagation are proven by
@@ -149,9 +149,14 @@ agent is corrected — preserving all history including the failure event, carry
 adversarial tests (allowed recovery, version increment, preserved predecessors/history/failure, strict
 downstream continuation through the Manager, wrong stage/version, non-failed and approval/rejection
 refusal, duplicate retry, service boundary without live calls, and transcript visibility/determinism).
-No live model or Supabase call is made during implementation; Codex performs the accepted live retry
-after integration, so the transcript checklist item stays **unchecked**. Evidence is in
-`docs/qa-gate-9-failed-stage-recovery.md`.
+No live model or Supabase call was made during implementation. After integration, Codex performed the
+explicit live retry on run `a9f629aa-2a87-4723-8711-0a8039077adc`. Communicator v2 and Manager v1
+completed through the real OpenRouter runtimes; the Manager approved the verified chain and halted at
+`awaiting_human_approval`, with human approval required and autonomous external actions disabled. The
+immutable 14-event transcript preserves the original Communicator v1 failure and named retry, verifies
+every predecessor hash, and proves cumulative work across all five stages. Evidence is in
+`docs/qa-gate-9-failed-stage-recovery.md`, `docs/qa-gate-9-live-pipeline-transcript.md`, and
+`design/specifications/gate-9-live-pipeline-transcript.v1.json`.
 
 ## Gate 10 — release and assessment
 

@@ -109,10 +109,24 @@ recovered) and the bounded operator reason, and two builds are byte-for-byte ide
 - `agent:pipeline:check` (`tsc -p tsconfig.agents.json`): passed. Main `tsc -b`: passed. ESLint: passed.
   Production build: passed.
 
+## Live acceptance after integration
+
+Codex executed the named-operator retry against durable run
+`a9f629aa-2a87-4723-8711-0a8039077adc`. The existing Researcher v1, Designer v1 and Maker v1 artefacts
+were preserved; only the failed Communicator reran as v2, followed by Manager v1. Both live calls used
+`google/gemma-4-26b-a4b-it:free` through OpenRouter. The run reached `awaiting_human_approval` with an
+`approve` decision, `chain_verified = true`, `human_approval_required = true`,
+`autonomous_external_actions = false`, and `permitted_next_action = await_human_approval`.
+
+The immutable 14-event transcript visibly retains the Communicator v1 validation failure and its
+operator reason, while all seven predecessor-lineage links verify. Canonical evidence is committed as
+`docs/qa-gate-9-live-pipeline-transcript.md` and
+`design/specifications/gate-9-live-pipeline-transcript.v1.json`; the five current typed stage artefacts
+are committed alongside it under `design/specifications/gate-9-live-*`. Gate 9's complete-pipeline
+transcript item is now **checked**.
+
 ## Explicitly out of scope
 
-- **No live retry.** The Gate 9 checklist item "Complete pipeline transcript proves cumulative work"
-  remains **unchecked**; Codex performs the accepted live failed-stage retry after integration.
 - No live application of Manager `required_changes` (that bounded typed path is still deferred and
   unchanged).
 - No frontend, MCP, Supabase schema, or existing-artefact/event-log changes.

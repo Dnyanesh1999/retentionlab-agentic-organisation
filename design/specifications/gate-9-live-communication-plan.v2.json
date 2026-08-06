@@ -1,0 +1,121 @@
+{
+  "status": "ready_for_manager",
+  "campaign_thesis": "An invitation to the Signal Garden, providing Copper Finch customers a reflective space to view aggregate ecosystem health and existing support context without pressure or individual tracking.",
+  "tone_rules": [
+    "Plain-spoken and empathetic.",
+    "Avoid all sales pressure or outcome promises.",
+    "Prioritize ethical clarity and transparency over engagement metrics."
+  ],
+  "email_invitation": {
+    "subject": "A space for reflection on your ecosystem health",
+    "preheader": "View aggregate trends and your current support context.",
+    "body_paragraphs": [
+      "We have prepared a space called the Signal Garden where you can view your current ecosystem health through adoption and user trends.",
+      "This view is based on aggregate account-level metrics to provide a high-level perspective on your usage patterns.",
+      "You can also acknowledge existing support interactions within this space, including any open cases currently on file.",
+      "This environment is designed for reflection, allowing you to review trends and choose your next steps at your own pace."
+    ],
+    "cta_label": "View the Signal Garden",
+    "landing_route": "#/cases/recovery-room"
+  },
+  "message_claims": [
+    {
+      "message": "View your current ecosystem health through adoption and user trends.",
+      "source_claims": [
+        "View your current ecosystem health through adoption and user trends."
+      ],
+      "evidence_keys": [
+        "product:copper-finch:feature_adoption:2",
+        "product:copper-finch:active_users:2"
+      ],
+      "qualification": "Based on aggregate account-level metrics."
+    },
+    {
+      "message": "Acknowledge existing support interactions.",
+      "source_claims": [
+        "Acknowledge existing support interactions."
+      ],
+      "evidence_keys": [
+        "support:copper-finch:2-1"
+      ],
+      "qualification": "Reflects the presence of an open case without speculation."
+    }
+  ],
+  "transparency": {
+    "why_received": "You are receiving this because your account has shown changes in feature adoption and user trends.",
+    "data_boundary": "All information presented represents aggregate account-level observations and does not explain specific user behavior.",
+    "choice_statement": "You can exit this experience at any time without consequence."
+  },
+  "follow_up_policy": "none_without_new_explicit_consent",
+  "measurement_plan": [
+    {
+      "signal": "Signal Garden interaction rate",
+      "interpretation": "Measures the interest in viewing aggregate ecosystem health.",
+      "guardrail": "No increase in support ticket volume or sentiment decline."
+    },
+    {
+      "signal": "Exit rate (declined state)",
+      "interpretation": "Measures if the aggregate-only view meets user expectations for non-intrusiveness.",
+      "guardrail": "No increase in unsubscribes from email communications."
+    }
+  ],
+  "manager_handoff": {
+    "launch_recommendation": "proceed_to_review",
+    "executive_summary": "Launched the Signal Garden recovery experience for Copper Finch customers. The implementation uses React 19 and provides an aggregate-only view of ecosystem health and support context to mitigate privacy concerns and user frustration.",
+    "decision_questions": [
+      "Does the aggregate-only data boundary sufficiently address potential privacy concerns for our Copper Finch segment?",
+      "Is the 'Signal Garden' naming convention aligned with our brand's tone for reflective experiences?"
+    ],
+    "operational_dependencies": [
+      "SignalStrand component must correctly render aggregate metrics from the Copper Finch data stream.",
+      "Support context must accurately reflect open case existence without pulling sentiment data."
+    ],
+    "risks": [
+      {
+        "risk": "User feels monitored due to granular signal display.",
+        "mitigation": "Use aggregate signals only; never show individual user events."
+      },
+      {
+        "risk": "Support case sentiment exacerbates frustration.",
+        "mitigation": "Acknowledge the case as a known item without making promises."
+      }
+    ]
+  },
+  "schema_version": "communication-plan.v1",
+  "stage": "communicator",
+  "agent": {
+    "id": "communicator",
+    "name": "Maeve Quinn",
+    "personality": "plain-spoken, empathetic, evidence-disciplined"
+  },
+  "run_id": "a9f629aa-2a87-4723-8711-0a8039077adc",
+  "account_slug": "copper-finch",
+  "source": {
+    "maker_schema_version": "recovery-room-artifact.v1",
+    "maker_prompt_version": "maker.v1.1.0",
+    "maker_generated_at": "2026-08-06T16:23:43.719Z",
+    "maker_artifact_sha256": "be01166f32c134cc90abd0a4fd213dd96357bfb994cc47d4b3065bd61ec93807",
+    "implementation_commit_sha": "c38febd"
+  },
+  "inherited_boundaries": {
+    "available_channels": [
+      "email"
+    ],
+    "prohibited_claims": [
+      "Outreach via non-email channels",
+      "Bypassing consent for recovery outreach"
+    ],
+    "required_disclosures": [
+      "Data represents aggregate account-level observations.",
+      "Information is for informational purposes and does not explain specific user behavior.",
+      "You can exit this experience at any time without consequence."
+    ]
+  },
+  "provenance": {
+    "provider": "openrouter",
+    "requested_model": "google/gemma-4-26b-a4b-it:free",
+    "resolved_model": "google/gemma-4-26b-a4b-it:free",
+    "prompt_version": "communicator.v1.3.0",
+    "generated_at": "2026-08-06T16:54:16.591Z"
+  }
+}
