@@ -67,6 +67,11 @@ RecoveryDesignSpecification and its quality-review ledger.
 
 ### Gate 6 — Maker / Noor Patel
 
+- [x] Full versioned prompt and distinct personality
+- [x] Strict Designer input and RecoveryRoomArtefact output contracts
+- [x] SHA-256 predecessor lineage and runtime-owned build evidence
+- [x] Evidence-safe Communicator handoff and adversarial tests
+- [x] Live OpenRouter Maker run with rejected candidate preserved
 - [x] Slice 1: runtime-validated Signal Garden snapshot contract
 - [x] Slice 1: determinate Loading state and reduced-motion fallback
 - [x] Slice 1: contract, lineage and accessibility tests
@@ -78,7 +83,7 @@ RecoveryDesignSpecification and its quality-review ledger.
 Gate 6 is complete. The Maker now includes evidence-bound inspection, capability-gated optional
 clarification, atomic private persistence, explicit success/declined/error states, reduced-motion
 behavior and complete desktop/mobile visual and accessibility verification. Gate 9 orchestration is
-the next implementation gate; public release remains gated by Gate 10.
+preceded by the Communicator and Manager runtimes; public release remains gated by Gate 10.
 
 ## Gate 9 — orchestration
 

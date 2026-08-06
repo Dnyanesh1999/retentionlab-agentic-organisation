@@ -104,3 +104,12 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
 - AI contribution: Codex extracted the canonical Slice 5 states, generated desktop/mobile acknowledgment concepts, rejected an initial mobile candidate that invented unsupported metrics, implemented the reusable botanical status response and outcome wiring, added axe-core accessibility coverage, and completed responsive browser and visual-fidelity QA.
 - Student responsibility: review and approve the completed Maker interaction before Gate 9 orchestration begins.
 - Verification: exact-copy, five-second expiry, static reduced-motion, declined focus return, successful-trigger removal and failed-share draft preservation tests passed. The complete suite passed 114 Vitest tests, four Deno tests, two data-invariant tests, typecheck, lint and production build. Rendered contrast, 390 px mobile containment and 200%-equivalent reflow are recorded in `docs/qa-gate-6-slice-5.md`.
+
+## Entry 012 — Gate 6 Maker agent handoff
+
+- Date: 6 August 2026
+- Tools/models: OpenAI Codex, GPT-5 family, for implementation and verification; OpenRouter `nvidia/nemotron-3-super-120b-a12b:free` for live Maker synthesis.
+- User prompt: “lets go then”, beginning the next incremental pipeline phase.
+- AI contribution: Codex re-audited the professor's PDF, identified that the functional Maker still lacked its required typed agent handoff, implemented Noor Patel's prompt/contracts/runtime, bound the real build evidence and ran the live Maker stage. Codex rejected a superficially valid first candidate, strengthened aggregate-evidence language and corrected an overbroad causality guard before accepting the next result.
+- Student responsibility: review the accepted Maker artefact and its rejected predecessor before the Communicator stage is promoted.
+- Verification: the accepted `maker.v1.1.0` artefact is SHA-256 bound to the reviewed Designer output, records commit `c38febd`, preserves all seven interaction states and is `ready_for_communication`. Full evidence is in `docs/qa-gate-6-maker-agent.md`.

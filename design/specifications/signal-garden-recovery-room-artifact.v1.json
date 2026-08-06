@@ -1,0 +1,254 @@
+{
+  "status": "ready_for_communication",
+  "build_summary": "Recovery Room artefact implements the Signal Garden experience as specified. LoadingState renders a determinate progress bar with ARIA label 'Loading signal garden, please wait' and role='progressbar'; reduced-motion media query replaces it with static text 'Loading...'. ReadyState renders three signal strands (Feature Adoption: 29.08% current / 41.04% previous, Active Users: 120 current / 141 previous, Session Frequency: 4.85 current / 3.77 previous) and a seat utilisation card (75.95%), each bound to exact evidence keys. ActiveInspection expands strands on focus to show tooltips with citation text and renders the open support case detail (reference: support:copper-finch:2-1, sentiment: -0.267, status: unresolved as of 2026-07-27) when relevant. ClarificationModal renders with role='dialog', aria-modal='true', optional observation text area (not required), and explicit 'Share observation' and 'Not now' buttons; focus is trapped and modal announces purpose. SuccessState renders acknowledgment banner with role='status', aria-live='polite', message 'Thank you for exploring your signal garden. Your team's patterns are yours to act on—or not.', and respects reduced-motion preferences. ",
+  "experience_definition": {
+    "name": "Signal Garden",
+    "customer_promise": "Inspect your team's usage signals without pressure, and choose whether to explore workflow clarity.",
+    "interaction_model": "progressive_reveal",
+    "regions": [
+      {
+        "region_id": "signal-canvas",
+        "implemented_behavior": "Displays aggregate signal strands and seat utilisation card as inspect-only objects; each strand binds to evidence keys and shows exact current/previous values; focus order proceeds through canvas to persistent exit and page navigation; contrast ratios meet WCAG 2.2 AA; reduced-motion media query replaces expansion animation with instant state shift."
+      },
+      {
+        "region_id": "clarification-modal",
+        "implemented_behavior": "Captures purpose-limited observation about workflow friction; modal has role='dialog' and aria-modal='true'; observation field is not required and has no default value; 'Share observation' button triggers API call only on explicit click; 'Not now' button or escape/overlay click dismisses modal without side effects; reduced-motion media query disables modal animation."
+      },
+      {
+        "region_id": "acknowledgment-banner",
+        "implemented_behavior": "Thanks customer for engagement without prescribing action; banner has role='status' and aria-live='polite'; message contains no persuasion, urgency, or next-step suggestion; respects reduced-motion preferences with static fallback."
+      }
+    ],
+    "state_transitions": [
+      {
+        "from": "loading",
+        "event": "data prepared",
+        "to": "ready",
+        "customer_control": "none; automatic transition after preparation"
+      },
+      {
+        "from": "ready",
+        "event": "signal strand receives focus",
+        "to": "active",
+        "customer_control": "via click, keyboard, or screen reader on any signal strand"
+      },
+      {
+        "from": "active",
+        "event": "clarification button activated",
+        "to": "active",
+        "customer_control": "explicit button click opens modal; inspection state remains active"
+      },
+      {
+        "from": "active",
+        "event": "modal dismissed via 'Not now' or escape/overlay",
+        "to": "success",
+        "customer_control": "explicit decline or modal dismiss"
+      },
+      {
+        "from": "active",
+        "event": "observation shared via explicit 'Share observation' click",
+        "to": "success",
+        "customer_control": "explicit consent to share observation"
+      },
+      {
+        "from": "ready",
+        "event": "customer exits without interaction",
+        "to": "success",
+        "customer_control": "navigating away or closing experience"
+      },
+      {
+        "from": "loading",
+        "event": "preparation failure",
+        "to": "error",
+        "customer_control": "none; system-initiated"
+      },
+      {
+        "from": "ready",
+        "event": "prefers-reduced-motion media query active",
+        "to": "reduced_motion",
+        "customer_control": "system-detected preference"
+      }
+    ]
+  },
+  "communicator_handoff": {
+    "product_name": "Signal Garden",
+    "audience": "Account holders of Copper Finch who have received the email invitation",
+    "customer_value": "Enables self-paced, pressure-free inspection of aggregate usage patterns and optional, consent-gated sharing of workflow observations to inform product understanding.",
+    "supported_claims": [
+      {
+        "claim": "Customers can inspect their team's Feature Adoption signal showing a current value of 29.08% and previous value of 41.04%.",
+        "source_evidence_keys": [
+          "product:copper-finch:feature_adoption:2"
+        ],
+        "qualification": "Value is sourced directly from the cited evidence key; no interpretation or calculation is applied."
+      },
+      {
+        "claim": "Customers can inspect their team's Active Users signal showing a current value of 120 and previous value of 141.",
+        "source_evidence_keys": [
+          "product:copper-finch:active_users:2"
+        ],
+        "qualification": "Value is sourced directly from the cited evidence key; no interpretation or calculation is applied."
+      },
+      {
+        "claim": "Customers can inspect their team's Session Frequency signal showing a current value of 4.85 and previous value of 3.77.",
+        "source_evidence_keys": [
+          "product:copper-finch:session_frequency:2"
+        ],
+        "qualification": "Value is sourced directly from the cited evidence key; no interpretation or calculation is applied."
+      },
+      {
+        "claim": "Customers can inspect their team's Seat Utilisation signal showing a value of 75.95%.",
+        "source_evidence_keys": [
+          "product:copper-finch:seat_utilisation:2"
+        ],
+        "qualification": "Value is sourced directly from the cited evidence key; no interpretation or calculation is applied."
+      },
+      {
+        "claim": "Customers can inspect an open medium-severity workflow support case with reference support:copper-finch:2-1, sentiment -0.267, and status unresolved as of 2026-07-27.",
+        "source_evidence_keys": [
+          "support:copper-finch:2-1"
+        ],
+        "qualification": "Detail is sourced directly from the cited evidence key; no interpretation or inference is applied."
+      },
+      {
+        "claim": "The clarification request is optional and not required to proceed; customers may choose 'Not now' or dismiss the modal without consequence.",
+        "source_evidence_keys": [
+          "preference:copper-finch:2"
+        ],
+        "qualification": "Modal behavior requires explicit button activation for entry and explicit 'Share observation' for data persistence; decline paths are honored without side effects."
+      },
+      {
+        "claim": "After engaging with signals or closing the clarification modal, customers see an acknowledgment banner stating: 'Thank you for exploring your signal garden. Your team's patterns are yours to act on—or not.'",
+        "source_evidence_keys": [
+          "preference:copper-finch:2"
+        ],
+        "qualification": "Banner is rendered with role='status' and aria-live='polite'; message contains no persuasion, urgency, or suggested next step."
+      }
+    ],
+    "required_disclosures": [
+      "The experience uses only the email channel for outreach, as permitted by the preference profile.",
+      "No data from signal inspection is stored, used for profiling, or persisted without explicit consent to share an observation.",
+      "The observation sharing is explicit, purpose-limited to improving the signal garden, and not required to proceed.",
+      "All aggregate signals are account-level observations; they are not personal, individual, user-level, diagnostic, or causal explanations for any change.",
+      "The experience respects WCAG 2.2 AA standards for contrast, focus, keyboard navigation, screen-reader access, and reduced motion.",
+      "A decline at any point (email non-engagement, 'Not now' in modal, or modal dismiss) is a complete and valid outcome with no implied obligation or follow-up."
+    ],
+    "available_channels": [
+      "email"
+    ],
+    "prohibited_claims": [
+      "SMS outreach",
+      "phone calls",
+      "push notifications without consent"
+    ]
+  },
+  "residual_risks": [
+    {
+      "risk": "Customer may perceive signal inspection as judgment despite neutral framing.",
+      "control": "Signal strands are labelled as observational data with explicit 'No action required' messaging; tone is curious, not corrective."
+    },
+    {
+      "risk": "Optional clarification could feel like a soft sell.",
+      "control": "Clarification request is framed as helping improve the signal garden itself, not the product; observation field is optional and not required to proceed."
+    }
+  ],
+  "schema_version": "recovery-room-artifact.v1",
+  "stage": "maker",
+  "agent": {
+    "id": "maker",
+    "name": "Noor Patel",
+    "personality": "pragmatic, meticulous, accessibility-first"
+  },
+  "run_id": "b921755d-f96a-45f0-bd72-7791ceb13ef7",
+  "account_slug": "copper-finch",
+  "source": {
+    "design_schema_version": "recovery-design.v1",
+    "design_prompt_version": "designer.v1.6.0",
+    "design_generated_at": "2026-08-05T14:21:19.845Z",
+    "design_artifact_sha256": "360884592e00ebf6bbf96cc7b77dcf54f5aac6cb3405c53cb3c6c238d4b4dced"
+  },
+  "inherited_guardrails": {
+    "allowed_channels": [
+      "email"
+    ],
+    "prohibited_actions": [
+      "SMS outreach",
+      "phone calls",
+      "push notifications without consent"
+    ]
+  },
+  "implementation_evidence": {
+    "commit_sha": "c38febd",
+    "route": "#/cases/recovery-room",
+    "framework": "React 19 + TypeScript + CSS",
+    "component_sources": [
+      {
+        "contract_component": "SignalStrand",
+        "source_path": "src/features/recovery-room/SignalStrand.tsx"
+      },
+      {
+        "contract_component": "SignalCanvas",
+        "source_path": "src/features/recovery-room/SignalCanvas.tsx"
+      },
+      {
+        "contract_component": "LoadingState",
+        "source_path": "src/features/recovery-room/LoadingState.tsx"
+      },
+      {
+        "contract_component": "ReadyState",
+        "source_path": "src/features/recovery-room/RecoveryRoomView.tsx"
+      },
+      {
+        "contract_component": "ActiveInspection",
+        "source_path": "src/features/recovery-room/SignalCanvas.tsx"
+      },
+      {
+        "contract_component": "ClarificationModal",
+        "source_path": "src/features/recovery-room/ClarificationDialog.tsx"
+      },
+      {
+        "contract_component": "SuccessState",
+        "source_path": "src/features/recovery-room/AcknowledgmentBanner.tsx"
+      },
+      {
+        "contract_component": "DeclinedState",
+        "source_path": "src/features/recovery-room/AcknowledgmentBanner.tsx"
+      },
+      {
+        "contract_component": "ErrorState",
+        "source_path": "src/features/recovery-room/ClarificationDialog.tsx"
+      },
+      {
+        "contract_component": "ReducedMotionState",
+        "source_path": "src/features/recovery-room/SignalStrand.tsx"
+      }
+    ],
+    "implemented_states": [
+      "loading",
+      "ready",
+      "active",
+      "success",
+      "declined",
+      "error",
+      "reduced_motion"
+    ],
+    "verification": {
+      "test_command": "npm test -- --run",
+      "test_count": 114,
+      "test_status": "passed",
+      "build_command": "npm run build",
+      "build_status": "passed",
+      "visual_evidence": [
+        "design/reference/signal-garden-slice5-acknowledgment-desktop.png",
+        "design/reference/signal-garden-slice5-acknowledgment-mobile.png"
+      ]
+    }
+  },
+  "provenance": {
+    "provider": "openrouter",
+    "requested_model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "resolved_model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "prompt_version": "maker.v1.1.0",
+    "generated_at": "2026-08-06T01:21:16.906Z"
+  }
+}

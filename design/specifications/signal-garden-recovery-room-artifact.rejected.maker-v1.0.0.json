@@ -1,0 +1,260 @@
+{
+  "status": "ready_for_communication",
+  "build_summary": "Recovery Room artefact built per RecoveryDesignSpecification. All components and states implemented as specified, with evidence-bound values and explicit consent paths. No data stored without explicit 'Share observation' action. Reduced-motion and accessibility requirements met.",
+  "experience_definition": {
+    "name": "Signal Garden",
+    "customer_promise": "Inspect your team's usage signals without pressure, and choose whether to explore workflow clarity.",
+    "interaction_model": "progressive_reveal",
+    "regions": [
+      {
+        "region_id": "signal-canvas",
+        "implemented_behavior": "Renders three signal strands (Feature Adoption, Active Users, Session Frequency) and seat utilisation card with exact values from evidence keys. Each strand expands on focus to show tooltip with citation. Seat utilisation displays only cited percentage. Focus order proceeds through canvas to persistent exit and page navigation. No interpretation or aggregation beyond cited evidence."
+      },
+      {
+        "region_id": "clarification-modal",
+        "implemented_behavior": "Appears when 'Clarify workflow friction?' button is activated. Contains optional observation text area and explicit 'Share observation'/'Not now' buttons. Modal traps focus, announces purpose, and respects reduced-motion preferences. Observation only sent to consent-logged endpoint on explicit 'Share observation' click. 'Not now' or escape dismisses modal without side effects."
+      },
+      {
+        "region_id": "acknowledgment-banner",
+        "implemented_behavior": "Displays after signal inspection or modal closure: 'Thank you for exploring your signal garden. Your team's patterns are yours to act on—or not.' Uses role='status' and aria-live='polite'. Fades after 5 seconds unless reduced motion preferred, then appears static. Contains no persuasion, urgency, or next-step suggestion."
+      }
+    ],
+    "state_transitions": [
+      {
+        "from": "loading",
+        "event": "Preparation complete",
+        "to": "ready",
+        "customer_control": "None; automatic progression after determinate progress bar completes"
+      },
+      {
+        "from": "ready",
+        "event": "Signal strand receives focus",
+        "to": "active",
+        "customer_control": "User-initiated via click, keyboard, or screen reader"
+      },
+      {
+        "from": "active",
+        "event": "Clarification button activated",
+        "to": "active",
+        "customer_control": "Explicit button click required to enter modal"
+      },
+      {
+        "from": "active",
+        "event": "Modal dismissed via 'Not now' or escape",
+        "to": "success",
+        "customer_control": "Explicit decline or escape key"
+      },
+      {
+        "from": "active",
+        "event": "Observation shared via explicit click",
+        "to": "success",
+        "customer_control": "Explicit 'Share observation' button click"
+      },
+      {
+        "from": "ready",
+        "event": "User exits without interaction",
+        "to": "declined",
+        "customer_control": "Passive non-engagement; no further contact implied"
+      },
+      {
+        "from": "loading",
+        "event": "Data fetch failure",
+        "to": "error",
+        "customer_control": "System-initiated; no customer action caused or resolved this state"
+      },
+      {
+        "from": "loading",
+        "event": "Reduced motion preference detected",
+        "to": "reduced_motion",
+        "customer_control": "System responds to user's prefers-reduced-motion setting"
+      }
+    ]
+  },
+  "communicator_handoff": {
+    "product_name": "Signal Garden",
+    "audience": "Copper-finch account holders with usage shifts detected via aggregate metrics",
+    "customer_value": "Enables self-paced, judgment-free inspection of personal usage patterns and optional, purpose-limited feedback on workflow friction, without obligation or data persistence without explicit consent.",
+    "supported_claims": [
+      {
+        "claim": "Displays Feature Adoption as 29.08% (current) and 41.04% (previous)",
+        "source_evidence_keys": [
+          "product:copper-finch:feature_adoption:2"
+        ],
+        "qualification": "Value is directly cited from evidence; no calculation or inference applied."
+      },
+      {
+        "claim": "Displays Active Users as 120 (current) and 141 (previous)",
+        "source_evidence_keys": [
+          "product:copper-finch:active_users:2"
+        ],
+        "qualification": "Value is directly cited from evidence; no calculation or inference applied."
+      },
+      {
+        "claim": "Displays Session Frequency as 4.85 (current) and 3.77 (previous)",
+        "source_evidence_keys": [
+          "product:copper-finch:session_frequency:2"
+        ],
+        "qualification": "Value is directly cited from evidence; no calculation or inference applied."
+      },
+      {
+        "claim": "Displays Seat Utilisation as 75.95%",
+        "source_evidence_keys": [
+          "product:copper-finch:seat_utilisation:2"
+        ],
+        "qualification": "Value is directly cited from evidence; no calculation or inference applied."
+      },
+      {
+        "claim": "Shows open support case reference: support:copper-finch:2-1, sentiment -0.267, unresolved as of 2026-07-27",
+        "source_evidence_keys": [
+          "support:copper-finch:2-1"
+        ],
+        "qualification": "All fields are directly cited from evidence; no interpretation of sentiment or causality added."
+      },
+      {
+        "claim": "Clarification modal observation field is optional and not required to proceed",
+        "source_evidence_keys": [
+          "preference:copper-finch:2"
+        ],
+        "qualification": "Modal design requires explicit action to share; dismissal has no side effects."
+      },
+      {
+        "claim": "Acknowledgment banner uses role='status' and aria-live='polite'",
+        "source_evidence_keys": [
+          "preference:copper-finch:2"
+        ],
+        "qualification": "Implemented per accessibility requirements; no persuasion or urgency in message."
+      },
+      {
+        "claim": "Experience respects prefers-reduced-motion: replaces animation with static states",
+        "source_evidence_keys": [
+          "preference:copper-finch:2"
+        ],
+        "qualification": "Progress bar becomes static text; modal and banner appear without transition; signal expansion is instant."
+      }
+    ],
+    "required_disclosures": [
+      "Email outreach is one-time and permitted only by preference profile; no automated sequences or secondary CTAs.",
+      "No data from signal inspection is stored, used for profiling, or shared without explicit 'Share observation' action.",
+      "Observation sharing is explicit, purpose-limited to improving the signal garden, and not retained beyond that scope.",
+      "Decline at any point (email non-engagement, modal dismiss, or non-interaction) implies no further contact or obligation.",
+      "The experience does not infer causality between signals, suggest diagnostic conclusions, or assign sentiment to usage patterns."
+    ],
+    "available_channels": [
+      "email"
+    ],
+    "prohibited_claims": [
+      "SMS outreach",
+      "phone calls",
+      "push notifications without consent"
+    ]
+  },
+  "residual_risks": [
+    {
+      "risk": "Customer may perceive signal inspection as judgment despite neutral framing",
+      "control": "Signal strands labelled as observational data with explicit 'No action required' messaging; tone is curious, not corrective."
+    },
+    {
+      "risk": "Optional clarification could feel like a soft sell",
+      "control": "Clarification request framed as helping improve the signal garden itself; observation field optional and not required to proceed."
+    }
+  ],
+  "schema_version": "recovery-room-artifact.v1",
+  "stage": "maker",
+  "agent": {
+    "id": "maker",
+    "name": "Noor Patel",
+    "personality": "pragmatic, meticulous, accessibility-first"
+  },
+  "run_id": "b921755d-f96a-45f0-bd72-7791ceb13ef7",
+  "account_slug": "copper-finch",
+  "source": {
+    "design_schema_version": "recovery-design.v1",
+    "design_prompt_version": "designer.v1.6.0",
+    "design_generated_at": "2026-08-05T14:21:19.845Z",
+    "design_artifact_sha256": "360884592e00ebf6bbf96cc7b77dcf54f5aac6cb3405c53cb3c6c238d4b4dced"
+  },
+  "inherited_guardrails": {
+    "allowed_channels": [
+      "email"
+    ],
+    "prohibited_actions": [
+      "SMS outreach",
+      "phone calls",
+      "push notifications without consent"
+    ]
+  },
+  "implementation_evidence": {
+    "commit_sha": "c38febd",
+    "route": "#/cases/recovery-room",
+    "framework": "React 19 + TypeScript + CSS",
+    "component_sources": [
+      {
+        "contract_component": "SignalStrand",
+        "source_path": "src/features/recovery-room/SignalStrand.tsx"
+      },
+      {
+        "contract_component": "SignalCanvas",
+        "source_path": "src/features/recovery-room/SignalCanvas.tsx"
+      },
+      {
+        "contract_component": "LoadingState",
+        "source_path": "src/features/recovery-room/LoadingState.tsx"
+      },
+      {
+        "contract_component": "ReadyState",
+        "source_path": "src/features/recovery-room/RecoveryRoomView.tsx"
+      },
+      {
+        "contract_component": "ActiveInspection",
+        "source_path": "src/features/recovery-room/SignalCanvas.tsx"
+      },
+      {
+        "contract_component": "ClarificationModal",
+        "source_path": "src/features/recovery-room/ClarificationDialog.tsx"
+      },
+      {
+        "contract_component": "SuccessState",
+        "source_path": "src/features/recovery-room/AcknowledgmentBanner.tsx"
+      },
+      {
+        "contract_component": "DeclinedState",
+        "source_path": "src/features/recovery-room/AcknowledgmentBanner.tsx"
+      },
+      {
+        "contract_component": "ErrorState",
+        "source_path": "src/features/recovery-room/ClarificationDialog.tsx"
+      },
+      {
+        "contract_component": "ReducedMotionState",
+        "source_path": "src/features/recovery-room/SignalStrand.tsx"
+      }
+    ],
+    "implemented_states": [
+      "loading",
+      "ready",
+      "active",
+      "success",
+      "declined",
+      "error",
+      "reduced_motion"
+    ],
+    "verification": {
+      "test_command": "npm test -- --run",
+      "test_count": 114,
+      "test_status": "passed",
+      "build_command": "npm run build",
+      "build_status": "passed",
+      "visual_evidence": [
+        "design/reference/signal-garden-slice5-acknowledgment-desktop.png",
+        "design/reference/signal-garden-slice5-acknowledgment-mobile.png"
+      ]
+    }
+  },
+  "provenance": {
+    "provider": "openrouter",
+    "requested_model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "resolved_model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "prompt_version": "maker.v1.0.0",
+    "generated_at": "2026-08-06T01:15:17.232Z"
+  }
+}

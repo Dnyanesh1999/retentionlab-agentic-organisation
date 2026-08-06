@@ -14,6 +14,7 @@
     "agent:researcher:check": "tsc -p tsconfig.agents.json --pretty false",
     "agent:designer": "node --env-file-if-exists=.env.local --import tsx agents/designer/cli.ts",
     "agent:designer:promote": "node --env-file-if-exists=.env.local --import tsx agents/designer/reviewCli.ts",
+    "agent:maker": "node --env-file-if-exists=.env.local --import tsx agents/maker/cli.ts",
     "lint": "eslint .",
     "test": "vitest run",
     "test:data": "node --test scripts/generate-demo-data.node-test.mjs",
