@@ -21,6 +21,7 @@ export type OrchestratorErrorCode =
   // Persistence / history integrity
   | "RUN_EXISTS"
   | "RUN_NOT_FOUND"
+  | "RUN_INPUT_MISMATCH"
   | "CORRUPTED_HISTORY"
   | "TAMPERED_HISTORY"
   | "DUPLICATE_SEQUENCE";

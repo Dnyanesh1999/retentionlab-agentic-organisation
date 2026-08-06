@@ -35,3 +35,59 @@ export {
   type StageExecutorContext,
   type StartRunInput,
 } from "./orchestrator.js";
+export {
+  artifactFileName,
+  artifactPath,
+  compactArtifactHash,
+  loadArtifactIfPresent,
+  writeArtifactExclusive,
+  STAGE_FILE_BASE,
+  type LoadedArtifact,
+} from "./artifactStore.js";
+export {
+  ARTIFACT_SCHEMAS,
+  createLivePipelineExecutors,
+  createLiveProducers,
+  isLivePipelineError,
+  LivePipelineError,
+  REAL_RUNNERS,
+  type LivePipelineErrorCode,
+  type LiveProducersConfig,
+  type LivePipelineExecutorConfig,
+  type PipelineModels,
+  type PipelineProducers,
+  type PipelineRunners,
+  type StageProduceContext,
+  type StageProducer,
+} from "./livePipeline.js";
+export {
+  runInputSchema,
+  readRunInput,
+  writeRunInput,
+  RUN_INPUT_FILE,
+  type RunInputRecord,
+} from "./runInput.js";
+export {
+  acquireRunLock,
+  defaultRunLockDeps,
+  RUN_LOCK_FILE,
+  type RunLock,
+  type RunLockDeps,
+} from "./runLock.js";
+export { resumeExplicitRun } from "./resumeRun.js";
+export {
+  artifactKey,
+  buildPipelineTranscript,
+  renderTranscriptMarkdown,
+  serializePipelineTranscript,
+  type ArtifactBundle,
+  type PipelineTranscript,
+  type TranscriptSource,
+} from "./transcript.js";
+export {
+  loadTranscriptSource,
+  writePipelineTranscript,
+  transcriptSnapshotSlug,
+  TRANSCRIPT_FILE_PREFIX,
+  type WrittenTranscript,
+} from "./transcriptSource.js";
