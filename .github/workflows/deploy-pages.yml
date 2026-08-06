@@ -1,0 +1,62 @@
+# Publishes the built Vite SPA to GitHub Pages.
+#
+# This workflow is INERT until the student enables Pages for the repository
+# (Settings → Pages → Source: "GitHub Actions"). It performs no live-data
+# connection and carries no secrets: the build embeds only browser-safe VITE_*
+# values, which must be provided as repository "Variables" (not Secrets) if the
+# live Supabase gateway is to be reachable from the public page. With none set,
+# the app still deploys and renders its non-live shell.
+#
+# Routing: vite is configured with `base: "./"` and the app uses hash routing,
+# so it works from the project subpath (username.github.io/<repo>/). The build
+# check writes `.nojekyll` and a `404.html` SPA fallback into dist/.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never run two publishes at once; let an in-progress run finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_EVIDENCE_FUNCTION: ${{ vars.VITE_SUPABASE_EVIDENCE_FUNCTION }}
+          VITE_SUPABASE_CLARIFICATION_FUNCTION: ${{ vars.VITE_SUPABASE_CLARIFICATION_FUNCTION }}
+      # Harden the build for Pages (.nojekyll + 404.html SPA fallback) and hold
+      # the JS budget. Fails the deploy if the build output regresses.
+      - run: npm run release:pages
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

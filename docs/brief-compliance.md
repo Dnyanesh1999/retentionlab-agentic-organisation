@@ -14,8 +14,8 @@ This file is the build-time source of truth for the final-project pass/fail gate
 | Functional Maker artefact | Maker emits a validated Recovery Room definition rendered as an interactive customer experience | Working choices, state transitions and Maker artefact trace | Implemented — Gate 6 |
 | Public GitHub Pages URL without login | Hash-routed React application | Public URL test | Planned |
 | Live connections available for eight weeks | Vercel and Supabase deployment retention checklist | Post-submission availability record | Planned |
-| Complete codebase ZIP | Frontend, API, MCP, schemas, prompts and tests included | Clean ZIP audit | Planned |
-| No committed credentials | Server-only environment variables and secret scanning | Repository scan and ZIP scan | Planned |
+| Complete codebase ZIP | `git archive HEAD` (tracked files only), deny-list + secret scan + required-files verified before write | Clean ZIP audit | Implemented — Gate 10 (`npm run release:zip`) |
+| No committed credentials | Server-only environment variables and shared fail-closed secret scanner | Repository scan and ZIP scan | Implemented — Gate 10 (`npm run release:scan`) |
 | GDPR, EU AI Act and trust | Trust Gate explains purpose, evidence, consent, human approval and applicable current law | Submission section with verified citations | Planned |
 | AI-generated content cited | Model ID, full prompt/version, timestamp and verification status recorded | AI usage appendix/export | Planned |
 | Reflection written by student | No generated reflection content in the repository | Student-authored final section | Locked |

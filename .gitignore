@@ -4,6 +4,7 @@ dist-mcp/
 dist-agents/
 artifacts/
 coverage/
+output/release/
 playwright-report/
 test-results/
 .env

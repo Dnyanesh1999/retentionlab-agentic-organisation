@@ -23,9 +23,14 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:data": "node --test scripts/generate-demo-data.node-test.mjs",
+    "test:release": "node --test scripts/release/secret-scan.node-test.mjs scripts/release/static-audit.node-test.mjs",
     "test:watch": "vitest",
     "typecheck": "tsc -b --pretty false",
-    "data:generate": "node scripts/generate-demo-data.mjs"
+    "data:generate": "node scripts/generate-demo-data.mjs",
+    "release:scan": "node scripts/release/scan-repo.mjs",
+    "release:zip": "node scripts/release/package-code-zip.mjs",
+    "release:pages": "node scripts/release/check-pages-build.mjs",
+    "release:check": "node scripts/release/run-release-checks.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.3.0",
