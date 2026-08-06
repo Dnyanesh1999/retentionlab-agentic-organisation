@@ -141,6 +141,18 @@ call is made during implementation. The final checklist item stays **unchecked**
 transcript is proven only when Codex performs and reviews the accepted live run. Evidence is in
 `docs/qa-gate-9-orchestration-slice-2.md`.
 
+A failed-stage recovery slice adds a bounded, append-only, operator-initiated retry of a run stalled at
+`failed` (`Orchestrator.retryFailed` / `--retry-failed <run-id>`) so an audited live run whose
+Communicator failed deterministic validation can rerun exactly that stage at attempt/version +1 once its
+agent is corrected — preserving all history including the failure event, carrying no fabricated Manager
+`required_changes`, and never retrying a Manager approval/rejection outcome. It is proven by 17
+adversarial tests (allowed recovery, version increment, preserved predecessors/history/failure, strict
+downstream continuation through the Manager, wrong stage/version, non-failed and approval/rejection
+refusal, duplicate retry, service boundary without live calls, and transcript visibility/determinism).
+No live model or Supabase call is made during implementation; Codex performs the accepted live retry
+after integration, so the transcript checklist item stays **unchecked**. Evidence is in
+`docs/qa-gate-9-failed-stage-recovery.md`.
+
 ## Gate 10 — release and assessment
 
 - [ ] GitHub Pages is public without login

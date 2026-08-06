@@ -6,6 +6,7 @@ export {
   assertManagerOutcome,
   EMPTY_STATE,
   expectedStage,
+  failedStage,
   firstIncompleteStage,
   initialStages,
   invalidationSet,

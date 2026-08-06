@@ -85,6 +85,25 @@ export type PipelineTranscript = {
     readonly required_changes: readonly string[];
     readonly created_at: string;
   }[];
+  // Every stage failure recorded in the log, and whether a later operator retry recovered it. Failures
+  // are NEVER hidden — a failed attempt stays visible even after a successful rerun supersedes it.
+  readonly stage_failures: readonly {
+    readonly stage: string;
+    readonly version: number;
+    readonly error: string;
+    readonly created_at: string;
+    readonly recovered: boolean;
+  }[];
+  // Every explicit operator-initiated failed-stage recovery, with its bounded reason, alongside the
+  // failure it recovers. This makes the audited "who retried the failed stage, and why" visible.
+  readonly failed_stage_retries: readonly {
+    readonly stage: string;
+    readonly failed_version: number;
+    readonly rerun_version: number;
+    readonly operator_reason: string;
+    readonly failure_error: string | null;
+    readonly created_at: string;
+  }[];
   readonly manager_outcome: {
     readonly decided: boolean;
     readonly decision: string | null;
@@ -220,6 +239,39 @@ function buildRevisions(source: TranscriptSource): PipelineTranscript["revisions
   return revisions;
 }
 
+// Failed-stage recovery history. Pairs each explicit retry with the failure it recovers (the latest
+// prior stage_failed for the same stage+version) and copies its bounded operator reason verbatim. Every
+// failure — recovered or not — is also surfaced, so the audited failure is never hidden.
+function buildFailureRecovery(source: TranscriptSource): {
+  stage_failures: PipelineTranscript["stage_failures"];
+  failed_stage_retries: PipelineTranscript["failed_stage_retries"];
+} {
+  const failures: { stage: string; version: number; error: string; created_at: string; recovered: boolean }[] = [];
+  const retries: PipelineTranscript["failed_stage_retries"][number][] = [];
+  for (const { event } of source.envelopes) {
+    if (event.type === "stage_failed") {
+      failures.push({ stage: event.stage, version: event.version, error: event.error, created_at: event.created_at, recovered: false });
+    }
+    if (event.type === "failed_stage_retry_requested") {
+      // The failure this retry recovers: the latest prior failure for the same stage+version.
+      let matched: (typeof failures)[number] | null = null;
+      for (const failure of failures) {
+        if (failure.stage === event.stage && failure.version === event.failed_version) matched = failure;
+      }
+      if (matched) matched.recovered = true;
+      retries.push({
+        stage: event.stage,
+        failed_version: event.failed_version,
+        rerun_version: event.failed_version + 1,
+        operator_reason: event.operator_reason,
+        failure_error: matched?.error ?? null,
+        created_at: event.created_at,
+      });
+    }
+  }
+  return { stage_failures: failures, failed_stage_retries: retries };
+}
+
 function buildManagerOutcome(source: TranscriptSource): PipelineTranscript["manager_outcome"] {
   const managerState = source.state.stages.manager;
   if (managerState.status !== "completed" || !managerState.current) {
@@ -335,6 +387,7 @@ function buildCumulativeWork(source: TranscriptSource): CumulativeWorkEntry[] {
 }
 
 export function buildPipelineTranscript(source: TranscriptSource): PipelineTranscript {
+  const recovery = buildFailureRecovery(source);
   return {
     transcript_schema_version: "gate9.transcript.v1",
     run: {
@@ -355,6 +408,8 @@ export function buildPipelineTranscript(source: TranscriptSource): PipelineTrans
     stage_attempts: buildStageAttempts(source),
     lineage: buildLineage(source),
     revisions: buildRevisions(source),
+    stage_failures: recovery.stage_failures,
+    failed_stage_retries: recovery.failed_stage_retries,
     manager_outcome: buildManagerOutcome(source),
     cumulative_work_proof: buildCumulativeWork(source),
   };
@@ -411,6 +466,26 @@ export function renderTranscriptMarkdown(transcript: PipelineTranscript): string
     for (const revision of transcript.revisions) {
       lines.push(`- ${revision.created_at} — ${revision.kind} targeting ${revision.target_stage} (rerun: ${revision.downstream_or_invalidated.join(", ") || "none"}).`);
     }
+    lines.push("");
+  }
+
+  if (transcript.stage_failures.length > 0 || transcript.failed_stage_retries.length > 0) {
+    lines.push("## Failed-stage recovery");
+    lines.push("");
+    for (const failure of transcript.stage_failures) {
+      lines.push(
+        `- ${failure.created_at} — **${failure.stage} v${failure.version} failed**: ${failure.error} `
+          + `(${failure.recovered ? "recovered by operator retry" : "not recovered"}).`,
+      );
+    }
+    for (const retry of transcript.failed_stage_retries) {
+      lines.push(
+        `- ${retry.created_at} — operator retry of **${retry.stage} v${retry.failed_version}** `
+          + `(reruns as v${retry.rerun_version}); reason: ${retry.operator_reason}`,
+      );
+    }
+    lines.push("");
+    lines.push("> A failed-stage retry is an explicit, named-operator recovery of a stage that failed validation or a runtime error. It never applies fabricated Manager changes and never resumes a Manager approval/rejection. The original failure stays recorded above.");
     lines.push("");
   }
 

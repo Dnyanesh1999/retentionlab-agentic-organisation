@@ -69,7 +69,19 @@ injected stage executors and adds crash-safe live persistence:
   status + event count + final chain hash) that are never overwritten; construction is pure and
   separated from I/O.
 
-The `agent:pipeline` CLI starts a fresh UUID run or resumes an explicit run id. Resume is bootstrap-safe:
+- A run stalled at `failed` can be recovered by an explicit, append-only, operator-initiated retry of
+  the failed stage (`Orchestrator.retryFailed` / `--retry-failed <run-id>`). The single
+  `failed_stage_retry_requested` event — never emitted automatically — is accepted only when the run is
+  `failed` at exactly that stage with every predecessor completed and every downstream stage still
+  pending/invalidated; it moves the failed stage to `invalidated` (rerun at attempt/version +1),
+  preserves all history including the failure event, carries no fabricated Manager `required_changes`,
+  and returns the run to `in_progress`. A Manager approval/rejection outcome (`awaiting_human_approval` /
+  `rejected`) is never `failed`, so this path can never retry a human-governance decision. The transcript
+  records the failure and its bounded operator reason so the failure is never hidden.
+
+The `agent:pipeline` CLI starts a fresh UUID run, resumes an explicit run id, or recovers a failed run
+with `--retry-failed <run-id>` (a distinct mode that requires an existing event log and never
+bootstraps a genesis event). Resume is bootstrap-safe:
 a crash after `run-input.json` is written but before the genesis event leaves run input with no event
 log, and the testable `resumeExplicitRun` helper bootstraps `orchestrator.start` from the immutable run
 input (fail-closed on a run-id mismatch) rather than failing `RUN_NOT_FOUND`; it never overwrites run

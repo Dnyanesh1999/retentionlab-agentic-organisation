@@ -192,6 +192,17 @@ export function assertManagerOutcome(state: OrchestratorState, outcome: ManagerO
   }
 }
 
+// The single stage a `failed` run is stalled on, or null when the run is not failed / has no failed
+// stage. A valid failed history has exactly one failed stage (the executor that threw); strict order
+// guarantees every predecessor is completed and every downstream stage never started. Pure.
+export function failedStage(state: OrchestratorState): OrchestratorStage | null {
+  if (state.status !== "failed") return null;
+  for (const stage of STAGE_ORDER) {
+    if (state.stages[stage].status === "failed") return stage;
+  }
+  return null;
+}
+
 function withStage(
   state: OrchestratorState,
   stage: OrchestratorStage,
@@ -415,6 +426,75 @@ export function applyEvent(state: OrchestratorState, event: OrchestratorEvent): 
         status: "in_progress",
         pending_revision: null,
         stages: nextStages,
+      });
+    }
+
+    case "failed_stage_retry_requested": {
+      requireStarted(state);
+      // Deliberately NOT refuseAfterTerminal: this is the ONE event that legally advances a `failed`
+      // run. It is accepted ONLY from `failed`, so any other terminal state (awaiting_human_approval,
+      // rejected) — including every Manager approval/rejection outcome — is refused here.
+      if (state.status !== "failed") {
+        throw new OrchestratorError(
+          "RUN_NOT_FAILED",
+          `Failed-stage retry rejected: the run is ${state.status}, not failed. Only a failed run may be `
+            + "recovered, so a Manager approval/rejection or an in-progress run can never be retried this way.",
+        );
+      }
+      const target = failedStage(state);
+      if (target === null || event.stage !== target) {
+        throw new OrchestratorError(
+          "RETRY_STAGE_MISMATCH",
+          `Failed-stage retry rejected: the failed stage is ${target ?? "none"}, not ${event.stage}. `
+            + "Only the exact failed stage may be retried.",
+        );
+      }
+      const current = state.stages[event.stage];
+      // Defence in depth — `failedStage` already proved this, but re-assert the stage's own status.
+      if (current.status !== "failed") {
+        throw new OrchestratorError(
+          "RETRY_STAGE_MISMATCH",
+          `Failed-stage retry rejected: ${event.stage} is ${current.status}, not failed.`,
+        );
+      }
+      if (event.failed_version !== current.attempt) {
+        throw new OrchestratorError(
+          "STALE_VERSION",
+          `Failed-stage retry rejected: ${event.stage} failed at version ${current.attempt}, got ${event.failed_version}.`,
+        );
+      }
+      // Every predecessor must remain completed; every downstream stage must still be pending or
+      // invalidated with no accepted current artefact. A history that violates either is malformed.
+      const index = STAGE_ORDER.indexOf(event.stage);
+      for (let i = 0; i < index; i += 1) {
+        const pred = state.stages[STAGE_ORDER[i] as OrchestratorStage];
+        if (pred.status !== "completed" || pred.current === null) {
+          throw new OrchestratorError(
+            "ILLEGAL_EVENT",
+            `Failed-stage retry rejected: predecessor ${pred.stage} is ${pred.status} (must be completed with an accepted artefact).`,
+          );
+        }
+      }
+      for (let i = index + 1; i < STAGE_ORDER.length; i += 1) {
+        const down = state.stages[STAGE_ORDER[i] as OrchestratorStage];
+        if ((down.status !== "pending" && down.status !== "invalidated") || down.current !== null) {
+          throw new OrchestratorError(
+            "ILLEGAL_EVENT",
+            `Failed-stage retry rejected: downstream ${down.stage} is ${down.status} with `
+              + `${down.current ? "an accepted artefact" : "no artefact"} (must be pending/invalidated and unaccepted).`,
+          );
+        }
+      }
+      // Reset ONLY the failed stage to invalidated (pending-for-rerun). History is preserved verbatim,
+      // `attempt` is unchanged so the next start is attempt+1, and pending_required_changes stays null —
+      // the rerun carries NO fabricated Manager required_changes. Every predecessor and event is kept.
+      return bump({
+        ...state,
+        status: "in_progress",
+        stages: {
+          ...state.stages,
+          [event.stage]: { ...current, status: "invalidated", current: null, pending_required_changes: null },
+        },
       });
     }
 

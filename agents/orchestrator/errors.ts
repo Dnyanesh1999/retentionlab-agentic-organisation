@@ -14,6 +14,10 @@ export type OrchestratorErrorCode =
   | "ILLEGAL_EVENT"
   | "REVISION_NOT_PENDING"
   | "DOWNSTREAM_MISMATCH"
+  // Failed-stage recovery (operator-initiated retry)
+  | "RUN_NOT_FAILED"
+  | "RETRY_STAGE_MISMATCH"
+  | "INVALID_OPERATOR_REASON"
   // Manager governance / outcome
   | "MISSING_MANAGER_OUTCOME"
   | "UNEXPECTED_MANAGER_OUTCOME"

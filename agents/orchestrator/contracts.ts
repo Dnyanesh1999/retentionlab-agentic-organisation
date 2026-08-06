@@ -24,6 +24,12 @@ export const isoTimestampSchema = z.string().datetime({ offset: true });
 const accountSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(80);
 const versionSchema = z.number().int().positive();
 
+// Bounded operator reason for a failed-stage recovery retry: enough to justify the action, capped so it
+// stays an audit note and never a payload. Exported so the service/CLI validate identically to the event.
+export const OPERATOR_REASON_MIN = 20;
+export const OPERATOR_REASON_MAX = 300;
+export const operatorReasonSchema = z.string().trim().min(OPERATOR_REASON_MIN).max(OPERATOR_REASON_MAX);
+
 // Overall run lifecycle. `in_progress` is the only state from which stages may execute.
 // `awaiting_human_approval`, `rejected` and `failed` are terminal for the automated machine.
 // `revision_required` is a routing state whose only legal successor is a deterministic route event.
@@ -176,6 +182,24 @@ export const orchestratorEventSchema = z.discriminatedUnion("type", [
     type: z.literal("revision_routed"),
     target_stage: revisableStageSchema,
     invalidated_stages: z.array(orchestratorStageSchema).min(1),
+    created_at: isoTimestampSchema,
+  }).strict(),
+  // Explicit, operator-initiated recovery of a stage that FAILED deterministic validation or a runtime
+  // error. This is NOT an automatic retry: it is emitted only by the dedicated recovery API/CLI path
+  // (Orchestrator.retryFailed / `--retry-failed`), never by the normal drive loop. It records the
+  // failed stage, the exact prior attempt/version that failed, a bounded named-operator reason, and the
+  // injected clock. The reducer accepts it only when the run is `failed` at exactly this stage, moves
+  // that stage to `invalidated` (pending-for-rerun at attempt/version +1), clears no history and
+  // preserves every predecessor and event, and returns the run to `in_progress`. It never applies fake
+  // Manager `required_changes` and never retries a Manager approval/rejection outcome (those are
+  // `awaiting_human_approval`/`rejected`, not `failed`).
+  z.object({
+    type: z.literal("failed_stage_retry_requested"),
+    stage: orchestratorStageSchema,
+    // The attempt/version that failed; the rerun uses failed_version + 1.
+    failed_version: versionSchema,
+    // Bounded free-text reason a named local operator supplies for the retry.
+    operator_reason: operatorReasonSchema,
     created_at: isoTimestampSchema,
   }).strict(),
 ]);

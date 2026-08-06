@@ -1,4 +1,7 @@
 import {
+  operatorReasonSchema,
+  OPERATOR_REASON_MAX,
+  OPERATOR_REASON_MIN,
   type ArtifactReference,
   type ManagerOutcome,
   type OrchestratorEvent,
@@ -9,6 +12,7 @@ import type { EventStore } from "./eventStore.js";
 import {
   applyEvent,
   assertManagerOutcome,
+  failedStage,
   firstIncompleteStage,
   invalidationSet,
   type OrchestratorState,
@@ -63,6 +67,10 @@ export type StartRunInput = {
 export interface Orchestrator {
   start(input: StartRunInput): Promise<DriveResult>;
   resume(runId: string): Promise<DriveResult>;
+  // Operator-initiated recovery of a run stalled at `failed`. Appends ONE explicit
+  // failed_stage_retry_requested event for the currently failed stage, then drives normally so the
+  // stage reruns at attempt/version +1. Never emitted automatically; never takes an external action.
+  retryFailed(runId: string, operatorReason: string): Promise<DriveResult>;
   inspect(runId: string): Promise<{ state: OrchestratorState; plan: ResumePlan }>;
 }
 
@@ -204,6 +212,37 @@ export function createOrchestrator(options: {
     async resume(runId) {
       const state = await store.loadState(runId);
       return drive(runId, state);
+    },
+
+    async retryFailed(runId, operatorReason) {
+      // Load the fully verified state from the durable log (hash-chain checked on read). The retry is a
+      // deliberate operator action, so its reason is validated to bounded length before anything is
+      // appended — a malformed reason never reaches the event log.
+      const reason = operatorReasonSchema.safeParse(operatorReason);
+      if (!reason.success) {
+        throw new OrchestratorError(
+          "INVALID_OPERATOR_REASON",
+          `Failed-stage retry rejected: operator reason must be ${OPERATOR_REASON_MIN}–${OPERATOR_REASON_MAX} characters after trimming.`,
+        );
+      }
+      const state = await store.loadState(runId);
+      const target = failedStage(state);
+      if (target === null) {
+        throw new OrchestratorError(
+          "RUN_NOT_FAILED",
+          `Failed-stage retry rejected: run ${runId} is ${state.status} with no failed stage to recover.`,
+        );
+      }
+      // The reducer re-validates every precondition (status, exact stage, version, predecessor and
+      // downstream shape) when this event is folded, so a race between load and append fails closed.
+      const next = await commit(state, runId, {
+        type: "failed_stage_retry_requested",
+        stage: target,
+        failed_version: state.stages[target].attempt,
+        operator_reason: reason.data,
+        created_at: nowIso(),
+      });
+      return drive(runId, next);
     },
 
     async inspect(runId) {
