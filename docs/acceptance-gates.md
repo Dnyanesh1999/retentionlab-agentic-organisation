@@ -160,7 +160,7 @@ every predecessor hash, and proves cumulative work across all five stages. Evide
 
 ## Gate 10 — release and assessment
 
-- [ ] GitHub Pages is public without login — external/manual; build is Pages-ready
+- [x] GitHub Pages is public without login — deployed and browser-verified 8 August 2026
 - [ ] Live Vercel/Supabase connections are reachable — external/manual, verified only after deploy
 - [x] Accessibility, security, responsive and performance checks pass — automated locally
 - [ ] AI usage export is complete — `docs/ai-usage-log.md` maintained by student
@@ -175,8 +175,9 @@ shared secret scan before it is written, with a sha256 manifest; and (2) automat
 accessibility (whole-app axe sweep across all routes), security (repo- and ZIP-wide secret
 scan), responsive (viewport, breakpoints, reduced-motion) and performance (dist JS budget)
 checks pass. The Vite build is GitHub Pages ready (`base: "./"`, hash routing, emitted
-`.nojekyll` and `404.html` SPA fallback, inert `deploy-pages.yml` workflow). No live model or
-Supabase call is made by any release script. The remaining items are honestly **external or
-student-owned**: the public Pages URL and its ≥8-week live-connection reachability are proven
-only after the student deploys, and the reflection stays student-authored. Evidence:
+`.nojekyll` and `404.html` SPA fallback, `deploy-pages.yml` workflow). No live model or
+Supabase call is made by any release script. The public URL was subsequently deployed and
+browser-verified on 8 August 2026. The remaining items are honestly **external or
+student-owned**: ≥8-week live-connection reachability still requires ongoing monitoring,
+and the reflection stays student-authored. Evidence:
 `docs/qa-gate-10-release-readiness.md` and `docs/gate-10-release-readiness.md`.

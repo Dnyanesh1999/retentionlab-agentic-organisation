@@ -14,13 +14,13 @@ The assessed pipeline is fixed and unbroken:
 - Gate 3 — MCP evidence tools: complete
 - Gates 4–8 — five agents, implemented and live-validated in order: complete
 - Gate 9 — crash-safe orchestration and accepted cumulative transcript: complete
-- Gate 10 — local release readiness: complete; public deployment and student submission remain open
+- Gate 10 — release readiness and public GitHub Pages deployment: complete; student submission remains open
 
 No interface state may be described as live until the runtime Supabase query and MCP tool path have been implemented and verified.
 
-## Planned deployment
+## Deployment
 
-- Public application: GitHub Pages
+- Public application: https://dnyanesh1999.github.io/retentionlab-agentic-organisation/
 - Server-side API and MCP endpoint: Vercel Functions
 - Live queryable synthetic data: Supabase Postgres
 - LLM gateway: OpenRouter, called only from the server
@@ -70,10 +70,11 @@ npm run release:check  # runs scan + zip + pages and writes a consolidated JSON 
 The verified ZIP is built from `git archive HEAD`, so it contains only tracked files and is
 byte-stable per commit. Commit before packaging the final submission ZIP.
 
-### Deploying to GitHub Pages (manual)
+### GitHub Pages
 
-The build is Pages-ready: `vite.config.ts` sets `base: "./"`, the app is hash-routed, and
-`npm run release:pages` emits `.nojekyll` and a `404.html` SPA fallback into `dist/`.
+The public Pages application is deployed from `main`. `vite.config.ts` sets `base: "./"`,
+the app is hash-routed, and `npm run release:pages` emits `.nojekyll` and a `404.html`
+SPA fallback into `dist/`.
 
 1. In the repository: **Settings → Pages → Source: GitHub Actions**.
 2. Push to `main` (or run the **Deploy to GitHub Pages** workflow manually). The included

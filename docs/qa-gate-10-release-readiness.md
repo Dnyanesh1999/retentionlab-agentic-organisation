@@ -36,9 +36,20 @@ live-connection** status. External/live gates and the student reflection remain 
 - The scanner redacts every match it reports, so logs never re-leak a value.
 - No live model or Supabase call is made by any release script.
 
+## Post-slice deployment evidence
+
+- GitHub Actions run `31229961659` completed both build and deploy jobs successfully on
+  8 August 2026.
+- Public URL: `https://dnyanesh1999.github.io/retentionlab-agentic-organisation/`.
+- Browser verification against the deployed Organisation route found the correct heading,
+  exactly five agent nodes, the 14-event immutable-snapshot notice, no stale foundation copy,
+  and no horizontal overflow at desktop width.
+- Deployed interactions verified: Communicator failure/retry recovery, Manager governance,
+  and the deterministic evidence-chain answer in the read-only Manager dock.
+
 ## Still open (external / manual — not marked complete)
 
-- GitHub Pages public URL and its ≥8-week reachability.
+- ≥8-week public and live-connection reachability monitoring.
 - Live Supabase/OpenRouter connection reachability from the deployed app.
 - Real-browser colour-contrast and multi-device responsive verification.
 - Student-authored reflection and final single submission document assembly.
