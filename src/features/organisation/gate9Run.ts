@@ -133,10 +133,23 @@ const agentIdentitySchema = z.object({
   personality: z.string().min(1),
 });
 
+const artifactProvenanceSchema = provenanceSchema.extend({
+  generated_at: isoDatetime,
+});
+
+const artifactIdentityFields = {
+  run_id: z.string().uuid(),
+  account_slug: z.string().min(1),
+  schema_version: z.string().min(1),
+} as const;
+
 // --- Stage-specific detail contracts (only the fields the UI renders) --------
 
 const researchBriefSchema = z
   .object({
+    ...artifactIdentityFields,
+    stage: z.literal("researcher"),
+    status: z.literal("completed"),
     agent: agentIdentitySchema,
     brief_summary: z.string().min(1),
     observations: z.array(
@@ -156,24 +169,33 @@ const researchBriefSchema = z
     ),
     consent_boundaries: z.object({ allowed_channels: z.array(z.string().min(1)) }).passthrough(),
     designer_handoff: z.object({ priority_outcomes: z.array(z.string().min(1)) }).passthrough(),
-    provenance: z
-      .object({ tool_calls: z.array(z.string().min(1)), all_sources_no_store: z.boolean() })
-      .passthrough(),
+    provenance: artifactProvenanceSchema.extend({
+      tool_calls: z.array(z.string().min(1)),
+      all_sources_no_store: z.boolean(),
+    }),
   })
   .passthrough();
 
 const recoveryDesignSchema = z
   .object({
+    ...artifactIdentityFields,
+    stage: z.literal("designer"),
+    status: z.literal("ready_for_maker"),
     agent: agentIdentitySchema,
     design_thesis: z.string().min(1),
     recovery_concept: z.object({ one_line_promise: z.string().min(1) }).passthrough(),
     experience_principles: z.array(z.object({ name: z.string().min(1), rationale: z.string().min(1) })),
     journey: z.array(z.object({ title: z.string().min(1), customer_goal: z.string().min(1) })),
+    source: z.object({ research_artifact_sha256: z.string().length(64) }).passthrough(),
+    provenance: artifactProvenanceSchema,
   })
   .passthrough();
 
 const recoveryRoomSchema = z
   .object({
+    ...artifactIdentityFields,
+    stage: z.literal("maker"),
+    status: z.literal("ready_for_communication"),
     agent: agentIdentitySchema,
     build_summary: z.string().min(1),
     experience_definition: z
@@ -194,11 +216,16 @@ const recoveryRoomSchema = z
         verification: z.object({ test_count: z.number().int().positive() }).passthrough(),
       })
       .passthrough(),
+    source: z.object({ design_artifact_sha256: z.string().length(64) }).passthrough(),
+    provenance: artifactProvenanceSchema,
   })
   .passthrough();
 
 const communicationPlanSchema = z
   .object({
+    ...artifactIdentityFields,
+    stage: z.literal("communicator"),
+    status: z.literal("ready_for_manager"),
     agent: agentIdentitySchema,
     campaign_thesis: z.string().min(1),
     email_invitation: z
@@ -212,11 +239,15 @@ const communicationPlanSchema = z
       }),
     ),
     transparency: z.object({ data_boundary: z.string().min(1), choice_statement: z.string().min(1) }).passthrough(),
+    source: z.object({ maker_artifact_sha256: z.string().length(64) }).passthrough(),
+    provenance: artifactProvenanceSchema,
   })
   .passthrough();
 
 const managerDecisionSchema = z
   .object({
+    ...artifactIdentityFields,
+    stage: z.literal("manager"),
     agent: agentIdentitySchema,
     decision: z.string().min(1),
     executive_summary: z.string().min(1),
@@ -233,7 +264,16 @@ const managerDecisionSchema = z
         boundaries: z.array(z.string().min(1)),
       })
       .passthrough(),
-    lineage: z.object({ chain_verified: z.boolean() }).passthrough(),
+    lineage: z
+      .object({
+        research_brief_sha256: z.string().length(64),
+        design_specification_sha256: z.string().length(64),
+        recovery_room_artifact_sha256: z.string().length(64),
+        communication_plan_sha256: z.string().length(64),
+        chain_verified: z.boolean(),
+      })
+      .passthrough(),
+    provenance: artifactProvenanceSchema,
   })
   .passthrough();
 
@@ -381,6 +421,83 @@ function currentAttempt(stage: StageId) {
   }
   return attempt;
 }
+
+function assertEvidenceConsistency(): void {
+  const currentAttempts = transcript.stage_attempts.filter((entry) => entry.is_current);
+  if (
+    currentAttempts.length !== STAGE_ORDER.length
+    || new Set(currentAttempts.map((entry) => entry.stage)).size !== STAGE_ORDER.length
+  ) {
+    throw new Error("Gate 9 evidence must contain exactly one current attempt for each stage.");
+  }
+
+  if (
+    transcript.run.final_status !== "awaiting_human_approval"
+    || transcript.run.requires_human_approval !== true
+    || transcript.manager_outcome.decision !== "approve"
+    || transcript.manager_outcome.permitted_next_action !== "await_human_approval"
+    || transcript.manager_outcome.human_approval_required !== true
+    || transcript.manager_outcome.autonomous_external_actions !== false
+    || transcript.manager_outcome.chain_verified !== true
+  ) {
+    throw new Error("Gate 9 evidence no longer represents the accepted, human-gated run.");
+  }
+
+  const artifacts = {
+    researcher: researchBrief,
+    designer: recoveryDesign,
+    maker: recoveryRoom,
+    communicator: communicationPlan,
+    manager: managerDecision,
+  } as const;
+
+  for (const stage of STAGE_ORDER) {
+    const artifact = artifacts[stage];
+    const attempt = currentAttempt(stage);
+    if (
+      artifact.run_id !== transcript.run.run_id
+      || artifact.account_slug !== transcript.run.account_slug
+      || artifact.stage !== stage
+      || artifact.agent.id !== stage
+      || artifact.provenance.generated_at !== attempt.produced_at
+      || artifact.provenance.requested_model !== attempt.provenance.requested_model
+      || artifact.provenance.resolved_model !== attempt.provenance.resolved_model
+      || artifact.provenance.prompt_version !== attempt.provenance.prompt_version
+    ) {
+      throw new Error(`Gate 9 ${stage} artefact identity or provenance does not match the transcript.`);
+    }
+  }
+
+  const attemptHashes = Object.fromEntries(
+    STAGE_ORDER.map((stage) => [stage, currentAttempt(stage).sha256]),
+  ) as Record<StageId, string>;
+  if (
+    recoveryDesign.source.research_artifact_sha256 !== attemptHashes.researcher
+    || recoveryRoom.source.design_artifact_sha256 !== attemptHashes.designer
+    || communicationPlan.source.maker_artifact_sha256 !== attemptHashes.maker
+    || managerDecision.lineage.research_brief_sha256 !== attemptHashes.researcher
+    || managerDecision.lineage.design_specification_sha256 !== attemptHashes.designer
+    || managerDecision.lineage.recovery_room_artifact_sha256 !== attemptHashes.maker
+    || managerDecision.lineage.communication_plan_sha256 !== attemptHashes.communicator
+    || managerDecision.lineage.chain_verified !== true
+  ) {
+    throw new Error("Gate 9 artefact predecessor hashes do not match the current transcript attempts.");
+  }
+
+  const lineageLinks = transcript.lineage.flatMap((entry) =>
+    entry.links.map((link) => ({ stage: entry.stage, ...link })),
+  );
+  if (
+    lineageLinks.length !== 7
+    || lineageLinks.some(
+      (link) => !link.matches_predecessor || link.embedded_sha256 !== attemptHashes[link.predecessor],
+    )
+  ) {
+    throw new Error("Gate 9 transcript lineage is incomplete or does not match predecessor hashes.");
+  }
+}
+
+assertEvidenceConsistency();
 
 function transformationFor(stage: StageId): string {
   const proof = transcript.cumulative_work_proof.find((entry) => entry.stage === stage);

@@ -15,9 +15,9 @@ function queried(tool: string): boolean {
 }
 
 const sources = [
-  { label: "Product", icon: Database, detail: queried("list_product_signals") ? "list_product_signals" : "queried" },
-  { label: "Billing", icon: ReceiptText, detail: queried("list_billing_events") ? "list_billing_events" : "queried" },
-  { label: "Support", icon: Headphones, detail: queried("list_support_events") ? "list_support_events" : "queried" },
+  { label: "Product", icon: Database, tool: "list_product_signals" },
+  { label: "Billing", icon: ReceiptText, tool: "list_billing_events" },
+  { label: "Support", icon: Headphones, tool: "list_support_events" },
   {
     label: "Repository",
     icon: GitBranch,
@@ -34,15 +34,21 @@ export function SourceRail() {
         <span>Captured in the assessed snapshot · not a live query</span>
       </header>
       <ul>
-        {sources.map(({ icon: Icon, label, detail }) => (
-          <li key={label}>
-            <Icon aria-hidden="true" size={24} strokeWidth={1.45} />
-            <span>
-              <strong>{label}</strong>
-              <small>{detail}</small>
-            </span>
-          </li>
-        ))}
+        {sources.map((source) => {
+          const Icon = source.icon;
+          const detail = "tool" in source
+            ? (queried(source.tool) ? source.tool : "not recorded in this snapshot")
+            : source.detail;
+          return (
+            <li key={source.label}>
+              <Icon aria-hidden="true" size={24} strokeWidth={1.45} />
+              <span>
+                <strong>{source.label}</strong>
+                <small>{detail}</small>
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );
