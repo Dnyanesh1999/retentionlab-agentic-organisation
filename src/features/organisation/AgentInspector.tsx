@@ -13,6 +13,7 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { gate9Run, humanizeStatus, shortHash, stageLabel, type StageEvidence } from "./gate9Run";
+import { useInspectorScroll } from "./inspectorScroll";
 
 type AgentInspectorProps = {
   stage: StageEvidence;
@@ -34,99 +35,127 @@ export function AgentInspector({ stage, icon: Icon }: AgentInspectorProps) {
         transition: { duration: 0.2 },
       };
 
+  const { ref: scrollRef, progress, hasOverflow, atTop, atBottom, thumbSize } =
+    useInspectorScroll<HTMLDivElement>(stage.id);
+  const thumbPct = thumbSize * 100;
+  const thumbTopPct = progress * (100 - thumbPct);
+
   return (
     <aside className="agent-inspector" aria-label={`${stage.agentName} details`}>
-      <AnimatePresence mode="wait">
-        <motion.div className="agent-inspector__content" key={stage.id} {...sectionMotion}>
-          <header className="agent-inspector__header">
-            <span className="agent-inspector__icon">
-              <Icon aria-hidden="true" size={26} strokeWidth={1.55} />
-            </span>
-            <div>
-              <h2>{stage.agentName}</h2>
-              <p>{stage.personality}</p>
+      <div className="agent-inspector__scroll" ref={scrollRef} tabIndex={-1}>
+        <AnimatePresence mode="wait">
+          <motion.div className="agent-inspector__content" key={stage.id} {...sectionMotion}>
+            <header className="agent-inspector__header">
+              <span className="agent-inspector__icon">
+                <Icon aria-hidden="true" size={26} strokeWidth={1.55} />
+              </span>
+              <div>
+                <h2>{stage.agentName}</h2>
+                <p>{stage.personality}</p>
+              </div>
+              <span className="agent-inspector__step">Stage {stage.stage} of 5</span>
+            </header>
+
+            <div className="inspector-badges">
+              <span className="inspector-badge inspector-badge--status">
+                v{stage.version} · {humanizeStatus(stage.statusLabel)}
+              </span>
+              <span className="inspector-badge">{formatTimestamp(stage.producedAt)}</span>
             </div>
-            <span className="agent-inspector__step">Stage {stage.stage} of 5</span>
-          </header>
 
-          <div className="inspector-badges">
-            <span className="inspector-badge inspector-badge--status">
-              v{stage.version} · {humanizeStatus(stage.statusLabel)}
-            </span>
-            <span className="inspector-badge">{formatTimestamp(stage.producedAt)}</span>
-          </div>
+            <section className="inspector-section">
+              <ScrollText aria-hidden="true" />
+              <div>
+                <h3>Cumulative transformation</h3>
+                <p>{stage.transformation}</p>
+              </div>
+            </section>
 
-          <section className="inspector-section">
-            <ScrollText aria-hidden="true" />
-            <div>
-              <h3>Cumulative transformation</h3>
-              <p>{stage.transformation}</p>
+            <StageDetailSection stage={stage} />
+
+            {stage.recovery ? <RecoverySection stage={stage} /> : null}
+
+            {stage.detail.kind === "manager" ? <GovernanceSection /> : null}
+
+            <section className="inspector-section">
+              <Sparkles aria-hidden="true" />
+              <div>
+                <h3>Model & prompt provenance</h3>
+                <dl className="provenance-list">
+                  <div>
+                    <dt>Resolved model</dt>
+                    <dd>{stage.provenance.resolvedModel}</dd>
+                  </div>
+                  <div>
+                    <dt>Requested model</dt>
+                    <dd>{stage.provenance.requestedModel}</dd>
+                  </div>
+                  <div>
+                    <dt>Prompt version</dt>
+                    <dd>{stage.provenance.promptVersion}</dd>
+                  </div>
+                </dl>
+              </div>
+            </section>
+
+            <section className="inspector-section">
+              <Fingerprint aria-hidden="true" />
+              <div>
+                <h3>Immutable hash lineage</h3>
+                <p className="inspector-hash">
+                  <span className="inspector-hash__label">SHA-256</span>
+                  <code title={stage.sha256}>{shortHash(stage.sha256)}</code>
+                </p>
+                {stage.lineage.length ? (
+                  <ul className="lineage-list">
+                    {stage.lineage.map((link) => (
+                      <li key={`${link.from}-${link.to}`}>
+                        <Link2 aria-hidden="true" size={13} />
+                        <span>
+                          {stageLabel(link.from)} → {stageLabel(link.to)}
+                        </span>
+                        <code title={link.sha256}>{shortHash(link.sha256)}</code>
+                        <em className={link.verified ? "is-verified" : "is-unverified"}>
+                          {link.verified ? "verified" : "unverified"}
+                        </em>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="lineage-empty">First stage in the chain — no predecessor to verify.</p>
+                )}
+              </div>
+            </section>
+
+            <div className="inspector-status" role="status">
+              <ShieldCheck aria-hidden="true" size={17} />
+              No external action — sealed for a named human decision · autonomous external actions:{" "}
+              {gate9Run.managerOutcome.autonomousExternalActions ? "true" : "false"}
             </div>
-          </section>
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
-          <StageDetailSection stage={stage} />
-
-          {stage.recovery ? <RecoverySection stage={stage} /> : null}
-
-          {stage.detail.kind === "manager" ? <GovernanceSection /> : null}
-
-          <section className="inspector-section">
-            <Sparkles aria-hidden="true" />
-            <div>
-              <h3>Model & prompt provenance</h3>
-              <dl className="provenance-list">
-                <div>
-                  <dt>Resolved model</dt>
-                  <dd>{stage.provenance.resolvedModel}</dd>
-                </div>
-                <div>
-                  <dt>Requested model</dt>
-                  <dd>{stage.provenance.requestedModel}</dd>
-                </div>
-                <div>
-                  <dt>Prompt version</dt>
-                  <dd>{stage.provenance.promptVersion}</dd>
-                </div>
-              </dl>
-            </div>
-          </section>
-
-          <section className="inspector-section">
-            <Fingerprint aria-hidden="true" />
-            <div>
-              <h3>Immutable hash lineage</h3>
-              <p className="inspector-hash">
-                <span className="inspector-hash__label">SHA-256</span>
-                <code title={stage.sha256}>{shortHash(stage.sha256)}</code>
-              </p>
-              {stage.lineage.length ? (
-                <ul className="lineage-list">
-                  {stage.lineage.map((link) => (
-                    <li key={`${link.from}-${link.to}`}>
-                      <Link2 aria-hidden="true" size={13} />
-                      <span>
-                        {stageLabel(link.from)} → {stageLabel(link.to)}
-                      </span>
-                      <code title={link.sha256}>{shortHash(link.sha256)}</code>
-                      <em className={link.verified ? "is-verified" : "is-unverified"}>
-                        {link.verified ? "verified" : "unverified"}
-                      </em>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="lineage-empty">First stage in the chain — no predecessor to verify.</p>
-              )}
-            </div>
-          </section>
-
-          <div className="inspector-status" role="status">
-            <ShieldCheck aria-hidden="true" size={17} />
-            No external action — sealed for a named human decision · autonomous external actions:{" "}
-            {gate9Run.managerOutcome.autonomousExternalActions ? "true" : "false"}
-          </div>
-        </motion.div>
-      </AnimatePresence>
+      <div
+        className="agent-inspector__rail"
+        data-active={hasOverflow ? "true" : "false"}
+        aria-hidden="true"
+      >
+        <span
+          className="agent-inspector__thumb"
+          style={{ height: `${thumbPct}%`, top: `${thumbTopPct}%` }}
+        />
+      </div>
+      <div
+        className="agent-inspector__edge agent-inspector__edge--top"
+        data-visible={hasOverflow && !atTop ? "true" : "false"}
+        aria-hidden="true"
+      />
+      <div
+        className="agent-inspector__edge agent-inspector__edge--bottom"
+        data-visible={hasOverflow && !atBottom ? "true" : "false"}
+        aria-hidden="true"
+      />
     </aside>
   );
 }

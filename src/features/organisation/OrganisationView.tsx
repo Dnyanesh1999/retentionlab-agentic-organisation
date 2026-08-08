@@ -5,6 +5,7 @@ import { Megaphone, PenTool, Search, UserRoundCog, Wrench } from "lucide-react";
 import { AgentInspector } from "./AgentInspector";
 import { AgentNode } from "./AgentNode";
 import { gate9Run, type StageId } from "./gate9Run";
+import { useOrganisationFit } from "./inspectorScroll";
 import { LivingCase } from "./LivingCase";
 import { ManagerDock } from "./ManagerDock";
 import { SourceRail } from "./SourceRail";
@@ -22,10 +23,15 @@ const STAGE_ICONS: Record<StageId, LucideIcon> = {
 export function OrganisationView() {
   const [selectedId, setSelectedId] = useState<StageId>("researcher");
   const selectedStage = gate9Run.stages.find((stage) => stage.id === selectedId) ?? gate9Run.stages[0];
+  const { layoutRef, stageRef, height } = useOrganisationFit();
 
   return (
-    <div className="organisation-layout">
-      <section className="organisation-stage" aria-label="Five-agent organisation">
+    <div
+      className="organisation-layout"
+      ref={layoutRef}
+      style={height != null ? { height: `${height}px` } : undefined}
+    >
+      <section className="organisation-stage" aria-label="Five-agent organisation" ref={stageRef}>
         <div className="stage-notice" role="status">
           Accepted Gate 9 run · immutable assessed snapshot · {gate9Run.eventCount} events
         </div>
