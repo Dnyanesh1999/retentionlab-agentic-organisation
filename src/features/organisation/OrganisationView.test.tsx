@@ -37,6 +37,16 @@ describe("OrganisationView — assessed Gate 9 run", () => {
     expect(within(inspector).getAllByText("google/gemma-4-26b-a4b-it:free").length).toBeGreaterThan(0);
   });
 
+  it("exposes the evidence detail scroller as a keyboard-reachable, named region", () => {
+    render(<OrganisationView />);
+
+    // The native scroll region must be tab-reachable and carry an honest
+    // accessible name tied to the selected agent — not orphaned at tabIndex -1.
+    const scroller = screen.getByRole("region", { name: "Nia Calder evidence detail" });
+    expect(scroller).toHaveClass("agent-inspector__scroll");
+    expect(scroller).toHaveAttribute("tabindex", "0");
+  });
+
   it("meaningfully updates the detail surface when a different stage is selected", async () => {
     render(<OrganisationView />);
 

@@ -1495,6 +1495,17 @@ a {
   scrollbar-color: color-mix(in srgb, var(--forest) 46%, transparent) transparent;
 }
 
+/*
+ * The scroller is keyboard-focusable (tabIndex 0) so the evidence region is
+ * reachable without a pointer. An inset outline keeps the ring inside the
+ * clipping inspector and adds no layout shift, in the accepted forest/violet
+ * focus colour.
+ */
+.agent-inspector__scroll:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--focus) 48%, transparent);
+  outline-offset: -3px;
+}
+
 .agent-inspector__scroll::-webkit-scrollbar {
   width: 10px;
 }

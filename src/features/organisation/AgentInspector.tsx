@@ -42,7 +42,13 @@ export function AgentInspector({ stage, icon: Icon }: AgentInspectorProps) {
 
   return (
     <aside className="agent-inspector" aria-label={`${stage.agentName} details`}>
-      <div className="agent-inspector__scroll" ref={scrollRef} tabIndex={-1}>
+      <div
+        className="agent-inspector__scroll"
+        ref={scrollRef}
+        tabIndex={0}
+        role="region"
+        aria-label={`${stage.agentName} evidence detail`}
+      >
         <AnimatePresence mode="wait">
           <motion.div className="agent-inspector__content" key={stage.id} {...sectionMotion}>
             <header className="agent-inspector__header">
