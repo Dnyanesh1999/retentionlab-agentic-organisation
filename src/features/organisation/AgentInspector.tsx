@@ -35,7 +35,7 @@ export function AgentInspector({ stage, icon: Icon }: AgentInspectorProps) {
         transition: { duration: 0.2 },
       };
 
-  const { ref: scrollRef, progress, hasOverflow, atTop, atBottom, thumbSize } =
+  const { ref: scrollRef, onKeyDown: onScrollKeyDown, progress, hasOverflow, atTop, atBottom, thumbSize } =
     useInspectorScroll<HTMLDivElement>(stage.id);
   const thumbPct = thumbSize * 100;
   const thumbTopPct = progress * (100 - thumbPct);
@@ -45,6 +45,7 @@ export function AgentInspector({ stage, icon: Icon }: AgentInspectorProps) {
       <div
         className="agent-inspector__scroll"
         ref={scrollRef}
+        onKeyDown={onScrollKeyDown}
         tabIndex={0}
         role="region"
         aria-label={`${stage.agentName} evidence detail`}
