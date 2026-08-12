@@ -3,8 +3,8 @@
 This document maps the final-project brief (H9CEAI, *Build an Agentic Organisation*)
 to concrete, checkable evidence in this repository. It records what the automated
 release slice **proves locally**, the public deployment subsequently verified on
-8 August 2026, and — honestly — what remains a **manual/external** step (ongoing
-live-connection proof and the independently authored reflection). Nothing here fabricates
+8 August 2026, the live services re-verified on 12 August 2026, and — honestly — what
+remains a **manual/external** step (ongoing continuity and the independently authored reflection). Nothing here fabricates
 live evidence.
 
 ## How to run the release checks
@@ -27,7 +27,7 @@ npm run release:check    # consolidated report -> output/release/gate-10-release
 
 | Brief technical requirement | Status | Evidence |
 |---|---|---|
-| At least one agent connects to a live external source, queried at moment of use | Implemented; **live proof is external** | MCP evidence tools (`mcp/`), Gate 3–9 runtimes; live run recorded in `docs/qa-gate-9-live-pipeline-transcript.md`. The **configuration** half of the deployed live path now has a fail-closed, offline, secret-safe readiness gate — `npm run preflight` (`ops/preflight.ts`, `docs/ops-deployment-preflight.md`). Reachability of the deployed endpoints remains a manual post-deploy step. |
+| At least one agent connects to a live external source, queried at moment of use | **Implemented and live-verified** | MCP evidence tools (`mcp/`), accepted full run in `docs/qa-gate-9-live-pipeline-transcript.md`, and fresh Supabase/public-route/OpenRouter reachability proof in `docs/qa-gate-10-live-reachability.md`. The configuration half is fail-closed and secret-safe via `npm run preflight`. |
 | Synthetic data lives in a real queryable source, fetched dynamically | Implemented | Supabase schema + `scripts/generate-demo-data.mjs`; `docs/data-layer-gate-2.md`. |
 | Submit a ZIP of the **complete** codebase | **Automated** | `npm run release:zip` builds a `git archive` ZIP (tracked files only) and verifies it. Manifest: `output/release/*.manifest.json`. |
 | Dynamic access verified (not hardcoded/cached) | Implemented | Guard tests across Gates 3–9; assessed live run transcript (Gate 9). |
@@ -65,9 +65,8 @@ each section; the student assembles and writes the document.
 
 ## Honest limitations (not completed by this slice)
 
-1. **The Pages frontend is deployed; server reachability is a separate gate.** Public shell
-   and assessed-snapshot interactions are verified, but this does not by itself prove the
-   Vercel/Supabase live path remains reachable.
+1. **A reachability check is a point-in-time proof.** Supabase, the public live route and
+   OpenRouter passed on 12 August 2026, but one successful check does not prove future uptime.
 2. **Eight-week availability is not yet proven.** It requires continued monitoring from the
    deployment date rather than a one-time browser check.
 3. **Colour-contrast and real-device responsive testing** are manual (documented in the
@@ -79,8 +78,8 @@ each section; the student assembles and writes the document.
 
 ## Manual / external steps to close Gate 10
 
-1. Confirm live Supabase/OpenRouter connections are reachable from the deployed app and
-   plan to keep them live for ≥8 weeks after the deadline.
+1. Keep the verified Pages, Supabase and OpenRouter paths live and monitor them for ≥8 weeks
+   after submission.
 2. Do a real-browser accessibility + responsive pass (contrast, zoom, phone/tablet/desktop).
 3. Package the final ZIP from the submission commit: `npm run release:zip`.
 4. Write the reflection and assemble the single submission document with all five sections,

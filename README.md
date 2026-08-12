@@ -99,4 +99,5 @@ SPA fallback into `dist/`.
    deploys and renders its non-live shell.
 
 Full brief-to-evidence traceability and the honest list of remaining external/manual steps
-are in `docs/gate-10-release-readiness.md`.
+are in `docs/gate-10-release-readiness.md`. The latest point-in-time live service proof is
+recorded in `docs/qa-gate-10-live-reachability.md`.

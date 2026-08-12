@@ -161,7 +161,7 @@ every predecessor hash, and proves cumulative work across all five stages. Evide
 ## Gate 10 — release and assessment
 
 - [x] GitHub Pages is public without login — deployed and browser-verified 8 August 2026
-- [ ] Live Vercel/Supabase connections are reachable — external/manual, verified only after deploy
+- [x] Live Supabase and OpenRouter paths are reachable — re-verified 12 August 2026; Vercel is a future target, not a current runtime dependency
 - [x] Accessibility, security, responsive and performance checks pass — automated locally
 - [ ] AI usage export is complete — `docs/ai-usage-log.md` maintained by student
 - [x] Code ZIP is complete and secret-free — `npm run release:zip`, fail-closed verified
@@ -177,7 +177,8 @@ scan), responsive (viewport, breakpoints, reduced-motion) and performance (dist 
 checks pass. The Vite build is GitHub Pages ready (`base: "./"`, hash routing, emitted
 `.nojekyll` and `404.html` SPA fallback, `deploy-pages.yml` workflow). No live model or
 Supabase call is made by any release script. The public URL was subsequently deployed and
-browser-verified on 8 August 2026. The remaining items are honestly **external or
-student-owned**: ≥8-week live-connection reachability still requires ongoing monitoring,
+browser-verified on 8 August 2026; Supabase, the public live route and OpenRouter were
+re-verified on 12 August 2026 (`docs/qa-gate-10-live-reachability.md`). The remaining items
+are honestly **external or student-owned**: ≥8-week continuity still requires ongoing monitoring,
 and the reflection stays student-authored. Evidence:
 `docs/qa-gate-10-release-readiness.md` and `docs/gate-10-release-readiness.md`.
