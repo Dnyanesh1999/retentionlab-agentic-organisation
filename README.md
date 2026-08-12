@@ -101,3 +101,9 @@ SPA fallback into `dist/`.
 Full brief-to-evidence traceability and the honest list of remaining external/manual steps
 are in `docs/gate-10-release-readiness.md`. The latest point-in-time live service proof is
 recorded in `docs/qa-gate-10-live-reachability.md`.
+
+## Learn and present the project
+
+The public `#/portfolio` route is the recruiter-friendly case study. The full system explanation,
+five-minute demonstration script, viva answers, limitations and next-step roadmap are in
+`docs/project-handbook.md`.

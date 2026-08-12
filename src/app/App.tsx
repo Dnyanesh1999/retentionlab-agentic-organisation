@@ -1,6 +1,7 @@
 import { AppMasthead } from "../components/AppMasthead";
 import { isCaseTabId } from "../config/caseTabs";
 import { CaseWorkspace } from "../features/case/CaseWorkspace";
+import { PortfolioView } from "../features/portfolio/PortfolioView";
 import { SimplePage } from "../features/shared/SimplePage";
 import { replaceHashRoute, useHashRoute } from "./hashRoute";
 
@@ -14,12 +15,7 @@ export function App() {
   if (isCaseTabId(requestedTab)) {
     content = <CaseWorkspace tab={requestedTab} />;
   } else if (path === "/portfolio") {
-    content = (
-      <SimplePage
-        title="Case portfolio"
-        description="Portfolio comparison begins after the first live case passes the complete five-agent pipeline."
-      />
-    );
+    content = <PortfolioView />;
   } else if (path === "/governance") {
     content = (
       <SimplePage
