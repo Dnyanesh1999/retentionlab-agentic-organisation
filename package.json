@@ -10,6 +10,8 @@
     "mcp:dev": "node --env-file-if-exists=.env.local --import tsx mcp/stdio.ts",
     "mcp:start": "node --env-file-if-exists=.env.local dist-mcp/stdio.js",
     "mcp:smoke": "node --env-file-if-exists=.env.local --import tsx scripts/mcp-live-smoke.ts",
+    "preflight": "node --env-file-if-exists=.env.local --import tsx ops/preflightCli.ts",
+    "preflight:all": "node --env-file-if-exists=.env.local --import tsx ops/preflightCli.ts --scope=all",
     "agent:researcher": "node --env-file-if-exists=.env.local --import tsx agents/researcher/cli.ts",
     "agent:researcher:check": "tsc -p tsconfig.agents.json --pretty false",
     "agent:designer": "node --env-file-if-exists=.env.local --import tsx agents/designer/cli.ts",

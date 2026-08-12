@@ -18,6 +18,6 @@
     "declaration": true,
     "sourceMap": true
   },
-  "include": ["agents/**/*.ts", "mcp/**/*.ts"],
+  "include": ["agents/**/*.ts", "mcp/**/*.ts", "ops/**/*.ts"],
   "exclude": ["**/*.test.ts"]
 }

@@ -21,9 +21,10 @@ No interface state may be described as live until the runtime Supabase query and
 ## Deployment
 
 - Public application: https://dnyanesh1999.github.io/retentionlab-agentic-organisation/
-- Server-side API and MCP endpoint: Vercel Functions
+- Public evidence/clarification gateway: Supabase Edge Functions, called directly by the Pages app
+- Server runtimes (MCP evidence server + five agents): local server processes; a hosted Vercel API is a future target, not yet deployed
 - Live queryable synthetic data: Supabase Postgres
-- LLM gateway: OpenRouter, called only from the server
+- LLM gateway: OpenRouter, called only from the server runtimes
 
 ## Local development
 
@@ -53,6 +54,20 @@ npm run mcp:smoke
 ```
 
 The application uses browser-native hash navigation rather than a routing package. This keeps GitHub Pages deep links while avoiding server/RSC functionality and the associated dependency advisories.
+
+## Deployment configuration preflight
+
+Fail-closed, offline check that the complete runtime environment (server Supabase/OpenRouter
+variables and the browser-safe `VITE_*` gateway values) is present and well-shaped before the
+live path is deployed. It contacts no network and never prints a secret.
+
+```bash
+npm run preflight        # server scope (default) — the hard gate for the live path
+npm run preflight:all    # server + browser (VITE_*) variables
+```
+
+Full matrix, secret-safety guarantees and the remaining manual remote steps are documented in
+`docs/ops-deployment-preflight.md`.
 
 ## Release readiness (Gate 10)
 

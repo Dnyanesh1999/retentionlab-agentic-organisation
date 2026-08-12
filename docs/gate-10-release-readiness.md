@@ -10,6 +10,8 @@ live evidence.
 ## How to run the release checks
 
 ```bash
+npm run preflight        # fail-closed, offline config readiness for the live server path
+npm run preflight:all    # + browser (VITE_*) repository Variables
 npm run test:release     # secret-scanner + static responsive/routing invariants (node --test)
 npm test                 # full Vitest suite incl. whole-app accessibility sweep
 npm run typecheck
@@ -25,7 +27,7 @@ npm run release:check    # consolidated report -> output/release/gate-10-release
 
 | Brief technical requirement | Status | Evidence |
 |---|---|---|
-| At least one agent connects to a live external source, queried at moment of use | Implemented; **live proof is external** | MCP evidence tools (`mcp/`), Gate 3–9 runtimes; live run recorded in `docs/qa-gate-9-live-pipeline-transcript.md`. Reachability of the deployed endpoints is a manual post-deploy step. |
+| At least one agent connects to a live external source, queried at moment of use | Implemented; **live proof is external** | MCP evidence tools (`mcp/`), Gate 3–9 runtimes; live run recorded in `docs/qa-gate-9-live-pipeline-transcript.md`. The **configuration** half of the deployed live path now has a fail-closed, offline, secret-safe readiness gate — `npm run preflight` (`ops/preflight.ts`, `docs/ops-deployment-preflight.md`). Reachability of the deployed endpoints remains a manual post-deploy step. |
 | Synthetic data lives in a real queryable source, fetched dynamically | Implemented | Supabase schema + `scripts/generate-demo-data.mjs`; `docs/data-layer-gate-2.md`. |
 | Submit a ZIP of the **complete** codebase | **Automated** | `npm run release:zip` builds a `git archive` ZIP (tracked files only) and verifies it. Manifest: `output/release/*.manifest.json`. |
 | Dynamic access verified (not hardcoded/cached) | Implemented | Guard tests across Gates 3–9; assessed live run transcript (Gate 9). |
