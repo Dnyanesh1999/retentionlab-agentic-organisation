@@ -38,6 +38,15 @@ describe("RetentionLab application shell", () => {
     expect(screen.getByText(/fresh source record/)).toBeInTheDocument();
   });
 
+  it("does not label the live Recovery Room route as connection-pending", () => {
+    renderApp("/cases/recovery-room");
+
+    expect(screen.getByRole("heading", { name: "Copper Finch live signal garden" })).toBeInTheDocument();
+    expect(screen.getByText(/requested from Supabase when this route opens/)).toBeInTheDocument();
+    expect(screen.getByText("Live evidence route · no cached fallback")).toBeInTheDocument();
+    expect(screen.queryByText("Live connection gate pending")).not.toBeInTheDocument();
+  });
+
   it("answers Manager questions only from the sealed record, never a model call", () => {
     renderApp();
 

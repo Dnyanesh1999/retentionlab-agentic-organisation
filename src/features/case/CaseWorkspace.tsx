@@ -41,22 +41,35 @@ type CaseWorkspaceProps = {
 
 export function CaseWorkspace({ tab }: CaseWorkspaceProps) {
   const isAssessedRun = tab === "organisation";
+  const isLiveRecoveryRoom = tab === "recovery-room";
+
+  const heading = isAssessedRun
+    ? "Copper Finch retention case"
+    : isLiveRecoveryRoom
+      ? "Copper Finch live signal garden"
+      : "Connect a live case";
+  const description = isAssessedRun
+    ? "The accepted Gate 9 five-agent run, presented from its immutable evidence snapshot."
+    : isLiveRecoveryRoom
+      ? "Fresh synthetic account evidence is requested from Supabase when this route opens; the experience fails closed if that source is unavailable."
+      : "No customer evidence is stored in this interface shell.";
 
   return (
     <main className="case-workspace" id="main-content">
       <header className="case-heading">
         <div>
-          <h1>{isAssessedRun ? "Copper Finch retention case" : "Connect a live case"}</h1>
-          <p>
-            {isAssessedRun
-              ? "The accepted Gate 9 five-agent run, presented from its immutable evidence snapshot."
-              : "No customer evidence is stored in this interface shell."}
-          </p>
+          <h1>{heading}</h1>
+          <p>{description}</p>
         </div>
         {isAssessedRun ? (
           <span className="brief-link brief-link--assessed">
             <ShieldCheck aria-hidden="true" size={15} />
             Assessed run · {humanizeStatus(gate9Run.finalStatus)}
+          </span>
+        ) : isLiveRecoveryRoom ? (
+          <span className="brief-link brief-link--assessed">
+            <ShieldCheck aria-hidden="true" size={15} />
+            Live evidence route · no cached fallback
           </span>
         ) : (
           <span className="brief-link brief-link--pending">
