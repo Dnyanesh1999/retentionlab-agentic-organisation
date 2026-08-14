@@ -87,6 +87,25 @@ describe("AgentExecutionTrace", () => {
     expect(screen.getByRole("status")).toHaveTextContent(/Maker is active/i);
   });
 
+  it("moves the truthful queued boundary to the next unsealed stage", () => {
+    const events: HostedRunEvent[] = [
+      runCreated,
+      { type: "stage_started", sequence: 2, stage: "researcher", occurred_at: "2026-08-14T09:01:00.000Z" },
+      {
+        type: "stage_completed",
+        sequence: 3,
+        stage: "researcher",
+        public_summary: "Researcher sealed five fresh evidence tools.",
+        occurred_at: "2026-08-14T09:02:00.000Z",
+      },
+    ];
+    render(<AgentExecutionTrace run={makeRun({ status: "queued", current_stage: null }, events)} />);
+
+    expect(within(stageRow("Researcher")).getByText("Sealed")).toBeInTheDocument();
+    expect(within(stageRow("Designer")).getByText("Awaiting hosted worker")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/Designer is queued.*1 of 5 stages sealed/i);
+  });
+
   it("seals all five stages and shows the human boundary when awaiting approval", () => {
     const stages = ["researcher", "designer", "maker", "communicator", "manager"] as const;
     const events: HostedRunEvent[] = [

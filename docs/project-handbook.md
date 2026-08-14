@@ -140,13 +140,14 @@ This is stronger than keeping a JavaScript object in memory: the pipeline can st
 
 The project is built feature by feature behind documented acceptance gates. Its checks cover model contracts, adversarial outputs, lineage, consent inheritance, event-log integrity, recovery, browser routing, accessibility, responsive invariants, secret scanning and production build size. The deployment preflight validates required server and browser configuration without contacting a network or printing secrets.
 
-GitHub Pages hosts the public React application. Supabase hosts the live evidence and clarification boundaries. The full MCP server and five-agent pipeline currently run as server processes rather than inside GitHub Pages; a hosted server runtime is a future extension. That distinction should always be stated clearly.
+GitHub Pages hosts the public React application. Supabase hosts the live evidence, clarification, run gateway and protected Researcher worker. A Control Room launch now produces real `stage_started` and `stage_completed` events while the hosted Researcher retrieves five fresh evidence tools and seals its full brief in a private table. Designer through Manager and the complete assessed orchestration still run as local server processes. Never describe the entire five-agent pipeline as hosted until those four remaining workers exist.
 
 ## How to use the current website
 
 The public interface is organised around two hash routes reachable from the masthead navigation ("Case archive" and "Active case").
 
-- **`#/portfolio` — Case archive.** The landing view. It lists assessed records and opens the accepted Copper Finch run. A case appears here only after all five specialist handoffs are sealed. An archive note explains that evidence, prompt provenance and predecessor hashes stay attached to the case without dominating the everyday view.
+- **`#/control-room` — Control Room.** Select a fictional live account, open the launch sheet and start a governed run. The page polls only recorded backend events: Researcher shows an active motion state after `stage_started`, seals after `stage_completed`, and then identifies Designer as the next unstarted stage. A failure is shown honestly and no external customer action is permitted.
+- **`#/portfolio` — Case archive.** It lists assessed records and opens the accepted Copper Finch run. A case appears here only after all five specialist handoffs are sealed. An archive note explains that evidence, prompt provenance and predecessor hashes stay attached to the case without dominating the everyday view.
 - **`#/cases/overview` — Active case.** The assessed record for the Copper Finch retention recovery. It opens on the Overview tab and offers four tabs:
   - **Overview** and **Workstream** show the handoff ledger: five bounded specialists, each with a status line (stage complete · version). Selecting a specialist expands an **inline evidence brief** — a plain-language transformation outcome, outcome measures, and a modest provenance strip (version and status, number of verified lineage links, and produced timestamp). The everyday card summarises lineage as verified links; it does not print raw hashes or model identifiers.
   - **Experience** connects the designed recovery promise to the implemented artefact and links out to the live Signal Garden.
@@ -162,7 +163,7 @@ Raw content hashes and model provenance remain in the committed canonical artefa
 1. **Problem and promise — 30 seconds.** Open `#/portfolio` (Case archive). Explain that RetentionLab coordinates evidence, design, implementation, communication and governance, then stops at a human decision.
 2. **Organisation — 90 seconds.** Open the assessed case (`#/cases/overview`). On the Overview/Workstream ledger, select each of the five specialists to expand its inline evidence brief: the transformation outcome, outcome measures and a modest provenance strip (version, verified lineage links, produced time). Note the Communicator's current v2 output and explain that the accepted audit transcript preserves its earlier v1 failure and named retry. Raw content hashes and model provenance remain in that audit evidence rather than the everyday contribution card.
 3. **Governance — 45 seconds.** On the Decision tab and decision rail, show the Manager outcome: permitted next action, chain verified, awaiting human approval, 0 external actions permitted. Open the collapsed Technical record to reference the immutable event count and run id. Use "Ask this case" to answer a preset question and explain that this UI does not make a new model call.
-4. **Live proof — 60 seconds.** From the Experience tab, open the live Signal Garden (`#/cases/recovery-room`). Explain that this route requests Supabase evidence at load time with no cached fallback. Demonstrate the optional clarification consent boundary if appropriate.
+4. **Live proof — 60 seconds.** Open `#/control-room`, launch a governed synthetic account and show Researcher moving only when recorded backend events change. Then use the Experience tab to open the live Signal Garden and explain its no-fallback Supabase query and optional clarification consent boundary.
 5. **Architecture — 45 seconds.** Return to Portfolio and walk through Supabase → MCP → typed agents → OpenRouter → transcript → human gate.
 6. **Engineering proof — 30 seconds.** Mention automated tests, accessibility, crash-safe resume, secret scanning and public deployment.
 
@@ -206,7 +207,7 @@ You should be able to explain the system without opening this file, draw the fiv
 
 ## Current limitations
 
-- The public static site does not host the full server agent pipeline.
+- The public site hosts Researcher execution through Supabase, but not Designer, Maker, Communicator or Manager execution yet.
 - The accepted case uses synthetic data and one principal account story; broader evaluation would improve external validity.
 - Model quality depends on the available OpenRouter model, although deterministic validation contains structural and evidence failures.
 - Hash chaining does not independently detect a cleanly truncated tail.

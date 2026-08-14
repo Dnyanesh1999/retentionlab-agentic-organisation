@@ -15,18 +15,22 @@ flowchart LR
     A -->|bounded run create/read| R[Supabase run gateway]
     H -->|fresh no-store query| F[(Supabase Postgres)]
     R -->|service-only RPC and projection| F
-    C[Local assessed orchestrator] --> D[OpenRouter]
+    R -->|service lease| W[Hosted Researcher worker]
+    W -->|five fresh evidence calls| H
+    W -->|strict ResearchBrief| D[OpenRouter]
+    W -->|private artefact + public event| F
+    C[Local assessed orchestrator] --> D
     C --> E[RetentionLab MCP server]
     E --> H
     C --> G[(Hash-chained local run and artefact store)]
-    W[Future authenticated hosted worker] -.-> R
 ```
 
 The diagram distinguishes what is live from what is intentionally pending. The public Control Room
 can now create an idempotent, durable hosted run record and read its public-safe event projection.
-It does **not** claim that the five-agent worker is hosted: the proven complete agent pipeline still
-runs through the local Node orchestrator. Connecting an authenticated server worker to claim queued
-runs is the next runtime slice.
+The Researcher stage is now hosted and live: a service-only lease claims the run, retrieves five fresh
+evidence envelopes, validates one strict `ResearchBrief`, stores the full artefact privately and emits
+only bounded stage events. Designer through Manager are not hosted yet; the proven complete five-stage
+pipeline still runs through the local Node orchestrator.
 
 ## Hosted run intake foundation
 
@@ -39,8 +43,9 @@ runs is the next runtime slice.
 - Browser roles have revoked table/RPC privileges and no matching RLS policy. Explicit service-role
   policies document the only intended principal. The public publishable key reaches only the
   allow-listed `retentionlab-runs` Edge Function.
-- Public misuse is bounded without model spend: at most one open run exists per synthetic account,
-  and this foundation does not invoke OpenRouter or permit an external customer action.
+- Public misuse is bounded to at most one open run per synthetic account and one leased Researcher
+  attempt per open run. This student-demo intake is not operator-authenticated, so stronger identity
+  and rate limiting remain required before a real organisational deployment.
 - The shared `runtime/hosted` Zod contract pins stage order, lifecycle states, event vocabulary,
   timestamps, identifiers and strictly increasing event sequences from gateway to React UI.
 
@@ -116,15 +121,17 @@ only by the accepted live run.
 
 - Public frontend: display, evidence interaction and bounded synthetic run intake only; it contains
   publishable Supabase identifiers but no provider or database secret.
-- Future authenticated hosted worker/API: operator authentication, rate limits, queue claiming,
-  orchestration and model calls. This boundary is designed but not yet deployed.
+- Hosted Researcher worker: deployed service-only 140-second leases, strict model/evidence contracts,
+  private artefact storage and bounded public events. Operator authentication, rate limits and the
+  Designer-through-Manager workers remain pending.
 - MCP server: allow-listed read tools with structured responses and source timestamps.
 - Supabase evidence gateway: deployed Edge Function with a fixed tool allow-list, strict input validation and no cached fallback.
 - Supabase clarification gateway: separate write-only Edge Function with exact-origin CORS, strict
   payload/receipt contracts, idempotency and a short-lived single-use recovery capability that is
   removed from the URL before live evidence is rendered.
 - Supabase run gateway: separate create/read Edge Function with strict contracts, idempotent
-  per-account creation, a service-only event projection and no model or external-action capability.
+  per-account creation and a service-only event projection. It schedules the protected Researcher in
+  the background; the browser never receives the provider key or full model artefact.
 - Supabase: fictional records, row-level security, internal secret-key access and no real customer PII.
 
 Clarification records live in a non-exposed `private` schema. Browser roles have no schema, table
