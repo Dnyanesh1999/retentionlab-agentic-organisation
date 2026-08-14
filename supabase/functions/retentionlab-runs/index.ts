@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
+import { executeHostedDesigner } from "./designer.ts";
 import { executeHostedResearcher } from "./researcher.ts";
 
 declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
@@ -154,40 +155,63 @@ async function projection(runId: string) {
   };
 }
 
-function scheduleHostedResearcher(run: JsonRecord) {
+function scheduleHostedWorker(run: JsonRecord) {
   const events = Array.isArray(run.events) ? run.events : [];
-  const researcherCompleted = events.some((event) => (
+  const completed = new Set(events.flatMap((event) => (
     event && typeof event === "object"
     && (event as JsonRecord).type === "stage_completed"
-    && (event as JsonRecord).stage === "researcher"
-  ));
-  const claimable = run.status === "queued"
-    || (run.status === "in_progress" && run.current_stage === "researcher");
-  if (!claimable || researcherCompleted) return;
+    && typeof (event as JsonRecord).stage === "string"
+      ? [String((event as JsonRecord).stage)]
+      : []
+  )));
+  if (run.status !== "queued" && run.status !== "in_progress") return;
 
   const openRouterApiKey = Deno.env.get("OPENROUTER_API_KEY");
   if (!openRouterApiKey) {
-    console.error("Hosted Researcher is queued because its model secret is not configured.");
+    console.error("Hosted worker is queued because its model secret is not configured.");
     return;
   }
 
-  const task = executeHostedResearcher({
-    runId: uuid(run.run_id, "run.run_id"),
-    accountSlug: String(run.account_slug),
-    objective: String(run.objective),
-    initiatedAt: String(run.created_at),
-    supabaseUrl: environment("SUPABASE_URL"),
-    publishableKey: namedKey("SUPABASE_PUBLISHABLE_KEYS"),
-    secretKey: namedKey("SUPABASE_SECRET_KEYS"),
-    openRouterApiKey,
-    requestedModel: Deno.env.get("OPENROUTER_RESEARCHER_MODEL") ?? "nvidia/nemotron-3-super-120b-a12b:free",
-  }).then((result) => {
-    console.log(`Hosted Researcher finished with status ${result.status}.`);
+  const runId = uuid(run.run_id, "run.run_id");
+  const supabaseUrl = environment("SUPABASE_URL");
+  const secretKey = namedKey("SUPABASE_SECRET_KEYS");
+  let stage: "Researcher" | "Designer";
+  let task: Promise<{ status: string }>;
+
+  if (!completed.has("researcher") && (run.status === "queued" || run.current_stage === "researcher")) {
+    stage = "Researcher";
+    task = executeHostedResearcher({
+      runId,
+      accountSlug: String(run.account_slug),
+      objective: String(run.objective),
+      initiatedAt: String(run.created_at),
+      supabaseUrl,
+      publishableKey: namedKey("SUPABASE_PUBLISHABLE_KEYS"),
+      secretKey,
+      openRouterApiKey,
+      requestedModel: Deno.env.get("OPENROUTER_RESEARCHER_MODEL") ?? "nvidia/nemotron-3-super-120b-a12b:free",
+    });
+  } else if (completed.has("researcher") && !completed.has("designer")
+    && (run.status === "queued" || run.current_stage === "designer")) {
+    stage = "Designer";
+    task = executeHostedDesigner({
+      runId,
+      supabaseUrl,
+      secretKey,
+      openRouterApiKey,
+      requestedModel: Deno.env.get("OPENROUTER_DESIGNER_MODEL") ?? "nvidia/nemotron-3-super-120b-a12b:free",
+    });
+  } else {
+    return;
+  }
+
+  const observedTask = task.then((result) => {
+    console.log(`Hosted ${stage} finished with status ${result.status}.`);
   }).catch(() => {
-    console.error("Hosted Researcher background task stopped unexpectedly.");
+    console.error(`Hosted ${stage} background task stopped unexpectedly.`);
   });
 
-  EdgeRuntime.waitUntil(task);
+  EdgeRuntime.waitUntil(observedTask);
 }
 
 async function invoke(action: string, args: JsonRecord) {
@@ -217,13 +241,15 @@ async function invoke(action: string, args: JsonRecord) {
     object(rpc.run);
     const runId = uuid(rpc.run.id, "run.id");
     const run = await projection(runId);
-    scheduleHostedResearcher(run);
+    scheduleHostedWorker(run);
     return { run, idempotent_replay: rpc.created !== true };
   }
 
   if (action === "get_run") {
     strictKeys(args, ["run_id"]);
-    return { run: await projection(uuid(args.run_id, "run_id")) };
+    const run = await projection(uuid(args.run_id, "run_id"));
+    scheduleHostedWorker(run);
+    return { run };
   }
 
   throw new RunGatewayError("Action is not allow-listed", 404);

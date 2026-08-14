@@ -15,7 +15,7 @@ flowchart LR
     A -->|bounded run create/read| R[Supabase run gateway]
     H -->|fresh no-store query| F[(Supabase Postgres)]
     R -->|service-only RPC and projection| F
-    R -->|service lease| W[Hosted Researcher worker]
+    R -->|service lease| W[Hosted Researcher + Designer workers]
     W -->|five fresh evidence calls| H
     W -->|strict ResearchBrief| D[OpenRouter]
     W -->|private artefact + public event| F
@@ -27,10 +27,12 @@ flowchart LR
 
 The diagram distinguishes what is live from what is intentionally pending. The public Control Room
 can now create an idempotent, durable hosted run record and read its public-safe event projection.
-The Researcher stage is now hosted and live: a service-only lease claims the run, retrieves five fresh
-evidence envelopes, validates one strict `ResearchBrief`, stores the full artefact privately and emits
-only bounded stage events. Designer through Manager are not hosted yet; the proven complete five-stage
-pipeline still runs through the local Node orchestrator.
+Researcher and Designer are now hosted and live. Researcher claims a service-only lease, retrieves five
+fresh evidence envelopes and seals a strict private `ResearchBrief`. Designer can then claim only that
+sealed predecessor and compiles a compact evidence-linked creative delta with deterministic consent,
+accessibility, motion, measurement, seven-state and reviewed-component policy into a full private
+`RecoveryDesignSpecification`. Only bounded stage events reach the browser. Maker through Manager are
+not hosted yet; the proven complete five-stage pipeline still runs through the local Node orchestrator.
 
 ## Hosted run intake foundation
 
@@ -121,9 +123,10 @@ only by the accepted live run.
 
 - Public frontend: display, evidence interaction and bounded synthetic run intake only; it contains
   publishable Supabase identifiers but no provider or database secret.
-- Hosted Researcher worker: deployed service-only 140-second leases, strict model/evidence contracts,
-  private artefact storage and bounded public events. Operator authentication, rate limits and the
-  Designer-through-Manager workers remain pending.
+- Hosted Researcher and Designer workers: deployed service-only 140-second leases, strict predecessor
+  lineage, private artefact storage and bounded public events. Designer uses a compact creative delta
+  plus deterministic policy compilation to fit the free Edge execution window without weakening the
+  full stored contract. Operator authentication, rate limits and Maker-through-Manager remain pending.
 - MCP server: allow-listed read tools with structured responses and source timestamps.
 - Supabase evidence gateway: deployed Edge Function with a fixed tool allow-list, strict input validation and no cached fallback.
 - Supabase clarification gateway: separate write-only Edge Function with exact-origin CORS, strict
