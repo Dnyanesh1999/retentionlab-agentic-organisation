@@ -142,12 +142,27 @@ The project is built feature by feature behind documented acceptance gates. Its 
 
 GitHub Pages hosts the public React application. Supabase hosts the live evidence and clarification boundaries. The full MCP server and five-agent pipeline currently run as server processes rather than inside GitHub Pages; a hosted server runtime is a future extension. That distinction should always be stated clearly.
 
+## How to use the current website
+
+The public interface is organised around two hash routes reachable from the masthead navigation ("Case archive" and "Active case").
+
+- **`#/portfolio` — Case archive.** The landing view. It lists assessed records and opens the accepted Copper Finch run. A case appears here only after all five specialist handoffs are sealed. An archive note explains that evidence, prompt provenance and predecessor hashes stay attached to the case without dominating the everyday view.
+- **`#/cases/overview` — Active case.** The assessed record for the Copper Finch retention recovery. It opens on the Overview tab and offers four tabs:
+  - **Overview** and **Workstream** show the handoff ledger: five bounded specialists, each with a status line (stage complete · version). Selecting a specialist expands an **inline evidence brief** — a plain-language transformation outcome, outcome measures, and a modest provenance strip (version and status, number of verified lineage links, and produced timestamp). The everyday card summarises lineage as verified links; it does not print raw hashes or model identifiers.
+  - **Experience** connects the designed recovery promise to the implemented artefact and links out to the live Signal Garden.
+  - **Decision** shows the Manager's permitted next action and the human review priorities.
+  - A decision rail alongside the tabs states the current boundary (human approval required, 5 / 5 stages sealed, verified lineage links, 0 external actions permitted). A collapsed **Technical record** discloses the immutable event count and shortened run identifier separately, on demand.
+- **Ask this case.** A docked assistant on the active case. It answers a small set of preset questions strictly from the sealed assessed record — it does not make a live model call.
+- **Live Signal Garden (`#/cases/recovery-room`).** Reached from the Experience tab. This is the live browser experience: it requests Supabase evidence at load time with no cached fallback and shows an honest failure if the gateway is unavailable.
+
+Raw content hashes and model provenance remain in the committed canonical artefacts and accepted pipeline transcript. The everyday interface intentionally summarises their verified lineage instead of exposing those engineering details as primary content.
+
 ## Five-minute demonstration script
 
-1. **Problem and promise — 30 seconds.** Open Portfolio. Explain that RetentionLab coordinates evidence, design, implementation, communication and governance, then stops at a human decision.
-2. **Organisation — 90 seconds.** Open the assessed case. Select each of the five agents. Show the typed artefact, model/prompt provenance and predecessor hashes. Point out Communicator v1 failure and v2 recovery.
-3. **Governance — 45 seconds.** Show the Manager outcome: approved, chain verified, awaiting human approval, autonomous external actions false. Ask the sealed-record Manager a question and explain that this UI does not make a new model call.
-4. **Live proof — 60 seconds.** Open the Signal Garden. Explain that this route requests Supabase evidence at load time with no cached fallback. Demonstrate the optional clarification consent boundary if appropriate.
+1. **Problem and promise — 30 seconds.** Open `#/portfolio` (Case archive). Explain that RetentionLab coordinates evidence, design, implementation, communication and governance, then stops at a human decision.
+2. **Organisation — 90 seconds.** Open the assessed case (`#/cases/overview`). On the Overview/Workstream ledger, select each of the five specialists to expand its inline evidence brief: the transformation outcome, outcome measures and a modest provenance strip (version, verified lineage links, produced time). Note the Communicator's current v2 output and explain that the accepted audit transcript preserves its earlier v1 failure and named retry. Raw content hashes and model provenance remain in that audit evidence rather than the everyday contribution card.
+3. **Governance — 45 seconds.** On the Decision tab and decision rail, show the Manager outcome: permitted next action, chain verified, awaiting human approval, 0 external actions permitted. Open the collapsed Technical record to reference the immutable event count and run id. Use "Ask this case" to answer a preset question and explain that this UI does not make a new model call.
+4. **Live proof — 60 seconds.** From the Experience tab, open the live Signal Garden (`#/cases/recovery-room`). Explain that this route requests Supabase evidence at load time with no cached fallback. Demonstrate the optional clarification consent boundary if appropriate.
 5. **Architecture — 45 seconds.** Return to Portfolio and walk through Supabase → MCP → typed agents → OpenRouter → transcript → human gate.
 6. **Engineering proof — 30 seconds.** Mention automated tests, accessibility, crash-safe resume, secret scanning and public deployment.
 

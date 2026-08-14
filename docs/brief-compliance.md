@@ -13,10 +13,10 @@ This file is the build-time source of truth for the final-project pass/fail gate
 | No hardcoded or cached pipeline evidence | Business evidence is fetched per assessed run; resilience replay is visibly labelled and excluded from live evidence | Automated guard tests and assessed run recording | Implemented — accepted Gate 9 run |
 | Functional Maker artefact | Maker emits a validated Recovery Room definition rendered as an interactive customer experience | Working choices, state transitions and Maker artefact trace | Implemented — Gate 6 |
 | Public GitHub Pages URL without login | Hash-routed React application | Public URL test | Implemented — https://dnyanesh1999.github.io/retentionlab-agentic-organisation/ |
-| Live connections available for eight weeks | Vercel and Supabase deployment retention checklist | Post-submission availability record | Planned |
+| Live connections available for eight weeks | GitHub Pages and Supabase reachability monitoring; hosted Vercel agent runtime remains a future extension | Post-submission availability record | Monitoring required |
 | Complete codebase ZIP | `git archive HEAD` (tracked files only), deny-list + secret scan + required-files verified before write | Clean ZIP audit | Implemented — Gate 10 (`npm run release:zip`) |
 | No committed credentials | Server-only environment variables and shared fail-closed secret scanner | Repository scan and ZIP scan | Implemented — Gate 10 (`npm run release:scan`) |
-| GDPR, EU AI Act and trust | Trust Gate explains purpose, evidence, consent, human approval and applicable current law | Submission section with verified current citations | Product controls implemented; final cited submission section pending |
+| GDPR, EU AI Act and trust | Purpose, evidence, consent and human approval are visible in the case Decision boundary and enforced across the agent contracts | Submission section with verified current citations | Product controls implemented; final cited submission section pending |
 | AI-generated content cited | Model ID, full prompt/version, timestamp and verification status recorded | AI usage appendix/export | Planned |
 | Reflection written by student | No generated reflection content in the repository | Student-authored final section | Locked |
 

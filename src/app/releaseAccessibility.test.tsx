@@ -1,5 +1,5 @@
 import axe from "axe-core";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { App } from "./App";
@@ -25,20 +25,22 @@ function renderRoute(path: string) {
   return render(<App />);
 }
 
-const ROUTES = ["/cases/organisation", "/portfolio", "/governance"];
+const ROUTES = ["/portfolio", "/cases/overview", "/cases/recovery-room"];
 
 afterEach(() => {
-  window.history.replaceState(null, "", "#/cases/organisation");
+  window.history.replaceState(null, "", "#/portfolio");
 });
 
 describe("Gate 10 whole-application accessibility", () => {
   it.each(ROUTES)("renders %s with no axe-detectable violations", async (route) => {
     const { container } = renderRoute(route);
+    await screen.findByRole("main");
     await expectNoAxeViolations(container);
   });
 
-  it("exposes a skip link that targets the main landmark", () => {
-    const { container } = renderRoute("/cases/organisation");
+  it("exposes a skip link that targets the main landmark", async () => {
+    const { container } = renderRoute("/cases/overview");
+    await screen.findByRole("main");
     const skip = container.querySelector("a.skip-link");
     expect(skip?.getAttribute("href")).toBe("#main-content");
     expect(container.querySelector("#main-content")).not.toBeNull();

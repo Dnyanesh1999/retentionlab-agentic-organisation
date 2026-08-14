@@ -1,12 +1,9 @@
-import { CircleUserRound } from "lucide-react";
-
 import { BrandMark } from "./BrandMark";
 import { HashLink } from "./HashLink";
 
 const navItems = [
-  { label: "Portfolio", to: "/portfolio" },
-  { label: "Cases", to: "/cases/organisation" },
-  { label: "Governance", to: "/governance" },
+  { label: "Case archive", to: "/portfolio" },
+  { label: "Active case", to: "/cases/overview" },
 ] as const;
 
 type AppMastheadProps = {
@@ -16,14 +13,14 @@ type AppMastheadProps = {
 export function AppMasthead({ currentPath }: AppMastheadProps) {
   return (
     <header className="masthead">
-      <HashLink className="brand" to="/cases/organisation" aria-label="RetentionLab cases">
+      <HashLink className="brand" to="/portfolio" aria-label="RetentionLab case archive">
         <BrandMark />
         <span>RetentionLab</span>
       </HashLink>
 
       <nav className="global-nav" aria-label="Primary navigation">
         {navItems.map((item) => {
-          const active = item.label === "Cases" ? currentPath.startsWith("/cases/") : currentPath === item.to;
+          const active = item.label === "Active case" ? currentPath.startsWith("/cases/") : currentPath === item.to;
 
           return (
             <HashLink
@@ -38,13 +35,7 @@ export function AppMasthead({ currentPath }: AppMastheadProps) {
         })}
       </nav>
 
-      <div className="profile-control" aria-label="Current user">
-        <CircleUserRound aria-hidden="true" strokeWidth={1.5} />
-        <span className="profile-control__copy">
-          <strong>Maya Chen</strong>
-          <small>Customer Success</small>
-        </span>
-      </div>
+      <span aria-hidden="true" />
     </header>
   );
 }
