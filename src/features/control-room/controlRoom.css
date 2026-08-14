@@ -366,12 +366,12 @@
 .hosted-run > header i[data-status="awaiting_human_approval"] { background: var(--forest); }
 .hosted-run > header i[data-status="failed"] { background: var(--warning); animation: none; }
 @keyframes control-pulse { 50% { box-shadow: 0 0 0 9px rgb(217 133 22 / 2%); } }
-.hosted-run ol { margin: 0; padding: 0; list-style: none; }
-.hosted-run li { display: grid; grid-template-columns: 28px 1fr auto; align-items: start; gap: 10px; padding: 13px 16px; border-bottom: 1px solid var(--line); }
-.hosted-run li > span { display: grid; width: 23px; height: 23px; place-items: center; color: var(--forest); border: 1px solid var(--forest); border-radius: 50%; font-size: 7px; font-weight: 750; }
-.hosted-run li div { display: grid; gap: 4px; }
-.hosted-run li strong { font-size: 9px; text-transform: capitalize; }
-.hosted-run li small { max-width: 490px; color: var(--ink-soft); font-size: 8px; line-height: 1.5; }
+.hosted-run > ol { margin: 0; padding: 0; list-style: none; }
+.hosted-run > ol > li { display: grid; grid-template-columns: 28px 1fr auto; align-items: start; gap: 10px; padding: 13px 16px; border-bottom: 1px solid var(--line); }
+.hosted-run > ol > li > span { display: grid; width: 23px; height: 23px; place-items: center; color: var(--forest); border: 1px solid var(--forest); border-radius: 50%; font-size: 7px; font-weight: 750; }
+.hosted-run > ol > li div { display: grid; gap: 4px; }
+.hosted-run > ol > li strong { font-size: 9px; text-transform: capitalize; }
+.hosted-run > ol > li small { max-width: 490px; color: var(--ink-soft); font-size: 8px; line-height: 1.5; }
 .hosted-run time { color: var(--ink-soft); font-size: 7px; }
 .hosted-run footer { display: flex; align-items: center; gap: 8px; padding: 11px 16px; color: var(--forest); font-size: 8px; font-weight: 650; }
 .hosted-run footer svg { width: 13px; }
@@ -409,8 +409,8 @@
   .launch-chain div::after { top: 28px; left: 13px; width: 0; height: 12px; border-top: 0; border-left: 1px solid var(--forest); }
   .hosted-run-error { grid-template-columns: 20px 1fr; }
   .hosted-run-error button { grid-column: 1 / -1; }
-  .hosted-run li { grid-template-columns: 28px 1fr; }
-  .hosted-run time { grid-column: 2; }
+  .hosted-run > ol > li { grid-template-columns: 28px 1fr; }
+  .hosted-run > ol > li time { grid-column: 2; }
 }
 
 @media (prefers-reduced-motion: reduce) {
