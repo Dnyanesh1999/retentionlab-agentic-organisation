@@ -347,6 +347,34 @@
 .launch-boundary strong { font-size: 10px; }
 .launch-boundary span { color: var(--ink-soft); font-size: 8px; }
 .launch-runtime { width: 100%; min-height: 46px; margin-top: 18px; color: var(--ink-soft); border: 1px solid var(--line); border-radius: 5px; background: var(--canvas); font-size: 10px; font-weight: 700; cursor: not-allowed; }
+.launch-runtime--active { display: inline-flex; align-items: center; justify-content: center; gap: 10px; color: white; border-color: var(--forest-deep); background: var(--forest-deep); box-shadow: 0 12px 25px rgb(6 59 47 / 14%); cursor: pointer; transition: transform 180ms ease, box-shadow 180ms ease; }
+.launch-runtime--active:hover { box-shadow: 0 16px 30px rgb(6 59 47 / 20%); transform: translateY(-2px); }
+.launch-runtime--active svg { width: 14px; }
+.hosted-run-state { margin-top: 18px; }
+.hosted-run-creating { display: flex; min-height: 54px; align-items: center; justify-content: center; gap: 10px; color: var(--forest); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 10px; font-weight: 700; }
+.hosted-run-creating svg { width: 16px; animation: control-spin 900ms linear infinite; }
+@keyframes control-spin { to { transform: rotate(360deg); } }
+.hosted-run-error { display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 10px; min-height: 58px; padding: 8px 0; color: var(--warning); border-top: 1px solid var(--warning); border-bottom: 1px solid var(--line); font-size: 9px; }
+.hosted-run-error svg { width: 17px; }
+.hosted-run-error button { min-height: 34px; padding: 0 12px; color: var(--forest); border: 1px solid var(--line-strong); border-radius: 4px; background: transparent; font-size: 9px; font-weight: 700; }
+.hosted-run { border: 1px solid var(--line-strong); border-radius: 7px; background: color-mix(in srgb, var(--canvas) 50%, var(--surface)); overflow: hidden; }
+.hosted-run > header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.hosted-run > header div { display: grid; gap: 3px; }
+.hosted-run > header span { color: var(--ink-soft); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 8px; letter-spacing: .05em; text-transform: uppercase; }
+.hosted-run > header strong { font-family: var(--font-display); font-size: 15px; letter-spacing: -.02em; }
+.hosted-run > header i { width: 9px; height: 9px; border-radius: 50%; background: #d98516; box-shadow: 0 0 0 5px rgb(217 133 22 / 10%); animation: control-pulse 1.8s ease-in-out infinite; }
+.hosted-run > header i[data-status="awaiting_human_approval"] { background: var(--forest); }
+.hosted-run > header i[data-status="failed"] { background: var(--warning); animation: none; }
+@keyframes control-pulse { 50% { box-shadow: 0 0 0 9px rgb(217 133 22 / 2%); } }
+.hosted-run ol { margin: 0; padding: 0; list-style: none; }
+.hosted-run li { display: grid; grid-template-columns: 28px 1fr auto; align-items: start; gap: 10px; padding: 13px 16px; border-bottom: 1px solid var(--line); }
+.hosted-run li > span { display: grid; width: 23px; height: 23px; place-items: center; color: var(--forest); border: 1px solid var(--forest); border-radius: 50%; font-size: 7px; font-weight: 750; }
+.hosted-run li div { display: grid; gap: 4px; }
+.hosted-run li strong { font-size: 9px; text-transform: capitalize; }
+.hosted-run li small { max-width: 490px; color: var(--ink-soft); font-size: 8px; line-height: 1.5; }
+.hosted-run time { color: var(--ink-soft); font-size: 7px; }
+.hosted-run footer { display: flex; align-items: center; gap: 8px; padding: 11px 16px; color: var(--forest); font-size: 8px; font-weight: 650; }
+.hosted-run footer svg { width: 13px; }
 
 @media (max-width: 1080px) {
   .account-command { grid-template-columns: 1fr; }
@@ -379,9 +407,14 @@
   .launch-chain { grid-template-columns: 1fr; gap: 10px; }
   .launch-chain div { grid-template-columns: 28px 1fr; justify-items: start; align-items: center; }
   .launch-chain div::after { top: 28px; left: 13px; width: 0; height: 12px; border-top: 0; border-left: 1px solid var(--forest); }
+  .hosted-run-error { grid-template-columns: 20px 1fr; }
+  .hosted-run-error button { grid-column: 1 / -1; }
+  .hosted-run li { grid-template-columns: 28px 1fr; }
+  .hosted-run time { grid-column: 2; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .control-skeleton__command::after, .control-skeleton__row::after { animation: none; }
   .account-command__action, .account-command__action svg { transition: none; }
+  .hosted-run-creating svg, .hosted-run > header i { animation: none; }
 }
