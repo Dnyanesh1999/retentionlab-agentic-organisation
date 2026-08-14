@@ -12,6 +12,9 @@ const CaseWorkspace = lazy(() =>
 const DesignLabView = lazy(() =>
   import("../features/design-lab/DesignLabView").then((module) => ({ default: module.DesignLabView })),
 );
+const CommandCenterView = lazy(() =>
+  import("../features/control-room/CommandCenterView").then((module) => ({ default: module.CommandCenterView })),
+);
 
 function RouteFallback() {
   return (
@@ -35,7 +38,9 @@ export function App() {
 
   let content: React.ReactNode;
 
-  if (path === "/portfolio") {
+  if (path === "/control-room") {
+    content = <CommandCenterView />;
+  } else if (path === "/portfolio") {
     content = <CasebookView view="archive" />;
   } else if (path === "/cases/overview") {
     content = <CasebookView view="case" />;
@@ -44,9 +49,11 @@ export function App() {
   } else {
     const destination = path === "/cases/organisation" || path.startsWith("/cases/")
       ? "/cases/overview"
-      : "/portfolio";
+      : "/control-room";
     replaceHashRoute(destination);
-    content = <CasebookView view={destination === "/portfolio" ? "archive" : "case"} />;
+    content = destination === "/control-room"
+      ? <CommandCenterView />
+      : <CasebookView view="case" />;
   }
 
   return (

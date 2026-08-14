@@ -2,6 +2,7 @@ import { BrandMark } from "./BrandMark";
 import { HashLink } from "./HashLink";
 
 const navItems = [
+  { label: "Control room", to: "/control-room" },
   { label: "Case archive", to: "/portfolio" },
   { label: "Active case", to: "/cases/overview" },
 ] as const;
@@ -13,7 +14,7 @@ type AppMastheadProps = {
 export function AppMasthead({ currentPath }: AppMastheadProps) {
   return (
     <header className="masthead">
-      <HashLink className="brand" to="/portfolio" aria-label="RetentionLab case archive">
+      <HashLink className="brand" to="/control-room" aria-label="RetentionLab control room">
         <BrandMark />
         <span>RetentionLab</span>
       </HashLink>

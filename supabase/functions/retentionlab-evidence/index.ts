@@ -32,6 +32,7 @@ const allowedTools = new Set([
   "get_preference_profile",
   "list_vendor_status",
   "get_evidence_item",
+  "list_accounts",
 ]);
 
 const accountSlugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -203,6 +204,18 @@ async function invokeTool(tool: string, args: JsonRecord) {
         "evidence_key,vendor_key,service_name,status,incident_key,summary,started_at,resolved_at,source_updated_at,source_system",
       generation_run_id: `eq.${run.id}`,
       order: "started_at.desc",
+      limit: String(requestedLimit(args)),
+    }));
+    return { ...sourceEnvelope(tool, run, retrievedAt), data: rows };
+  }
+
+  if (tool === "list_accounts") {
+    strictKeys(args, ["limit"]);
+    const rows = await restRows("accounts", new URLSearchParams({
+      select:
+        "slug,display_name,sector,plan_tier,lifecycle_stage,monthly_recurring_revenue,contract_currency,renewal_at,region,source_updated_at",
+      generation_run_id: `eq.${run.id}`,
+      order: "source_updated_at.desc",
       limit: String(requestedLimit(args)),
     }));
     return { ...sourceEnvelope(tool, run, retrievedAt), data: rows };
