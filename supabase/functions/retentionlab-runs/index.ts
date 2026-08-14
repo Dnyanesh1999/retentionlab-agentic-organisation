@@ -1,6 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
+import { executeHostedCommunicator } from "./communicator.ts";
 import { executeHostedDesigner } from "./designer.ts";
+import { executeHostedMaker } from "./maker.ts";
+import { executeHostedManager } from "./manager.ts";
 import { executeHostedResearcher } from "./researcher.ts";
 
 declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
@@ -13,7 +16,7 @@ class RunGatewayError extends Error {
   }
 }
 
-const actions = new Set(["create_run", "get_run"]);
+const actions = new Set(["create_run", "get_run", "retry_run"]);
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const idempotencyPattern = /^[A-Za-z0-9._:-]+$/;
@@ -175,7 +178,7 @@ function scheduleHostedWorker(run: JsonRecord) {
   const runId = uuid(run.run_id, "run.run_id");
   const supabaseUrl = environment("SUPABASE_URL");
   const secretKey = namedKey("SUPABASE_SECRET_KEYS");
-  let stage: "Researcher" | "Designer";
+  let stage: "Researcher" | "Designer" | "Maker" | "Communicator" | "Manager";
   let task: Promise<{ status: string }>;
 
   if (!completed.has("researcher") && (run.status === "queued" || run.current_stage === "researcher")) {
@@ -200,6 +203,36 @@ function scheduleHostedWorker(run: JsonRecord) {
       secretKey,
       openRouterApiKey,
       requestedModel: Deno.env.get("OPENROUTER_DESIGNER_MODEL") ?? "nvidia/nemotron-3-super-120b-a12b:free",
+    });
+  } else if (completed.has("designer") && !completed.has("maker")
+    && (run.status === "queued" || run.current_stage === "maker")) {
+    stage = "Maker";
+    task = executeHostedMaker({
+      runId,
+      supabaseUrl,
+      secretKey,
+      openRouterApiKey,
+      requestedModel: Deno.env.get("OPENROUTER_MAKER_MODEL") ?? "nvidia/nemotron-3-super-120b-a12b:free",
+    });
+  } else if (completed.has("maker") && !completed.has("communicator")
+    && (run.status === "queued" || run.current_stage === "communicator")) {
+    stage = "Communicator";
+    task = executeHostedCommunicator({
+      runId,
+      supabaseUrl,
+      secretKey,
+      openRouterApiKey,
+      requestedModel: Deno.env.get("OPENROUTER_COMMUNICATOR_MODEL") ?? "nvidia/nemotron-3-super-120b-a12b:free",
+    });
+  } else if (completed.has("communicator") && !completed.has("manager")
+    && (run.status === "queued" || run.current_stage === "manager")) {
+    stage = "Manager";
+    task = executeHostedManager({
+      runId,
+      supabaseUrl,
+      secretKey,
+      openRouterApiKey,
+      requestedModel: Deno.env.get("OPENROUTER_MANAGER_MODEL") ?? "nvidia/nemotron-3-super-120b-a12b:free",
     });
   } else {
     return;
@@ -248,6 +281,38 @@ async function invoke(action: string, args: JsonRecord) {
   if (action === "get_run") {
     strictKeys(args, ["run_id"]);
     const run = await projection(uuid(args.run_id, "run_id"));
+    scheduleHostedWorker(run);
+    return { run };
+  }
+
+  if (action === "retry_run") {
+    strictKeys(args, ["run_id"]);
+    const runId = uuid(args.run_id, "run_id");
+    const current = await projection(runId);
+    if (current.status !== "failed" || typeof current.current_stage !== "string") {
+      throw new RunGatewayError("Only a failed stage can be retried", 409);
+    }
+    const params = new URLSearchParams({
+      id: `eq.${runId}`,
+      status: "eq.failed",
+      select: "id",
+    });
+    const retried = await rest(`agent_runs?${params.toString()}`, {
+      method: "PATCH",
+      headers: { prefer: "return=representation" },
+      body: JSON.stringify({
+        status: "queued",
+        current_stage: null,
+        worker_lease_token: null,
+        worker_lease_expires_at: null,
+        stopped_at: null,
+        updated_at: new Date().toISOString(),
+      }),
+    });
+    if (!Array.isArray(retried) || retried.length !== 1) {
+      throw new RunGatewayError("Failed stage is no longer retryable", 409);
+    }
+    const run = await projection(runId);
     scheduleHostedWorker(run);
     return { run };
   }

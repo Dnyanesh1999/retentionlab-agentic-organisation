@@ -144,6 +144,15 @@ function LaunchSheet({ account, client, onClose }: {
     }
   }
 
+  async function retryHostedRun(runId: string) {
+    try {
+      const run = await client.retryRun(runId);
+      setHostedRun({ status: "ready", run, idempotentReplay: true });
+    } catch (error) {
+      setHostedRun({ status: "error", message: error instanceof Error ? error.message : "Run retry failed." });
+    }
+  }
+
   return (
     <motion.div
       animate={{ opacity: 1 }}
@@ -219,6 +228,11 @@ function LaunchSheet({ account, client, onClose }: {
                       <i aria-label="Live run status" data-status={hostedRun.run.status} />
                     </header>
                     <AgentExecutionTrace run={hostedRun.run} />
+                    {hostedRun.run.status === "failed" ? (
+                      <button className="hosted-run-retry" onClick={() => void retryHostedRun(hostedRun.run.run_id)} type="button">
+                        Retry from sealed checkpoint <ArrowRight aria-hidden="true" />
+                      </button>
+                    ) : null}
                     <ol aria-label="Run event stream">
                       {hostedRun.run.events.map((event) => (
                         <li key={event.sequence}>
