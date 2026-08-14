@@ -66,6 +66,7 @@ function deriveTrace(run: HostedRun): DerivedTrace {
       failureReason = event.reason;
     }
   }
+  const nextQueuedStage = HOSTED_STAGE_ORDER.find((stage) => !sealedSummary.has(stage)) ?? null;
 
   const stages = HOSTED_STAGE_ORDER.map((stage, index): StageView => {
     const label = STAGE_LABELS[stage];
@@ -78,8 +79,14 @@ function deriveTrace(run: HostedRun): DerivedTrace {
     if (run.status === "in_progress" && run.current_stage === stage) {
       return { stage, index, label, state: "active", detail: "Executing under governance." };
     }
-    if (run.status === "queued" && index === 0) {
-      return { stage, index, label, state: "awaiting", detail: "No agent has started yet." };
+    if (run.status === "queued" && stage === nextQueuedStage) {
+      return {
+        stage,
+        index,
+        label,
+        state: "awaiting",
+        detail: sealedSummary.size === 0 ? "No agent has started yet." : "Ready for the next protected worker.",
+      };
     }
     return { stage, index, label, state: "pending", detail: "Queued behind earlier stages." };
   });
@@ -87,14 +94,17 @@ function deriveTrace(run: HostedRun): DerivedTrace {
   return {
     stages,
     atHumanBoundary: run.status === "awaiting_human_approval",
-    statusLine: statusLineFor(run),
+    statusLine: statusLineFor(run, nextQueuedStage, sealedSummary.size),
   };
 }
 
-function statusLineFor(run: HostedRun): string {
+function statusLineFor(run: HostedRun, nextQueuedStage: HostedStage | null, sealedCount: number): string {
   switch (run.status) {
     case "queued":
-      return "Queued. Researcher is awaiting a hosted worker; no agent has started.";
+      if (!nextQueuedStage) return "All recorded stages are sealed.";
+      return sealedCount === 0
+        ? "Queued. Researcher is awaiting a hosted worker; no agent has started."
+        : `${STAGE_LABELS[nextQueuedStage]} is queued. ${sealedCount} of 5 stages sealed from recorded events.`;
     case "in_progress":
       return run.current_stage
         ? `In progress. ${STAGE_LABELS[run.current_stage]} is active.`

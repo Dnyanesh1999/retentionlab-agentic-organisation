@@ -1,5 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
+import { executeHostedResearcher } from "./researcher.ts";
+
+declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
+
 type JsonRecord = Record<string, unknown>;
 
 class RunGatewayError extends Error {
@@ -150,6 +154,42 @@ async function projection(runId: string) {
   };
 }
 
+function scheduleHostedResearcher(run: JsonRecord) {
+  const events = Array.isArray(run.events) ? run.events : [];
+  const researcherCompleted = events.some((event) => (
+    event && typeof event === "object"
+    && (event as JsonRecord).type === "stage_completed"
+    && (event as JsonRecord).stage === "researcher"
+  ));
+  const claimable = run.status === "queued"
+    || (run.status === "in_progress" && run.current_stage === "researcher");
+  if (!claimable || researcherCompleted) return;
+
+  const openRouterApiKey = Deno.env.get("OPENROUTER_API_KEY");
+  if (!openRouterApiKey) {
+    console.error("Hosted Researcher is queued because its model secret is not configured.");
+    return;
+  }
+
+  const task = executeHostedResearcher({
+    runId: uuid(run.run_id, "run.run_id"),
+    accountSlug: String(run.account_slug),
+    objective: String(run.objective),
+    initiatedAt: String(run.created_at),
+    supabaseUrl: environment("SUPABASE_URL"),
+    publishableKey: namedKey("SUPABASE_PUBLISHABLE_KEYS"),
+    secretKey: namedKey("SUPABASE_SECRET_KEYS"),
+    openRouterApiKey,
+    requestedModel: Deno.env.get("OPENROUTER_RESEARCHER_MODEL") ?? "nvidia/nemotron-3-super-120b-a12b:free",
+  }).then((result) => {
+    console.log(`Hosted Researcher finished with status ${result.status}.`);
+  }).catch(() => {
+    console.error("Hosted Researcher background task stopped unexpectedly.");
+  });
+
+  EdgeRuntime.waitUntil(task);
+}
+
 async function invoke(action: string, args: JsonRecord) {
   if (action === "create_run") {
     strictKeys(args, ["account_slug", "objective", "idempotency_key"]);
@@ -176,7 +216,9 @@ async function invoke(action: string, args: JsonRecord) {
     object(rpc);
     object(rpc.run);
     const runId = uuid(rpc.run.id, "run.id");
-    return { run: await projection(runId), idempotent_replay: rpc.created !== true };
+    const run = await projection(runId);
+    scheduleHostedResearcher(run);
+    return { run, idempotent_replay: rpc.created !== true };
   }
 
   if (action === "get_run") {
