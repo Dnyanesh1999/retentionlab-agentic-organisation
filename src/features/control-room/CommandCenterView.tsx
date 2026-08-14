@@ -17,6 +17,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ProgressVeil, StateSwap, StaggerReveal } from "../../components/motion";
 import type { HostedRun, HostedRunEvent } from "../../../runtime/hosted/contracts";
+import { AgentExecutionTrace } from "./AgentExecutionTrace";
 import {
   createControlRoomClient,
   type AccountListResult,
@@ -217,6 +218,7 @@ function LaunchSheet({ account, client, onClose }: {
                       <div><span>Run {hostedRun.run.run_id.slice(0, 8)}</span><strong>{hostedRun.run.status === "queued" ? "Queued for hosted worker" : hostedRun.run.status.replaceAll("_", " ")}</strong></div>
                       <i aria-label="Live run status" data-status={hostedRun.run.status} />
                     </header>
+                    <AgentExecutionTrace run={hostedRun.run} />
                     <ol aria-label="Run event stream">
                       {hostedRun.run.events.map((event) => (
                         <li key={event.sequence}>

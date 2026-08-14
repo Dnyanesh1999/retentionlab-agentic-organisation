@@ -81,6 +81,8 @@ describe("CommandCenterView", () => {
     fireEvent.click(screen.getByRole("button", { name: /create hosted run/i }));
 
     expect(await screen.findByText("Queued for hosted worker")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: /agent execution trace/i })).toBeInTheDocument();
+    expect(screen.getByText("Awaiting hosted worker")).toBeInTheDocument();
     expect(screen.getByText(/governed run accepted/i)).toBeInTheDocument();
     expect(screen.getByText(/external actions: 0/i)).toBeInTheDocument();
   });
