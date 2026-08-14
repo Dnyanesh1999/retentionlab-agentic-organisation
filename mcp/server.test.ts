@@ -38,7 +38,7 @@ async function connectedClient(gateway: EvidenceGateway) {
 }
 
 describe("RetentionLab MCP server", () => {
-  it("completes initialize and exposes exactly the seven allow-listed tools", async () => {
+  it("completes initialize and exposes exactly the eight allow-listed tools", async () => {
     const gateway: EvidenceGateway = { call: async (tool) => fakeEnvelope(tool) };
     const client = await connectedClient(gateway);
     const listed = await client.listTools();
@@ -72,6 +72,42 @@ describe("RetentionLab MCP server", () => {
       tool: "get_account_snapshot",
       args: { account_slug: "copper-finch" },
     }]);
+  });
+
+  it("lists accounts through the account-independent limit-only tool", async () => {
+    const calls: Array<{ tool: string; args: Record<string, unknown> }> = [];
+    const gateway: EvidenceGateway = {
+      call: async (tool, args) => {
+        calls.push({ tool, args });
+        return fakeEnvelope(tool);
+      },
+    };
+    const client = await connectedClient(gateway);
+    await client.listTools();
+    const result = await client.callTool({ name: "list_accounts", arguments: { limit: 25 } });
+
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toMatchObject({
+      tool: "list_accounts",
+      source: { system: "Supabase Postgres", cache_mode: "no-store" },
+    });
+    expect(calls).toEqual([{ tool: "list_accounts", args: { limit: 25 } }]);
+  });
+
+  it("rejects an out-of-range limit for list_accounts before dispatching", async () => {
+    const calls: string[] = [];
+    const gateway: EvidenceGateway = {
+      call: async (tool) => {
+        calls.push(tool);
+        return fakeEnvelope(tool);
+      },
+    };
+    const client = await connectedClient(gateway);
+    await client.listTools();
+    const result = await client.callTool({ name: "list_accounts", arguments: { limit: 99 } });
+
+    expect(result.isError).toBe(true);
+    expect(calls).toEqual([]);
   });
 
   it("returns an explicit error and never substitutes cached evidence", async () => {

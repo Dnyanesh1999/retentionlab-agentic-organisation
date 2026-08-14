@@ -147,6 +147,18 @@ export function createRetentionLabMcpServer(gateway: EvidenceGateway) {
     (args) => toolResult(gateway, "get_evidence_item", args),
   );
 
+  server.registerTool(
+    "list_accounts",
+    {
+      title: "List accounts",
+      description: "Fetch the fresh fictional account portfolio for a Command Center: slug, display name, sector, plan tier, lifecycle stage, MRR, currency, renewal date and region for the ready dataset.",
+      inputSchema: limitOnlySchema,
+      outputSchema: evidenceEnvelopeSchema,
+      annotations: readOnlyAnnotations,
+    },
+    (args) => toolResult(gateway, "list_accounts", args),
+  );
+
   return server;
 }
 

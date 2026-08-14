@@ -10,6 +10,7 @@ export const evidenceToolNames = [
   "get_preference_profile",
   "list_vendor_status",
   "get_evidence_item",
+  "list_accounts",
 ] as const;
 
 export type EvidenceToolName = (typeof evidenceToolNames)[number];

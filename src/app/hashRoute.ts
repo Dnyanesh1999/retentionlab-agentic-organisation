@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-const defaultRoute = "/cases/organisation";
+const defaultRoute = "/control-room";
 
 export function getHashRoute() {
   if (typeof window === "undefined") {
