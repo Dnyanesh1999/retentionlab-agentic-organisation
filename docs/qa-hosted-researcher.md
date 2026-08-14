@@ -10,7 +10,7 @@ fresh evidence envelopes, calls OpenRouter with a strict JSON Schema, validates 
 lineage, and stores the full `ResearchBrief` in `private.agent_run_artifacts`. The browser receives only
 the append-only public event projection and a bounded completion summary.
 
-Designer through Manager remain pending hosted workers. External actions remain hard-set to zero and
+Designer is proven separately in `docs/qa-hosted-designer.md`; Maker through Manager remain pending. External actions remain hard-set to zero and
 human approval remains required.
 
 ## Live proof

@@ -140,7 +140,7 @@ This is stronger than keeping a JavaScript object in memory: the pipeline can st
 
 The project is built feature by feature behind documented acceptance gates. Its checks cover model contracts, adversarial outputs, lineage, consent inheritance, event-log integrity, recovery, browser routing, accessibility, responsive invariants, secret scanning and production build size. The deployment preflight validates required server and browser configuration without contacting a network or printing secrets.
 
-GitHub Pages hosts the public React application. Supabase hosts the live evidence, clarification, run gateway and protected Researcher worker. A Control Room launch now produces real `stage_started` and `stage_completed` events while the hosted Researcher retrieves five fresh evidence tools and seals its full brief in a private table. Designer through Manager and the complete assessed orchestration still run as local server processes. Never describe the entire five-agent pipeline as hosted until those four remaining workers exist.
+GitHub Pages hosts the public React application. Supabase hosts the live evidence, clarification, run gateway and protected Researcher and Designer workers. Researcher retrieves five fresh evidence tools and seals its full brief privately. Designer inherits that exact hash-linked brief, generates a compact creative delta and deterministically compiles the full recovery design with consent, accessibility and reviewed Maker policy. Maker through Manager and the complete assessed orchestration still run as local server processes. Never describe the entire five-agent pipeline as hosted until those three remaining workers exist.
 
 ## How to use the current website
 
@@ -207,7 +207,7 @@ You should be able to explain the system without opening this file, draw the fiv
 
 ## Current limitations
 
-- The public site hosts Researcher execution through Supabase, but not Designer, Maker, Communicator or Manager execution yet.
+- The public site hosts Researcher and Designer execution through Supabase, but not Maker, Communicator or Manager execution yet.
 - The accepted case uses synthetic data and one principal account story; broader evaluation would improve external validity.
 - Model quality depends on the available OpenRouter model, although deterministic validation contains structural and evidence failures.
 - Hash chaining does not independently detect a cleanly truncated tail.

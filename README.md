@@ -22,7 +22,7 @@ No interface state may be described as live until the runtime Supabase query and
 
 - Public application: https://dnyanesh1999.github.io/retentionlab-agentic-organisation/
 - Public evidence/clarification gateway: Supabase Edge Functions, called directly by the Pages app
-- Server runtimes: Researcher is deployed as a protected Supabase Edge worker; Designer through Manager and the complete assessed orchestrator remain local server processes
+- Server runtimes: Researcher and Designer are deployed as protected Supabase Edge workers; Maker through Manager and the complete assessed orchestrator remain local server processes
 - Live queryable synthetic data: Supabase Postgres
 - LLM gateway: OpenRouter, called only from the server runtimes
 

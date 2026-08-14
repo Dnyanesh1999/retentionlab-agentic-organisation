@@ -31,7 +31,7 @@ const citationSchema = z.object({
   retrieved_at: z.iso.datetime({ offset: true }),
 }).strict();
 
-const researchBriefSchema = z.object({
+export const researchBriefSchema = z.object({
   schema_version: z.literal("research-brief.v1"),
   stage: z.literal("researcher"),
   status: z.enum(["completed", "insufficient_evidence"]),
