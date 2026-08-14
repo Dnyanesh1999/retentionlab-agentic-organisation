@@ -22,7 +22,7 @@ No interface state may be described as live until the runtime Supabase query and
 
 - Public application: https://dnyanesh1999.github.io/retentionlab-agentic-organisation/
 - Public evidence/clarification gateway: Supabase Edge Functions, called directly by the Pages app
-- Server runtimes: Researcher and Designer are deployed as protected Supabase Edge workers; Maker through Manager and the complete assessed orchestrator remain local server processes
+- Server runtimes: all five agents run as protected, leased Supabase Edge workers; the local hash-chained orchestrator remains the reproducible assessed-run implementation
 - Live queryable synthetic data: Supabase Postgres
 - LLM gateway: OpenRouter, called only from the server runtimes
 
@@ -106,7 +106,7 @@ recorded in `docs/qa-gate-10-live-reachability.md`.
 
 The current public journey is deliberately small:
 
-- `#/control-room` — live synthetic account selection, governed run launch and event-driven Researcher execution;
+- `#/control-room` — live synthetic account selection, five-agent governed execution, checkpoint retry and the mandatory human-approval boundary;
 - `#/portfolio` — assessed case archive and entry point;
 - `#/cases/overview` — the Copper Finch case, four functional tabs, five inline specialist evidence briefs and the sealed-record case assistant;
 - `#/cases/recovery-room` — the live Signal Garden reached from the Experience tab.

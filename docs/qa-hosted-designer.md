@@ -1,5 +1,8 @@
 # Hosted Designer — production proof
 
+> Point-in-time Gate 5 proof. Maker, Communicator and Manager were subsequently hosted; see
+> `docs/qa-hosted-five-agent-pipeline.md` for the complete production chain.
+
 Date: 14 August 2026
 
 ## Scope

@@ -62,6 +62,9 @@ const client: ControlRoomClient = {
   async readRun() {
     return hostedRun;
   },
+  async retryRun() {
+    return hostedRun;
+  },
 };
 
 describe("CommandCenterView", () => {
@@ -96,5 +99,36 @@ describe("CommandCenterView", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Live directory unavailable");
     expect(screen.queryByText("Northstar Loom")).not.toBeInTheDocument();
+  });
+
+  it("retries a failed run from its sealed checkpoint", async () => {
+    const retryRun = vi.fn(async () => hostedRun);
+    const failedClient: ControlRoomClient = {
+      ...client,
+      async createRun() {
+        return {
+          idempotentReplay: false,
+          run: {
+            ...hostedRun,
+            status: "failed",
+            current_stage: "communicator",
+            events: [
+              ...hostedRun.events,
+              { type: "run_failed", sequence: 2, stage: "communicator", reason: "Policy validation stopped safely.", occurred_at: "2026-08-14T09:01:00.000Z" },
+            ],
+          },
+        };
+      },
+      retryRun,
+    };
+    render(<CommandCenterView client={failedClient} />);
+    await screen.findAllByText("Northstar Loom");
+    fireEvent.click(screen.getByRole("button", { name: /start governed case/i }));
+    await screen.findByText("Evidence bound");
+    fireEvent.click(screen.getByRole("button", { name: /create hosted run/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /retry from sealed checkpoint/i }));
+
+    expect(retryRun).toHaveBeenCalledWith(hostedRun.run_id);
+    expect(await screen.findByText("Queued for hosted worker")).toBeInTheDocument();
   });
 });

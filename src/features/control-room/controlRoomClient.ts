@@ -70,6 +70,7 @@ export type ControlRoomClient = {
   probeAccount(accountSlug: string, signal?: AbortSignal): Promise<AccountProbeResult>;
   createRun(input: HostedRunCreateInput, signal?: AbortSignal): Promise<{ run: HostedRun; idempotentReplay: boolean }>;
   readRun(runId: string, signal?: AbortSignal): Promise<HostedRun>;
+  retryRun(runId: string, signal?: AbortSignal): Promise<HostedRun>;
 };
 
 type BrowserEnvironment = {
@@ -139,7 +140,7 @@ export function createControlRoomClient(
     return body;
   }
 
-  async function callRuns(action: "create_run" | "get_run", args: Record<string, unknown>, signal?: AbortSignal) {
+  async function callRuns(action: "create_run" | "get_run" | "retry_run", args: Record<string, unknown>, signal?: AbortSignal) {
     let response: Response;
     try {
       response = await fetchImplementation.call(globalThis, runsGatewayUrl, {
@@ -209,6 +210,14 @@ export function createControlRoomClient(
         await callRuns("get_run", { run_id: runId }, signal),
       );
       if (!parsed.success) throw clientError("Hosted run gateway returned an invalid read contract.", 502);
+      return parsed.data.run;
+    },
+
+    async retryRun(runId, signal) {
+      const parsed = hostedRunReadResponseSchema.safeParse(
+        await callRuns("retry_run", { run_id: runId }, signal),
+      );
+      if (!parsed.success) throw clientError("Hosted run gateway returned an invalid retry contract.", 502);
       return parsed.data.run;
     },
   };

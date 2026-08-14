@@ -15,9 +15,9 @@ flowchart LR
     A -->|bounded run create/read| R[Supabase run gateway]
     H -->|fresh no-store query| F[(Supabase Postgres)]
     R -->|service-only RPC and projection| F
-    R -->|service lease| W[Hosted Researcher + Designer workers]
+    R -->|service lease| W[Five hosted agent workers]
     W -->|five fresh evidence calls| H
-    W -->|strict ResearchBrief| D[OpenRouter]
+    W -->|bounded structured synthesis| D[OpenRouter]
     W -->|private artefact + public event| F
     C[Local assessed orchestrator] --> D
     C --> E[RetentionLab MCP server]
@@ -25,14 +25,14 @@ flowchart LR
     C --> G[(Hash-chained local run and artefact store)]
 ```
 
-The diagram distinguishes what is live from what is intentionally pending. The public Control Room
-can now create an idempotent, durable hosted run record and read its public-safe event projection.
-Researcher and Designer are now hosted and live. Researcher claims a service-only lease, retrieves five
-fresh evidence envelopes and seals a strict private `ResearchBrief`. Designer can then claim only that
-sealed predecessor and compiles a compact evidence-linked creative delta with deterministic consent,
-accessibility, motion, measurement, seven-state and reviewed-component policy into a full private
-`RecoveryDesignSpecification`. Only bounded stage events reach the browser. Maker through Manager are
-not hosted yet; the proven complete five-stage pipeline still runs through the local Node orchestrator.
+The public Control Room creates an idempotent durable run and reads only its public-safe event
+projection. All five agents are hosted and live. Each claims a 140-second service-only lease only after
+its predecessor is sealed, stores a strict private artefact with a SHA-256 identity, and emits bounded
+public events. Researcher retrieves five fresh evidence envelopes; Designer and Maker combine compact
+model deltas with deterministic consent, accessibility and reviewed-implementation policy;
+Communicator compiles an invitation only for the account's sealed allowed channel; Manager reloads all
+four predecessor artefacts and stops at mandatory human approval. The browser receives no model key or
+private artefact. The local Node orchestrator remains the reproducible hash-chained assessment path.
 
 ## Hosted run intake foundation
 
@@ -45,8 +45,9 @@ not hosted yet; the proven complete five-stage pipeline still runs through the l
 - Browser roles have revoked table/RPC privileges and no matching RLS policy. Explicit service-role
   policies document the only intended principal. The public publishable key reaches only the
   allow-listed `retentionlab-runs` Edge Function.
-- Public misuse is bounded to at most one open run per synthetic account and one leased Researcher
-  attempt per open run. This student-demo intake is not operator-authenticated, so stronger identity
+- Public misuse is bounded to at most one open run per synthetic account and one leased stage attempt
+  per open run. A failed stage can be explicitly retried from its sealed checkpoint without deleting
+  its failure event. This student-demo intake is not operator-authenticated, so stronger identity
   and rate limiting remain required before a real organisational deployment.
 - The shared `runtime/hosted` Zod contract pins stage order, lifecycle states, event vocabulary,
   timestamps, identifiers and strictly increasing event sequences from gateway to React UI.
@@ -123,18 +124,18 @@ only by the accepted live run.
 
 - Public frontend: display, evidence interaction and bounded synthetic run intake only; it contains
   publishable Supabase identifiers but no provider or database secret.
-- Hosted Researcher and Designer workers: deployed service-only 140-second leases, strict predecessor
-  lineage, private artefact storage and bounded public events. Designer uses a compact creative delta
-  plus deterministic policy compilation to fit the free Edge execution window without weakening the
-  full stored contract. Operator authentication, rate limits and Maker-through-Manager remain pending.
+- Hosted five-agent workers: deployed service-only 140-second leases, strict predecessor lineage,
+  private artefact storage and bounded public events. Compact model deltas plus deterministic policy
+  compilation fit the free Edge window without weakening the stored contracts. Manager hardcodes
+  human approval and zero autonomous external actions. Operator authentication and rate limits remain pending.
 - MCP server: allow-listed read tools with structured responses and source timestamps.
 - Supabase evidence gateway: deployed Edge Function with a fixed tool allow-list, strict input validation and no cached fallback.
 - Supabase clarification gateway: separate write-only Edge Function with exact-origin CORS, strict
   payload/receipt contracts, idempotency and a short-lived single-use recovery capability that is
   removed from the URL before live evidence is rendered.
-- Supabase run gateway: separate create/read Edge Function with strict contracts, idempotent
-  per-account creation and a service-only event projection. It schedules the protected Researcher in
-  the background; the browser never receives the provider key or full model artefact.
+- Supabase run gateway: separate create/read/retry Edge Function with strict contracts, idempotent
+  per-account creation and a service-only event projection. It schedules the next eligible protected
+  worker in the background; the browser never receives the provider key or full model artefact.
 - Supabase: fictional records, row-level security, internal secret-key access and no real customer PII.
 
 Clarification records live in a non-exposed `private` schema. Browser roles have no schema, table
