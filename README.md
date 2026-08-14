@@ -104,6 +104,11 @@ recorded in `docs/qa-gate-10-live-reachability.md`.
 
 ## Learn and present the project
 
-The public `#/portfolio` route is the recruiter-friendly case study. The full system explanation,
-five-minute demonstration script, viva answers, limitations and next-step roadmap are in
-`docs/project-handbook.md`.
+The current public journey is deliberately small:
+
+- `#/portfolio` — assessed case archive and entry point;
+- `#/cases/overview` — the Copper Finch case, four functional tabs, five inline specialist evidence briefs and the sealed-record case assistant;
+- `#/cases/recovery-room` — the live Signal Garden reached from the Experience tab.
+
+The full system explanation, website guide, five-minute demonstration script, viva answers,
+limitations and next-step roadmap are in `docs/project-handbook.md`.

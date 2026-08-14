@@ -1,63 +1,68 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { App } from "./App";
 
-function renderApp(initialPath = "/cases/organisation") {
+function renderApp(initialPath = "/cases/overview") {
   window.history.replaceState(null, "", `#${initialPath}`);
   return render(<App />);
 }
 
 describe("RetentionLab application shell", () => {
-  it("shows exactly five selectable agent stages", () => {
+  it("opens the completed case from the archive", async () => {
+    renderApp("/portfolio");
+
+    fireEvent.click(await screen.findByRole("button", { name: /Copper Finch/ }));
+
+    expect(window.location.hash).toBe("#/cases/overview");
+    expect(await screen.findByRole("heading", { name: /accountable path/i })).toBeInTheDocument();
+  });
+
+  it("shows exactly five expandable agent stages", async () => {
     renderApp();
 
-    const agentButtons = screen
-      .getAllByRole("button")
-      .filter((button) => button.hasAttribute("aria-pressed"));
-    const selectedAgent = agentButtons.find((button) => button.getAttribute("aria-pressed") === "true");
+    const agentButtons = (await screen.findAllByRole("button")).filter((button) =>
+      button.hasAttribute("aria-expanded"),
+    );
+    const selectedAgent = agentButtons.find((button) => button.getAttribute("aria-expanded") === "true");
 
     expect(agentButtons).toHaveLength(5);
-    expect(selectedAgent).toHaveTextContent("Nia Calder");
+    expect(selectedAgent).toHaveTextContent("Researcher");
   });
 
-  it("updates the single inspector when an agent is selected", async () => {
+  it("reveals each specialist contribution inline", async () => {
     renderApp();
 
-    fireEvent.click(screen.getByText("Noor Patel").closest("button")!);
+    fireEvent.click(await screen.findByRole("button", { name: /Maker/ }));
 
-    expect(screen.getByRole("complementary", { name: "Noor Patel details" })).toBeInTheDocument();
-    expect(await screen.findByText(/commit c38febd/)).toBeInTheDocument();
+    expect(await screen.findByText(/Maker contribution/i)).toBeInTheDocument();
   });
 
-  it("routes every case tab to a meaningful preview", () => {
-    renderApp();
-
-    fireEvent.click(screen.getByRole("link", { name: "Evidence" }));
-
-    expect(screen.getByRole("heading", { name: "Evidence" })).toBeInTheDocument();
-    expect(screen.getByText(/fresh source record/)).toBeInTheDocument();
-  });
-
-  it("does not label the live Recovery Room route as connection-pending", () => {
+  it("does not label the live Recovery Room route as connection-pending", async () => {
     renderApp("/cases/recovery-room");
 
-    expect(screen.getByRole("heading", { name: "Copper Finch live signal garden" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Copper Finch live signal garden" })).toBeInTheDocument();
     expect(screen.getByText(/requested from Supabase when this route opens/)).toBeInTheDocument();
     expect(screen.getByText("Live evidence route · no cached fallback")).toBeInTheDocument();
     expect(screen.queryByText("Live connection gate pending")).not.toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Case workspace" })).not.toBeInTheDocument();
   });
 
-  it("answers Manager questions only from the sealed record, never a model call", () => {
+  it("answers case questions only from the sealed record", async () => {
     renderApp();
 
-    const managerToggle = screen.getByRole("button", { name: /Talk to the organisation/ });
+    const managerToggle = await screen.findByRole("button", { name: /Ask this case/ });
     fireEvent.click(managerToggle);
 
-    expect(managerToggle).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText(/Sealed record · not a model call/)).toBeInTheDocument();
+    expect(await screen.findByText(/sealed assessed record/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Can the organisation act without a human?" }));
-    expect(screen.getByText(/Autonomous external actions: false/)).toBeInTheDocument();
-    expect(screen.getByText(/Source: manager.operational-decision.v1/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Can the organisation contact the customer?" }));
+    expect(await screen.findByText(/requires a named human to approve/i)).toBeInTheDocument();
+  });
+
+  it("redirects the legacy organisation URL to the active case", async () => {
+    renderApp("/cases/organisation");
+
+    await waitFor(() => expect(window.location.hash).toBe("#/cases/overview"));
+    expect(await screen.findByRole("heading", { name: /accountable path/i })).toBeInTheDocument();
   });
 });

@@ -1,5 +1,6 @@
-import { LockKeyhole, ShieldCheck } from "lucide-react";
+import { ArrowLeft, LockKeyhole, ShieldCheck } from "lucide-react";
 
+import { HashLink } from "../../components/HashLink";
 import type { CaseTabId } from "../../config/caseTabs";
 import { gate9Run, humanizeStatus } from "../organisation/gate9Run";
 import { OrganisationView } from "../organisation/OrganisationView";
@@ -56,6 +57,12 @@ export function CaseWorkspace({ tab }: CaseWorkspaceProps) {
 
   return (
     <main className="case-workspace" id="main-content">
+      {isLiveRecoveryRoom ? (
+        <HashLink className="case-workspace__back" to="/cases/overview">
+          <ArrowLeft aria-hidden="true" size={16} />
+          Back to case experience
+        </HashLink>
+      ) : null}
       <header className="case-heading">
         <div>
           <h1>{heading}</h1>
@@ -79,7 +86,7 @@ export function CaseWorkspace({ tab }: CaseWorkspaceProps) {
         )}
       </header>
 
-      <CaseTabs currentTab={tab} />
+      {isLiveRecoveryRoom ? null : <CaseTabs currentTab={tab} />}
 
       {tab === "organisation" ? <OrganisationView /> : null}
       {tab === "recovery-room" ? <RecoveryRoomRoute /> : null}
