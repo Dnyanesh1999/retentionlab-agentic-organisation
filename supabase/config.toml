@@ -91,6 +91,11 @@ enabled = true
 # The maximum length in bytes of HTTP request headers. (default: 4096)
 # max_header_length = 4096
 
+[functions.retentionlab-runs]
+# Public GitHub Pages sends the publishable key in `apikey`; the function
+# performs the exact-key check and only exposes bounded, synthetic run intake.
+verify_jwt = false
+
 [studio]
 enabled = true
 # Port to use for Supabase Studio.

@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+import {
+  hostedRunCreateInputSchema,
+  hostedRunCreateResponseSchema,
+  hostedRunReadResponseSchema,
+  type HostedRun,
+  type HostedRunCreateInput,
+} from "../../../runtime/hosted/contracts";
 import { SignalGardenClientError } from "../recovery-room/liveEvidenceClient";
 
 const sourceSchema = z.object({
@@ -61,12 +68,15 @@ export type AccountProbeResult = {
 export type ControlRoomClient = {
   listAccounts(signal?: AbortSignal): Promise<AccountListResult>;
   probeAccount(accountSlug: string, signal?: AbortSignal): Promise<AccountProbeResult>;
+  createRun(input: HostedRunCreateInput, signal?: AbortSignal): Promise<{ run: HostedRun; idempotentReplay: boolean }>;
+  readRun(runId: string, signal?: AbortSignal): Promise<HostedRun>;
 };
 
 type BrowserEnvironment = {
   VITE_SUPABASE_URL?: string;
   VITE_SUPABASE_PUBLISHABLE_KEY?: string;
   VITE_SUPABASE_EVIDENCE_FUNCTION?: string;
+  VITE_SUPABASE_RUNS_FUNCTION?: string;
 };
 
 function clientError(message: string, status = 500) {
@@ -80,6 +90,7 @@ export function createControlRoomClient(
   const baseUrl = environment.VITE_SUPABASE_URL?.replace(/\/$/, "");
   const publishableKey = environment.VITE_SUPABASE_PUBLISHABLE_KEY;
   const functionName = environment.VITE_SUPABASE_EVIDENCE_FUNCTION ?? "retentionlab-evidence";
+  const runsFunctionName = environment.VITE_SUPABASE_RUNS_FUNCTION ?? "retentionlab-runs";
 
   if (!baseUrl?.startsWith("https://") || !publishableKey?.startsWith("sb_publishable_")) {
     throw new SignalGardenClientError(
@@ -90,6 +101,7 @@ export function createControlRoomClient(
   }
 
   const gatewayUrl = `${baseUrl}/functions/v1/${functionName}`;
+  const runsGatewayUrl = `${baseUrl}/functions/v1/${runsFunctionName}`;
   const callerKey = publishableKey;
 
   async function call(tool: "list_accounts" | "get_account_snapshot", args: Record<string, unknown>, signal?: AbortSignal) {
@@ -127,6 +139,40 @@ export function createControlRoomClient(
     return body;
   }
 
+  async function callRuns(action: "create_run" | "get_run", args: Record<string, unknown>, signal?: AbortSignal) {
+    let response: Response;
+    try {
+      response = await fetchImplementation.call(globalThis, runsGatewayUrl, {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          apikey: callerKey,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ action, arguments: args }),
+        cache: "no-store",
+        signal,
+      });
+    } catch (error) {
+      if (signal?.aborted) throw new SignalGardenClientError("aborted", "Run request cancelled.");
+      throw new SignalGardenClientError(
+        "network",
+        `Run gateway unreachable: ${error instanceof Error ? error.message : "network failure"}`,
+        503,
+      );
+    }
+    const body: unknown = await response.json().catch(() => null);
+    if (!response.ok) {
+      const parsed = gatewayErrorSchema.safeParse(body);
+      throw new SignalGardenClientError(
+        response.status === 404 ? "not_found" : "unavailable",
+        parsed.success ? parsed.data.error : `Run request failed (${response.status}).`,
+        response.status,
+      );
+    }
+    return body;
+  }
+
   return {
     async listAccounts(signal) {
       const parsed = accountListEnvelopeSchema.safeParse(await call("list_accounts", { limit: 50 }, signal));
@@ -147,6 +193,23 @@ export function createControlRoomClient(
         evidenceCount: data.product_signals.length + data.billing_events.length + data.support_events.length,
         approvalBoundaryPresent: data.preference_profile !== null,
       };
+    },
+
+    async createRun(input, signal) {
+      const validated = hostedRunCreateInputSchema.parse(input);
+      const parsed = hostedRunCreateResponseSchema.safeParse(
+        await callRuns("create_run", validated, signal),
+      );
+      if (!parsed.success) throw clientError("Hosted run gateway returned an invalid create contract.", 502);
+      return { run: parsed.data.run, idempotentReplay: parsed.data.idempotent_replay };
+    },
+
+    async readRun(runId, signal) {
+      const parsed = hostedRunReadResponseSchema.safeParse(
+        await callRuns("get_run", { run_id: runId }, signal),
+      );
+      if (!parsed.success) throw clientError("Hosted run gateway returned an invalid read contract.", 502);
+      return parsed.data.run;
     },
   };
 }

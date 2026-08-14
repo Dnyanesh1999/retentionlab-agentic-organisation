@@ -13,9 +13,10 @@ import {
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ProgressVeil, StateSwap, StaggerReveal } from "../../components/motion";
+import type { HostedRun, HostedRunEvent } from "../../../runtime/hosted/contracts";
 import {
   createControlRoomClient,
   type AccountListResult,
@@ -36,7 +37,21 @@ type ProbeState =
   | { status: "ready"; result: AccountProbeResult }
   | { status: "error"; message: string };
 
+type HostedRunState =
+  | { status: "idle" }
+  | { status: "creating" }
+  | { status: "ready"; run: HostedRun; idempotentReplay: boolean }
+  | { status: "error"; message: string };
+
 const launchStages = ["Validate account", "Bind live evidence", "Enforce approval"];
+
+function runEventCopy(event: HostedRunEvent) {
+  if (event.type === "run_created") return "Governed run accepted. No agent or external action has started yet.";
+  if (event.type === "stage_started") return `${event.stage} started.`;
+  if (event.type === "stage_completed") return event.public_summary;
+  if (event.type === "run_paused_for_approval") return `${event.stage} paused the run for human approval.`;
+  return event.reason;
+}
 
 function daysUntil(value: string) {
   return Math.max(0, Math.ceil((Date.parse(value) - Date.now()) / 86_400_000));
@@ -80,6 +95,11 @@ function LaunchSheet({ account, client, onClose }: {
   onClose(): void;
 }) {
   const [probe, setProbe] = useState<ProbeState>({ status: "loading" });
+  const [hostedRun, setHostedRun] = useState<HostedRunState>({ status: "idle" });
+  const idempotencyKey = useRef(`control-${account.slug}-${crypto.randomUUID()}`);
+  const activeRunId = hostedRun.status === "ready" && ["queued", "in_progress"].includes(hostedRun.run.status)
+    ? hostedRun.run.run_id
+    : null;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -93,6 +113,35 @@ function LaunchSheet({ account, client, onClose }: {
     );
     return () => controller.abort();
   }, [account.slug, client]);
+
+  useEffect(() => {
+    if (!activeRunId) return;
+    const controller = new AbortController();
+    const interval = window.setInterval(() => {
+      void client.readRun(activeRunId, controller.signal).then(
+        (run) => setHostedRun((current) => current.status === "ready" ? { ...current, run } : current),
+        () => undefined,
+      );
+    }, 5_000);
+    return () => {
+      controller.abort();
+      window.clearInterval(interval);
+    };
+  }, [activeRunId, client]);
+
+  async function createHostedRun() {
+    setHostedRun({ status: "creating" });
+    try {
+      const result = await client.createRun({
+        account_slug: account.slug,
+        objective: `Investigate retention risk for ${account.display_name} and prepare a governed recovery decision.`,
+        idempotency_key: idempotencyKey.current,
+      });
+      setHostedRun({ status: "ready", run: result.run, idempotentReplay: result.idempotentReplay });
+    } catch (error) {
+      setHostedRun({ status: "error", message: error instanceof Error ? error.message : "Run creation failed." });
+    }
+  }
 
   return (
     <motion.div
@@ -147,9 +196,40 @@ function LaunchSheet({ account, client, onClose }: {
                 <LockKeyhole aria-hidden="true" />
                 <div><strong>Human boundary intact</strong><span>No customer action can leave this run without approval.</span></div>
               </div>
-              <button className="launch-runtime" disabled type="button">
-                Runtime connection is the next slice
-              </button>
+              <StateSwap className="hosted-run-state" state={hostedRun.status}>
+                {hostedRun.status === "idle" ? (
+                  <button className="launch-runtime launch-runtime--active" onClick={() => void createHostedRun()} type="button">
+                    Create hosted run <ArrowRight aria-hidden="true" />
+                  </button>
+                ) : null}
+                {hostedRun.status === "creating" ? (
+                  <div className="hosted-run-creating" role="status"><LoaderCircle aria-hidden="true" />Creating durable run record…</div>
+                ) : null}
+                {hostedRun.status === "error" ? (
+                  <div className="hosted-run-error" role="alert">
+                    <CircleAlert aria-hidden="true" /><span>{hostedRun.message}</span>
+                    <button onClick={() => void createHostedRun()} type="button">Retry safely</button>
+                  </div>
+                ) : null}
+                {hostedRun.status === "ready" ? (
+                  <motion.section animate={{ opacity: 1, y: 0 }} className="hosted-run" initial={{ opacity: 0, y: 10 }}>
+                    <header>
+                      <div><span>Run {hostedRun.run.run_id.slice(0, 8)}</span><strong>{hostedRun.run.status === "queued" ? "Queued for hosted worker" : hostedRun.run.status.replaceAll("_", " ")}</strong></div>
+                      <i aria-label="Live run status" data-status={hostedRun.run.status} />
+                    </header>
+                    <ol aria-label="Run event stream">
+                      {hostedRun.run.events.map((event) => (
+                        <li key={event.sequence}>
+                          <span>{String(event.sequence).padStart(2, "0")}</span>
+                          <div><strong>{event.type.replaceAll("_", " ")}</strong><small>{runEventCopy(event)}</small></div>
+                          <time>{new Date(event.occurred_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time>
+                        </li>
+                      ))}
+                    </ol>
+                    <footer><LockKeyhole aria-hidden="true" />External actions: 0 · human approval remains mandatory{hostedRun.idempotentReplay ? " · existing run resumed" : ""}</footer>
+                  </motion.section>
+                ) : null}
+              </StateSwap>
             </div>
           ) : null}
         </StateSwap>
@@ -266,10 +346,10 @@ export function CommandCenterView({ client: suppliedClient }: { client?: Control
                   <li><span><Database /></span><div><time>{relativeFreshness(directory.result.source.retrieved_at)} ago</time><strong>Account directory retrieved</strong><small>Supabase · no-store</small></div></li>
                   <li><span><Network /></span><div><time>Ready</time><strong>Evidence tools exposed</strong><small>MCP · read only</small></div></li>
                   <li><span><ShieldCheck /></span><div><time>Policy</time><strong>Human decision retained</strong><small>External actions · 0</small></div></li>
-                  <li><span><Sparkles /></span><div><time>Next</time><strong>Agent runtime connection</strong><small>Five-stage governed run</small></div></li>
+                  <li><span><Sparkles /></span><div><time>Live</time><strong>Hosted run intake online</strong><small>Durable IDs · truthful events</small></div></li>
                 </ol>
                 <div className="system-strip">
-                  <span><Check />Data live</span><span><Check />Consent bound</span><span><LoaderCircle />Runtime next</span>
+                  <span><Check />Data live</span><span><Check />Consent bound</span><span><Check />Run store live</span>
                 </div>
               </aside>
             </div>

@@ -50,4 +50,42 @@ describe("control room client", () => {
     const fetchMock = vi.fn(async () => Response.json({ tool: "list_accounts", source, data: [{ slug: "broken" }] })) as unknown as typeof fetch;
     await expect(createControlRoomClient(environment, fetchMock).listAccounts()).rejects.toThrow(/invalid contract/i);
   });
+
+  it("creates a hosted run through the separate run gateway and validates its event stream", async () => {
+    const run = {
+      contract_version: "hosted.run.v1",
+      run_id: "8f14e45f-ceea-467a-9575-0e2d6b3f1a20",
+      account_id: "1b4e28ba-2fa1-4d3b-9a2c-6f0d5e7c8b91",
+      account_slug: "northstar-loom",
+      idempotency_key: "control-northstar-loom-001",
+      objective: "Investigate retention risk and prepare a governed recovery decision.",
+      status: "queued",
+      current_stage: null,
+      public_summary: null,
+      created_at: "2026-08-14T09:00:00.000Z",
+      updated_at: "2026-08-14T09:00:00.000Z",
+      events: [{
+        type: "run_created",
+        sequence: 1,
+        run_id: "8f14e45f-ceea-467a-9575-0e2d6b3f1a20",
+        account_id: "1b4e28ba-2fa1-4d3b-9a2c-6f0d5e7c8b91",
+        account_slug: "northstar-loom",
+        occurred_at: "2026-08-14T09:00:00.000Z",
+      }],
+    };
+    const fetchMock = vi.fn(async () => Response.json({ run, idempotent_replay: false })) as unknown as typeof fetch;
+
+    const result = await createControlRoomClient(environment, fetchMock).createRun({
+      account_slug: "northstar-loom",
+      objective: run.objective,
+      idempotency_key: run.idempotency_key,
+    });
+
+    expect(result.run.status).toBe("queued");
+    expect(result.run.events[0]?.type).toBe("run_created");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://example.supabase.co/functions/v1/retentionlab-runs",
+      expect.objectContaining({ method: "POST", cache: "no-store" }),
+    );
+  });
 });

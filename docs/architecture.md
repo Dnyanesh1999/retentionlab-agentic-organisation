@@ -11,15 +11,38 @@ RetentionLab has two deliberately connected surfaces:
 
 ```mermaid
 flowchart LR
-    A[GitHub Pages React app] -->|HTTPS| B[Vercel API]
-    B --> C[Orchestrator]
-    C --> D[OpenRouter]
-    C --> E[RetentionLab MCP server]
-    E -->|allow-listed request| H[Supabase evidence gateway]
+    A[GitHub Pages React app] -->|read-only evidence| H[Supabase evidence gateway]
+    A -->|bounded run create/read| R[Supabase run gateway]
     H -->|fresh no-store query| F[(Supabase Postgres)]
-    C --> G[(Run and artefact store)]
-    G --> A
+    R -->|service-only RPC and projection| F
+    C[Local assessed orchestrator] --> D[OpenRouter]
+    C --> E[RetentionLab MCP server]
+    E --> H
+    C --> G[(Hash-chained local run and artefact store)]
+    W[Future authenticated hosted worker] -.-> R
 ```
+
+The diagram distinguishes what is live from what is intentionally pending. The public Control Room
+can now create an idempotent, durable hosted run record and read its public-safe event projection.
+It does **not** claim that the five-agent worker is hosted: the proven complete agent pipeline still
+runs through the local Node orchestrator. Connecting an authenticated server worker to claim queued
+runs is the next runtime slice.
+
+## Hosted run intake foundation
+
+- `public.agent_runs` stores the selected synthetic account, bounded objective, lifecycle state and
+  hard invariants `requires_human_approval = true` and `external_actions_permitted = 0`.
+- `public.agent_run_events` is append-only to the service role. A trigger locks the parent run and
+  requires the next positive sequence, preventing reordered or duplicate events.
+- `create_agent_run` serializes per-account creation with a transaction advisory lock and returns the
+  same open run for an idempotency replay or a second request for that account.
+- Browser roles have revoked table/RPC privileges and no matching RLS policy. Explicit service-role
+  policies document the only intended principal. The public publishable key reaches only the
+  allow-listed `retentionlab-runs` Edge Function.
+- Public misuse is bounded without model spend: at most one open run exists per synthetic account,
+  and this foundation does not invoke OpenRouter or permit an external customer action.
+- The shared `runtime/hosted` Zod contract pins stage order, lifecycle states, event vocabulary,
+  timestamps, identifiers and strictly increasing event sequences from gateway to React UI.
 
 ## Five-stage artefact chain
 
@@ -91,13 +114,17 @@ only by the accepted live run.
 
 ## Security boundary
 
-- Public frontend: display and interaction only; publishable Supabase values are accessed through the server.
-- Vercel API: rate limits, schema validation, orchestration and model calls.
+- Public frontend: display, evidence interaction and bounded synthetic run intake only; it contains
+  publishable Supabase identifiers but no provider or database secret.
+- Future authenticated hosted worker/API: operator authentication, rate limits, queue claiming,
+  orchestration and model calls. This boundary is designed but not yet deployed.
 - MCP server: allow-listed read tools with structured responses and source timestamps.
 - Supabase evidence gateway: deployed Edge Function with a fixed tool allow-list, strict input validation and no cached fallback.
 - Supabase clarification gateway: separate write-only Edge Function with exact-origin CORS, strict
   payload/receipt contracts, idempotency and a short-lived single-use recovery capability that is
   removed from the URL before live evidence is rendered.
+- Supabase run gateway: separate create/read Edge Function with strict contracts, idempotent
+  per-account creation, a service-only event projection and no model or external-action capability.
 - Supabase: fictional records, row-level security, internal secret-key access and no real customer PII.
 
 Clarification records live in a non-exposed `private` schema. Browser roles have no schema, table
@@ -107,13 +134,11 @@ case and recovery-outreach preference before consuming the capability and writin
 
 ## Frontend information architecture
 
-The accepted Case Theatre uses six case tabs without a dashboard/sidebar pattern:
+The production shell exposes only three working destinations:
 
-1. Pulse
-2. Organisation
-3. Evidence
-4. Recovery Room
-5. Trust Gate
-6. Audit
+1. Control room — live synthetic account directory and governed hosted-run intake.
+2. Case archive — recruiter/assessor-facing completed case study.
+3. Active case — Overview, Workstream, Experience and Decision views of one governed case.
 
-The living case artefact is central, the five agents orbit it, and only one agent detail is expanded at a time. The bottom Manager dock provides cited, read-only explanations.
+The older orbital Organisation view remains reachable from the Experience evidence path for the
+assessed five-agent proof, but it is no longer the primary product navigation model.
