@@ -1,4 +1,4 @@
-import { Check, Circle, CircleAlert, Clock, LoaderCircle, LockKeyhole } from "lucide-react";
+import { Check, Circle, CircleAlert, Clock, LoaderCircle, LockKeyhole, ShieldCheck } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useMemo } from "react";
 
@@ -51,6 +51,7 @@ interface StageView {
 interface DerivedTrace {
   stages: StageView[];
   atHumanBoundary: boolean;
+  decisionSummary: string | null;
   statusLine: string;
 }
 
@@ -91,9 +92,18 @@ function deriveTrace(run: HostedRun): DerivedTrace {
     return { stage, index, label, state: "pending", detail: "Queued behind earlier stages." };
   });
 
+  // The decision summary comes from the recorded decision event, never from the run status alone, so
+  // the note can only appear once a human decision is actually on the event stream.
+  const decisionEvent = run.events.find(
+    (event) => event.type === "run_approved" || event.type === "run_rejected",
+  );
+
   return {
     stages,
     atHumanBoundary: run.status === "awaiting_human_approval",
+    decisionSummary: decisionEvent && "public_summary" in decisionEvent
+      ? decisionEvent.public_summary
+      : null,
     statusLine: statusLineFor(run, nextQueuedStage, sealedSummary.size),
   };
 }
@@ -111,6 +121,10 @@ function statusLineFor(run: HostedRun, nextQueuedStage: HostedStage | null, seal
         : "In progress.";
     case "awaiting_human_approval":
       return "All five stages are sealed. The run is paused at the human approval boundary.";
+    case "approved":
+      return `An authenticated operator approved this case record. ${sealedCount} of 5 stages sealed; no customer action was sent.`;
+    case "rejected":
+      return "An authenticated operator rejected this case record. No customer action was sent.";
     case "failed":
       return "The run failed and stopped.";
   }
@@ -123,7 +137,7 @@ export interface AgentExecutionTraceProps {
 
 export function AgentExecutionTrace({ run, className }: AgentExecutionTraceProps) {
   const reduceMotion = useReducedMotion();
-  const { stages, atHumanBoundary, statusLine } = useMemo(() => deriveTrace(run), [run]);
+  const { stages, atHumanBoundary, decisionSummary, statusLine } = useMemo(() => deriveTrace(run), [run]);
 
   const rootClassName = className
     ? `execution-trace ${className}`
@@ -181,6 +195,12 @@ export function AgentExecutionTrace({ run, className }: AgentExecutionTraceProps
           <span className="execution-trace__boundary-copy">
             Awaiting human approval. No further action without an operator decision.
           </span>
+        </div>
+      ) : null}
+      {decisionSummary ? (
+        <div className="execution-trace__boundary" role="note">
+          <ShieldCheck className="execution-trace__boundary-icon" aria-hidden="true" strokeWidth={2} />
+          <span className="execution-trace__boundary-copy">{decisionSummary}</span>
         </div>
       ) : null}
     </section>

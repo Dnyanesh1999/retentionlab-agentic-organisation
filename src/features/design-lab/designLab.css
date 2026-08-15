@@ -1069,3 +1069,114 @@
     transition: none;
   }
 }
+
+/* Approved live cases. Same register vocabulary as the assessed record, with honest non-ready states. */
+.approved-register__list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.approved-register__note {
+  margin: 0;
+  padding: 18px 0 22px;
+  color: var(--ink-soft);
+  font: var(--type-body-base);
+}
+
+.approved-register__note--error {
+  color: var(--warning);
+}
+
+.approved-case {
+  display: grid;
+  gap: var(--space-6);
+  padding: 24px 0 0;
+}
+
+.approved-case__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--forest);
+  font: var(--type-body-base);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.approved-case__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-5);
+  margin: 0;
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--line);
+}
+
+.approved-case__facts div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.approved-case__facts dt {
+  color: var(--ink-soft);
+  font: var(--type-label-small);
+  text-transform: uppercase;
+}
+
+.approved-case__facts dd {
+  margin: 0;
+  font: var(--type-body-base);
+}
+
+.approved-case__stages {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.approved-case__stages li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.approved-case__stages span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: var(--forest);
+  border: 1px solid var(--forest);
+  border-radius: 50%;
+  font: var(--type-label-small);
+}
+
+.approved-case__stages div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.approved-case__stages small {
+  color: var(--ink-soft);
+  font: var(--type-body-base);
+  line-height: 1.55;
+}
+
+.approved-case__boundary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-4);
+  color: var(--forest);
+  border: 1px solid var(--forest);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--mint) 32%, var(--surface));
+  font: var(--type-body-base);
+}

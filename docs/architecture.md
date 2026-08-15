@@ -133,9 +133,18 @@ only by the accepted live run.
 - Supabase clarification gateway: separate write-only Edge Function with exact-origin CORS, strict
   payload/receipt contracts, idempotency and a short-lived single-use recovery capability that is
   removed from the URL before live evidence is rendered.
-- Supabase run gateway: separate create/read/retry Edge Function with strict contracts, idempotent
-  per-account creation and a service-only event projection. It schedules the next eligible protected
-  worker in the background; the browser never receives the provider key or full model artefact.
+- Supabase run gateway: separate create/read/retry/decide Edge Function with strict contracts,
+  idempotent per-account creation and a service-only event projection. It schedules the next eligible
+  protected worker in the background; the browser never receives the provider key or full model
+  artefact.
+- Human decision boundary: `get_decision_context` and `decide_run` require a Supabase Auth bearer that
+  the function verifies itself against `/auth/v1/user`; the returned subject must appear in the private
+  `approval_operators` allow-list. The publishable key authenticates the caller, never the
+  decision-maker. A decision is recorded only for a run at `awaiting_human_approval` and only against
+  the exact stored Manager artefact hash, is idempotent, appends one event, rewrites none, and moves
+  the run to the terminal `approved`/`rejected` state so the account is released. The operator's
+  rationale stays in the private schema. Approval permits internal portfolio promotion only — no send,
+  publish, deploy or customer data mutation.
 - Supabase: fictional records, row-level security, internal secret-key access and no real customer PII.
 
 Clarification records live in a non-exposed `private` schema. Browser roles have no schema, table
@@ -147,8 +156,10 @@ case and recovery-outreach preference before consuming the capability and writin
 
 The production shell exposes only three working destinations:
 
-1. Control room — live synthetic account directory and governed hosted-run intake.
-2. Case archive — recruiter/assessor-facing completed case study.
+1. Control room — live synthetic account directory, governed hosted-run intake and the authenticated
+   human decision sheet, which appears only for a run the service reports as awaiting approval.
+2. Case archive — the committed assessed case study plus approved live cases, each deep-linkable at
+   `#/cases/approved/<run id>`. Rendered by `CaseArchiveScreen`.
 3. Active case — Overview, Workstream, Experience and Decision views of one governed case.
 
 The older orbital Organisation view remains reachable from the Experience evidence path for the

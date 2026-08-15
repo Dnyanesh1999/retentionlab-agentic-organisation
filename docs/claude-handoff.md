@@ -48,12 +48,18 @@ At handoff, `main` equals `origin/main` and the worktree is clean before this ha
 - Safe expired-lease recovery and explicit failed-stage checkpoint retry.
 - Compact OpenRouter model deltas combined with deterministic policy compilers.
 - Manager completion always stops at human approval with autonomous external actions false.
+- Authenticated human decision at that boundary: a Supabase Auth operator, checked against a private
+  allow-list, records one idempotent `approve`/`reject` against the exact stored Manager artefact hash.
+  Approval promotes the sealed case record internally and sends nothing.
 
 ### Frontend
 
 - `#/control-room`: live account directory, governed launch, honest running/error/completion motion,
   five-agent execution trace and “Retry from sealed checkpoint.”
-- `#/portfolio`: assessed case archive.
+- `#/portfolio`: the Case archive — the committed assessed Copper Finch snapshot plus an "Approved
+  live cases" register fed by the hosted gateway. Rendered by `CaseArchiveScreen` in
+  `src/features/design-lab/DesignLabView.tsx`, **not** by a `PortfolioView` component.
+- `#/cases/approved/<run id>`: one approved live case, from the same bounded public projection.
 - `#/cases/overview`: four-tab practical casebook for the accepted Copper Finch assessed run.
 - `#/cases/recovery-room`: live Signal Garden customer experience.
 - Responsive desktop/mobile UI, reduced-motion support, accessible states and sealed-record assistant.
@@ -121,8 +127,22 @@ Do not weaken these to make a demo pass:
 
 ## 6. Recommended next feature
 
-The highest-value next slice is an authenticated human decision and portfolio promotion workflow.
-Do it incrementally, not as a broad redesign.
+**Status: implemented on `claude/human-approval-portfolio`, not yet applied or deployed.** Slices A, B
+and C below are built and locally verified; see `docs/qa-human-approval.md` for exactly what is proven
+and the outstanding live-probe list. The remaining work is: apply the one forward-only migration
+`20260814153107_add_human_approval_decision.sql`, seed an operator into `private.approval_operators`,
+redeploy the run function, and complete section 4 of that QA document.
+
+Two details the original plan below did not anticipate, both resolved in the implementation:
+
+- The browser never receives an artefact hash, so an operator could not attest to one. An
+  authenticated `get_decision_context` action returns the sealed Manager hash plus governance flags and
+  the consented channel to an allow-listed operator only.
+- Approving had to move the run out of `awaiting_human_approval`, because
+  `agent_runs_one_open_per_account_idx` treats that state as open and would have blocked the account
+  permanently. Hence the new `approved` / `rejected` terminal statuses.
+
+The original incremental plan follows for reference.
 
 ### Slice A — decision contract and database boundary
 
@@ -155,9 +175,14 @@ If the user chooses a different next feature, retain these invariants and update
 
 ## 7. Known limitations
 
-- Public hosted-run intake is synthetic-demo only and lacks real operator authentication/rate limiting.
-- Human approval and dynamic hosted-case portfolio promotion are not implemented yet.
-- Manager-directed typed revision execution remains fail-closed.
+- Public hosted-run *intake* is synthetic-demo only and lacks rate limiting. The approval path is
+  operator-authenticated; intake deliberately is not.
+- Human approval and hosted-case portfolio promotion are implemented but not yet applied or deployed.
+- Manager-directed typed revision execution remains fail-closed. Precisely:
+  `complete_agent_run_manager` requires `decision = 'approve'` and
+  `permitted_next_action = 'await_human_approval'`, so a Manager `revise` outcome is rejected by the
+  RPC and recorded as a Manager **stage failure**, not as a sealed revise decision. The human decision
+  vocabulary is `approve` / `reject` only.
 - The free OpenRouter route can return invalid structured output; schema validation and checkpoint retry
   contain this, but broader model-quality evaluation is still needed.
 - The accepted public casebook is a committed assessed snapshot; it is separate from live hosted runs.
@@ -236,14 +261,17 @@ After committing the intended files, run `npm run release:check`; it packages `g
 uncommitted change is not part of that proof. Never commit generated `dist/`, release ZIPs, `.env.local`,
 root Deno lock churn or `supabase/functions/retentionlab-runs/deno.lock`.
 
-Last verified baseline before handoff:
+Baseline on `claude/human-approval-portfolio` (14 August 2026):
 
-- 399 Vitest application tests passed.
-- 15 hosted Deno worker tests passed.
+- 417 Vitest application tests passed.
+- 27 hosted Deno worker tests passed.
 - TypeScript, agent pipeline check, ESLint and production build passed.
 - 16 release tests and 2 data tests passed.
 - Secret scan clean across 309 tracked files.
-- Pages build 553,387 bytes JavaScript against a 1,200,000-byte ceiling.
+- Pages build 569,544 bytes JavaScript against a 1,200,000-byte ceiling.
+
+Baseline at the previous handoff (`main` at `9e9936d`): 399 Vitest tests, 15 hosted worker tests,
+311 tracked files (the earlier "309 tracked files" line predated the handoff commit) and 553,387 bytes.
 - Desktop and 390×844 browser QA: zero page overflow and zero console warning/error.
 
 ## 11. Git and publication

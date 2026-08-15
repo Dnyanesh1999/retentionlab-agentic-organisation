@@ -16,7 +16,12 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ProgressVeil, StateSwap, StaggerReveal } from "../../components/motion";
-import type { HostedRun, HostedRunEvent } from "../../../runtime/hosted/contracts";
+import type {
+  HostedDecision,
+  HostedRun,
+  HostedRunDecisionContext,
+  HostedRunEvent,
+} from "../../../runtime/hosted/contracts";
 import { AgentExecutionTrace } from "./AgentExecutionTrace";
 import {
   createControlRoomClient,
@@ -46,11 +51,263 @@ type HostedRunState =
 
 const launchStages = ["Validate account", "Bind live evidence", "Enforce approval"];
 
+const RATIONALE_MIN = 20;
+const RATIONALE_MAX = 1_000;
+
+type DecisionContextState =
+  | { status: "loading" }
+  | { status: "ready"; context: HostedRunDecisionContext }
+  | { status: "error"; message: string };
+
+type DecisionSubmitState =
+  | { status: "idle" }
+  | { status: "submitting" }
+  | { status: "done"; decision: HostedDecision; replayed: boolean }
+  | { status: "error"; message: string };
+
+/**
+ * The human decision boundary. It renders only for a run the service reports as awaiting approval,
+ * and only records a decision for an authenticated operator against the exact sealed Manager hash it
+ * displayed. Approving clears the case record for internal promotion; it sends nothing.
+ */
+function DecisionSheet({ run, client, onDecided }: {
+  run: HostedRun;
+  client: ControlRoomClient;
+  onDecided(run: HostedRun): void;
+}) {
+  const [operator, setOperator] = useState(() => client.currentOperator());
+  const [credentials, setCredentials] = useState({ email: "", password: "" });
+  const [signInState, setSignInState] = useState<{ status: "idle" | "working" } | { status: "error"; message: string }>({ status: "idle" });
+  const [context, setContext] = useState<DecisionContextState>({ status: "loading" });
+  const [rationale, setRationale] = useState("");
+  const [pending, setPending] = useState<HostedDecision | null>(null);
+  const [submit, setSubmit] = useState<DecisionSubmitState>({ status: "idle" });
+  const idempotencyKey = useRef(`decision-${run.run_id}-${crypto.randomUUID()}`);
+  // Decided is derived from the run the service returned, so a decision recorded in another session
+  // reads correctly here too — the panel never claims an outcome the run does not carry.
+  const decided = run.status === "approved" || run.status === "rejected" ? run.status : null;
+
+  useEffect(() => {
+    if (!operator || decided) return;
+    const controller = new AbortController();
+    void client.readDecisionContext(run.run_id, controller.signal).then(
+      (result) => setContext({ status: "ready", context: result }),
+      (error: unknown) => {
+        if (!controller.signal.aborted) {
+          setContext({
+            status: "error",
+            message: error instanceof Error ? error.message : "Decision context unavailable.",
+          });
+        }
+      },
+    );
+    return () => controller.abort();
+  }, [client, decided, operator, run.run_id]);
+
+  async function submitSignIn(event: React.FormEvent) {
+    event.preventDefault();
+    setSignInState({ status: "working" });
+    try {
+      setOperator(await client.signIn(credentials.email, credentials.password));
+      setCredentials({ email: "", password: "" });
+      setSignInState({ status: "idle" });
+    } catch (error) {
+      setSignInState({
+        status: "error",
+        message: error instanceof Error ? error.message : "Those operator credentials were not accepted.",
+      });
+    }
+  }
+
+  async function confirmDecision(decision: HostedDecision, managerHash: string) {
+    setSubmit({ status: "submitting" });
+    try {
+      const result = await client.decideRun({
+        run_id: run.run_id,
+        expected_manager_artifact_sha256: managerHash,
+        decision,
+        rationale: rationale.trim(),
+        idempotency_key: idempotencyKey.current,
+      });
+      setSubmit({ status: "done", decision, replayed: result.replayed });
+      setPending(null);
+      onDecided(result.run);
+    } catch (error) {
+      setSubmit({
+        status: "error",
+        message: error instanceof Error ? error.message : "The decision was not recorded.",
+      });
+      setPending(null);
+    }
+  }
+
+  if (decided) {
+    return (
+      <section className="decision-sheet decision-sheet--done" aria-labelledby="decision-title" role="status">
+        <header>
+          <ShieldCheck aria-hidden="true" />
+          <div>
+            <h3 id="decision-title">
+              {decided === "approved" ? "Case record approved" : "Case record rejected"}
+            </h3>
+            <span>
+              {submit.status === "done" && submit.replayed
+                ? "This decision was already recorded; nothing was appended twice. "
+                : ""}
+              No customer communication or other external action was taken.
+            </span>
+          </div>
+        </header>
+      </section>
+    );
+  }
+
+  if (!operator) {
+    return (
+      <section className="decision-sheet decision-sheet--locked" aria-labelledby="decision-title">
+        <header>
+          <LockKeyhole aria-hidden="true" />
+          <div>
+            <h3 id="decision-title">Human decision required</h3>
+            <span>Approval requires an authenticated operator. The publishable browser key is not authority to approve.</span>
+          </div>
+        </header>
+        <form className="decision-signin" onSubmit={(event) => void submitSignIn(event)}>
+          <label>
+            <span>Operator email</span>
+            <input
+              autoComplete="username"
+              onChange={(event) => setCredentials((current) => ({ ...current, email: event.target.value }))}
+              required
+              type="email"
+              value={credentials.email}
+            />
+          </label>
+          <label>
+            <span>Password</span>
+            <input
+              autoComplete="current-password"
+              onChange={(event) => setCredentials((current) => ({ ...current, password: event.target.value }))}
+              required
+              type="password"
+              value={credentials.password}
+            />
+          </label>
+          <button disabled={signInState.status === "working"} type="submit">
+            {signInState.status === "working" ? "Verifying…" : "Sign in to decide"}
+          </button>
+          {signInState.status === "error" ? (
+            <p className="decision-error" role="alert">{signInState.message}</p>
+          ) : null}
+        </form>
+      </section>
+    );
+  }
+
+  return (
+    <section className="decision-sheet" aria-labelledby="decision-title">
+      <header>
+        <LockKeyhole aria-hidden="true" />
+        <div>
+          <h3 id="decision-title">Human decision required</h3>
+          <span>Signed in as {operator.email ?? "authorised operator"}.</span>
+        </div>
+        <button className="decision-signout" onClick={() => void client.signOut().then(() => setOperator(null))} type="button">
+          Sign out
+        </button>
+      </header>
+
+      <StateSwap className="decision-sheet__state" state={context.status}>
+        {context.status === "loading" ? (
+          <div className="decision-loading" role="status"><LoaderCircle aria-hidden="true" />Loading the sealed decision context…</div>
+        ) : null}
+        {context.status === "error" ? (
+          <div className="decision-error" role="alert"><CircleAlert aria-hidden="true" /><span>{context.message}</span></div>
+        ) : null}
+        {context.status === "ready" ? (
+          <>
+            <dl className="decision-facts">
+              <div><dt>Sealed chain</dt><dd>{context.context.chain_verified ? "Verified" : "Not verified"}</dd></div>
+              <div><dt>Consented channel</dt><dd>{context.context.consented_channel ?? "None recorded"}</dd></div>
+              <div><dt>Permitted next action</dt><dd>{context.context.permitted_next_action.replaceAll("_", " ")}</dd></div>
+              <div><dt>External actions</dt><dd>{context.context.external_actions_permitted}</dd></div>
+            </dl>
+            <p className="decision-hash">
+              <span>Manager artefact</span>
+              <code>{context.context.manager_artifact_sha256}</code>
+            </p>
+            <p className="decision-scope">
+              Approving clears this sealed case record for internal portfolio promotion. It does not send,
+              schedule or publish any customer communication.
+            </p>
+
+            <label className="decision-rationale">
+              <span>Decision rationale (required)</span>
+              <textarea
+                maxLength={RATIONALE_MAX}
+                minLength={RATIONALE_MIN}
+                onChange={(event) => setRationale(event.target.value)}
+                rows={3}
+                value={rationale}
+              />
+              <small>{rationale.trim().length} / {RATIONALE_MAX} · minimum {RATIONALE_MIN}</small>
+            </label>
+
+            {pending ? (
+              <div className="decision-confirm" role="alertdialog" aria-label="Confirm decision">
+                <strong>
+                  Record a {pending === "approve" ? "an approval" : "rejection"} for this case record?
+                </strong>
+                <span>This appends one permanent decision event and cannot be undone.</span>
+                <div>
+                  <button
+                    className="decision-action decision-action--confirm"
+                    disabled={submit.status === "submitting"}
+                    onClick={() => void confirmDecision(pending, context.context.manager_artifact_sha256)}
+                    type="button"
+                  >
+                    {submit.status === "submitting" ? "Recording…" : "Confirm decision"}
+                  </button>
+                  <button onClick={() => setPending(null)} type="button">Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <div className="decision-actions">
+                <button
+                  className="decision-action decision-action--approve"
+                  disabled={rationale.trim().length < RATIONALE_MIN}
+                  onClick={() => setPending("approve")}
+                  type="button"
+                >
+                  <Check aria-hidden="true" />Approve case record
+                </button>
+                <button
+                  className="decision-action decision-action--reject"
+                  disabled={rationale.trim().length < RATIONALE_MIN}
+                  onClick={() => setPending("reject")}
+                  type="button"
+                >
+                  <X aria-hidden="true" />Reject
+                </button>
+              </div>
+            )}
+
+            {submit.status === "error" ? (
+              <p className="decision-error" role="alert">{submit.message}</p>
+            ) : null}
+          </>
+        ) : null}
+      </StateSwap>
+    </section>
+  );
+}
+
 function runEventCopy(event: HostedRunEvent) {
   if (event.type === "run_created") return "Governed run accepted. No agent or external action has started yet.";
   if (event.type === "stage_started") return `${event.stage} started.`;
   if (event.type === "stage_completed") return event.public_summary;
   if (event.type === "run_paused_for_approval") return `${event.stage} paused the run for human approval.`;
+  if (event.type === "run_approved" || event.type === "run_rejected") return event.public_summary;
   return event.reason;
 }
 
@@ -232,6 +489,14 @@ function LaunchSheet({ account, client, onClose }: {
                       <button className="hosted-run-retry" onClick={() => void retryHostedRun(hostedRun.run.run_id)} type="button">
                         Retry from sealed checkpoint <ArrowRight aria-hidden="true" />
                       </button>
+                    ) : null}
+                    {["awaiting_human_approval", "approved", "rejected"].includes(hostedRun.run.status) ? (
+                      <DecisionSheet
+                        client={client}
+                        onDecided={(decided) =>
+                          setHostedRun((current) => current.status === "ready" ? { ...current, run: decided } : current)}
+                        run={hostedRun.run}
+                      />
                     ) : null}
                     <ol aria-label="Run event stream">
                       {hostedRun.run.events.map((event) => (

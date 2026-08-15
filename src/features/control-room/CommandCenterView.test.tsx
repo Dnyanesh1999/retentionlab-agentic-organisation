@@ -35,6 +35,19 @@ const hostedRun: HostedRun = {
   }],
 };
 
+const operator = { userId: "1b4e28ba-2fa1-4d3b-9a2c-6f0d5e7c8b91", email: "operator@example.test" };
+
+const decisionContext = {
+  run_id: "8f14e45f-ceea-467a-9575-0e2d6b3f1a20",
+  manager_artifact_sha256: "3f2b1c8e9d4a7605f1e2c3b4a5968778899aabbccddeeff00112233445566778",
+  chain_verified: true,
+  human_approval_required: true as const,
+  autonomous_external_actions: false as const,
+  external_actions_permitted: 0 as const,
+  permitted_next_action: "await_human_approval",
+  consented_channel: "in_app",
+};
+
 const client: ControlRoomClient = {
   async listAccounts() {
     return {
@@ -65,7 +78,72 @@ const client: ControlRoomClient = {
   async retryRun() {
     return hostedRun;
   },
+  async signIn() {
+    return operator;
+  },
+  async signOut() {},
+  currentOperator() {
+    return null;
+  },
+  async readDecisionContext() {
+    return decisionContext;
+  },
+  async listPromotedCases() {
+    return [];
+  },
+  async decideRun() {
+    return { run: approvedRun, replayed: false };
+  },
 };
+
+/** A run the service reports as sitting at the mandatory human boundary. */
+const awaitingRun: HostedRun = {
+  ...hostedRun,
+  status: "awaiting_human_approval",
+  current_stage: "manager",
+  events: [
+    ...hostedRun.events,
+    { type: "run_paused_for_approval", sequence: 2, stage: "manager", occurred_at: "2026-08-14T09:06:00.000Z" },
+  ],
+};
+
+const approvedRun: HostedRun = {
+  ...awaitingRun,
+  status: "approved",
+  events: [
+    ...awaitingRun.events,
+    {
+      type: "run_approved",
+      sequence: 3,
+      stage: "manager",
+      public_summary:
+        "An authenticated operator approved the sealed case record for internal promotion. No customer action was sent.",
+      occurred_at: "2026-08-14T09:07:00.000Z",
+    },
+  ],
+};
+
+function awaitingClient(overrides: Partial<ControlRoomClient> = {}): ControlRoomClient {
+  return {
+    ...client,
+    async createRun() {
+      return { run: awaitingRun, idempotentReplay: false };
+    },
+    async readRun() {
+      return awaitingRun;
+    },
+    ...overrides,
+  };
+}
+
+/** Drives the sheet open and creates the run, which is where the decision boundary appears. */
+async function openRun(activeClient: ControlRoomClient) {
+  render(<CommandCenterView client={activeClient} />);
+  await screen.findAllByText("Northstar Loom");
+  fireEvent.click(screen.getByRole("button", { name: /start governed case/i }));
+  await screen.findByText("Evidence bound");
+  fireEvent.click(screen.getByRole("button", { name: /create hosted run/i }));
+}
 
 describe("CommandCenterView", () => {
   it("renders the live account directory and verifies a governed launch preview", async () => {
@@ -130,5 +208,81 @@ describe("CommandCenterView", () => {
 
     expect(retryRun).toHaveBeenCalledWith(hostedRun.run_id);
     expect(await screen.findByText("Queued for hosted worker")).toBeInTheDocument();
+  });
+
+  it("shows no decision boundary for a run that is not awaiting approval", async () => {
+    await openRun(client);
+
+    expect(await screen.findByText("Queued for hosted worker")).toBeInTheDocument();
+    expect(screen.queryByText(/human decision required/i)).not.toBeInTheDocument();
+  });
+
+  it("requires an authenticated operator before offering any decision control", async () => {
+    const readDecisionContext = vi.fn(async () => decisionContext);
+    await openRun(awaitingClient({ readDecisionContext }));
+
+    expect(await screen.findByText(/human decision required/i)).toBeInTheDocument();
+    expect(screen.getByText(/not authority to approve/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /sign in to decide/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /approve case record/i })).not.toBeInTheDocument();
+    // A signed-out browser must not be able to pull the sealed decision context at all.
+    expect(readDecisionContext).not.toHaveBeenCalled();
+  });
+
+  it("records an approval against the exact sealed manager hash after an explicit confirm", async () => {
+    const decideRun = vi.fn(async () => ({ run: approvedRun, replayed: false }));
+    await openRun(awaitingClient({ currentOperator: () => operator, decideRun }));
+
+    expect(await screen.findByText(/in_app/)).toBeInTheDocument();
+    expect(screen.getByText(decisionContext.manager_artifact_sha256)).toBeInTheDocument();
+    expect(screen.getByText(/does not send, schedule or publish/i)).toBeInTheDocument();
+
+    // The action stays disabled until a real rationale exists.
+    const approve = screen.getByRole("button", { name: /approve case record/i });
+    expect(approve).toBeDisabled();
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: "The sealed chain verifies and the invitation stays in the consented channel." },
+    });
+    expect(approve).toBeEnabled();
+
+    fireEvent.click(approve);
+    expect(decideRun).not.toHaveBeenCalled();
+    fireEvent.click(await screen.findByRole("button", { name: /confirm decision/i }));
+
+    await screen.findByText(/case record approved/i);
+    expect(decideRun).toHaveBeenCalledTimes(1);
+    const [input] = decideRun.mock.calls[0] as unknown as [Record<string, unknown>];
+    expect(input.expected_manager_artifact_sha256).toBe(decisionContext.manager_artifact_sha256);
+    expect(input.decision).toBe("approve");
+    expect(screen.getByText(/no customer communication or other external action/i)).toBeInTheDocument();
+  });
+
+  it("keeps the decision available and truthful when the service refuses it", async () => {
+    const decideRun = vi.fn(async () => {
+      throw new Error("The supplied Manager artefact hash does not match the sealed record");
+    });
+    await openRun(awaitingClient({ currentOperator: () => operator, decideRun }));
+
+    await screen.findByText(/in_app/);
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: "The sealed chain verifies and the invitation stays in the consented channel." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /reject/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /confirm decision/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/does not match the sealed record/i);
+    expect(screen.queryByText(/case record approved/i)).not.toBeInTheDocument();
+  });
+
+  it("surfaces a decision-context failure instead of offering a blind decision", async () => {
+    await openRun(awaitingClient({
+      currentOperator: () => operator,
+      async readDecisionContext() {
+        throw new Error("Only a run awaiting human approval can be decided");
+      },
+    }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/awaiting human approval/i);
+    expect(screen.queryByRole("button", { name: /approve case record/i })).not.toBeInTheDocument();
   });
 });

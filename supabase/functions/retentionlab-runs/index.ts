@@ -1,6 +1,13 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 import { executeHostedCommunicator } from "./communicator.ts";
+import {
+  DecisionError,
+  decisionInputSchema,
+  loadDecisionContext,
+  recordHumanDecision,
+  verifyOperator,
+} from "./decision.ts";
 import { executeHostedDesigner } from "./designer.ts";
 import { executeHostedMaker } from "./maker.ts";
 import { executeHostedManager } from "./manager.ts";
@@ -16,13 +23,20 @@ class RunGatewayError extends Error {
   }
 }
 
-const actions = new Set(["create_run", "get_run", "retry_run"]);
+const actions = new Set([
+  "create_run",
+  "get_run",
+  "retry_run",
+  "get_decision_context",
+  "decide_run",
+  "list_promoted_cases",
+]);
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const idempotencyPattern = /^[A-Za-z0-9._:-]+$/;
 const corsHeaders = {
   "access-control-allow-origin": "*",
-  "access-control-allow-headers": "apikey, content-type",
+  "access-control-allow-headers": "apikey, authorization, content-type",
   "access-control-allow-methods": "POST, OPTIONS",
 } as const;
 
@@ -130,7 +144,11 @@ async function projection(runId: string) {
         account_slug: run.account_slug,
       };
     }
-    if (value.event_type === "stage_completed") {
+    if (
+      value.event_type === "stage_completed"
+      || value.event_type === "run_approved"
+      || value.event_type === "run_rejected"
+    ) {
       return { ...base, stage: value.stage, public_summary: value.public_summary };
     }
     if (value.event_type === "run_failed") {
@@ -247,7 +265,7 @@ function scheduleHostedWorker(run: JsonRecord) {
   EdgeRuntime.waitUntil(observedTask);
 }
 
-async function invoke(action: string, args: JsonRecord) {
+async function invoke(action: string, args: JsonRecord, request: Request) {
   if (action === "create_run") {
     strictKeys(args, ["account_slug", "objective", "idempotency_key"]);
     const accountSlug = args.account_slug;
@@ -255,8 +273,10 @@ async function invoke(action: string, args: JsonRecord) {
     if (typeof accountSlug !== "string" || accountSlug.length > 80 || !slugPattern.test(accountSlug)) {
       throw new RunGatewayError("account_slug must be a valid lowercase slug", 400);
     }
-    if (typeof objective !== "string" || objective.trim().length < 16 || objective.length > 500) {
-      throw new RunGatewayError("objective must contain 16 to 500 characters", 400);
+    // The floor matches the table CHECK, the create RPC and the shared contract. A lower gateway
+    // floor would pass validation here and then fail in Postgres as an opaque 502.
+    if (typeof objective !== "string" || objective.trim().length < 20 || objective.length > 500) {
+      throw new RunGatewayError("objective must contain 20 to 500 characters", 400);
     }
     const idempotencyKey = args.idempotency_key;
     if (typeof idempotencyKey !== "string" || idempotencyKey.length < 8 || idempotencyKey.length > 200 || !idempotencyPattern.test(idempotencyKey)) {
@@ -317,6 +337,69 @@ async function invoke(action: string, args: JsonRecord) {
     return { run };
   }
 
+  if (action === "list_promoted_cases") {
+    // A public read: the projection is already bounded to approved cases and public-safe summaries,
+    // so it needs the publishable caller check only — no operator token.
+    strictKeys(args, []);
+    const cases = await rest("rpc/list_promoted_agent_runs", {
+      method: "POST",
+      body: JSON.stringify({ p_limit: 20 }),
+    });
+    if (!Array.isArray(cases)) throw new RunGatewayError("Promoted case projection failed", 502);
+    return { cases };
+  }
+
+  if (action === "get_decision_context") {
+    strictKeys(args, ["run_id"]);
+    const runId = uuid(args.run_id, "run_id");
+    const operatorUserId = await verifyOperator({
+      authorization: request.headers.get("authorization"),
+      supabaseUrl: environment("SUPABASE_URL"),
+      publishableKey: namedKey("SUPABASE_PUBLISHABLE_KEYS"),
+    });
+    return {
+      context: await loadDecisionContext({
+        runId,
+        operatorUserId,
+        supabaseUrl: environment("SUPABASE_URL"),
+        secretKey: namedKey("SUPABASE_SECRET_KEYS"),
+      }),
+    };
+  }
+
+  if (action === "decide_run") {
+    strictKeys(args, [
+      "run_id",
+      "expected_manager_artifact_sha256",
+      "decision",
+      "rationale",
+      "idempotency_key",
+    ]);
+    const parsed = decisionInputSchema.safeParse(args);
+    if (!parsed.success) {
+      throw new RunGatewayError("Decision payload is invalid", 400);
+    }
+    // Identity comes only from a token this service verifies, never from the request body. The
+    // publishable caller check above is not authority to approve.
+    const operatorUserId = await verifyOperator({
+      authorization: request.headers.get("authorization"),
+      supabaseUrl: environment("SUPABASE_URL"),
+      publishableKey: namedKey("SUPABASE_PUBLISHABLE_KEYS"),
+    });
+    const result = await recordHumanDecision({
+      input: parsed.data,
+      operatorUserId,
+      supabaseUrl: environment("SUPABASE_URL"),
+      secretKey: namedKey("SUPABASE_SECRET_KEYS"),
+    });
+    // A decision is terminal: no worker is scheduled and no external action follows.
+    return {
+      replayed: result.replayed,
+      decision: result.decision,
+      run: await projection(parsed.data.run_id),
+    };
+  }
+
   throw new RunGatewayError("Action is not allow-listed", 404);
 }
 
@@ -336,13 +419,13 @@ Deno.serve(async (request: Request) => {
     }
     const args = body.arguments ?? {};
     object(args);
-    return json(await invoke(body.action, args));
+    return json(await invoke(body.action, args, request));
   } catch (error) {
-    const status = error instanceof RunGatewayError ? error.status : 500;
-    if (!(error instanceof RunGatewayError)) console.error(error);
+    const bounded = error instanceof RunGatewayError || error instanceof DecisionError;
+    if (!bounded) console.error(error);
     return json({
-      error: error instanceof RunGatewayError ? error.message : "Run gateway failed",
+      error: bounded ? error.message : "Run gateway failed",
       retrieved_at: new Date().toISOString(),
-    }, status);
+    }, bounded ? error.status : 500);
   }
 });

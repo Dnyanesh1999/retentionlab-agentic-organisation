@@ -16,6 +16,11 @@ const CommandCenterView = lazy(() =>
   import("../features/control-room/CommandCenterView").then((module) => ({ default: module.CommandCenterView })),
 );
 
+// Deep link to one approved case. The id must look like a UUID so an arbitrary /cases/ path still
+// falls through to the existing redirect rather than rendering an empty record screen.
+const approvedCaseRoute =
+  /^\/cases\/approved\/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 function RouteFallback() {
   return (
     <div className="route-loading" role="status">
@@ -46,6 +51,8 @@ export function App() {
     content = <CasebookView view="case" />;
   } else if (path === "/cases/recovery-room") {
     content = <CaseWorkspace tab="recovery-room" />;
+  } else if (approvedCaseRoute.test(path)) {
+    content = <CasebookView view="approved" runId={path.slice("/cases/approved/".length)} />;
   } else {
     const destination = path === "/cases/organisation" || path.startsWith("/cases/")
       ? "/cases/overview"

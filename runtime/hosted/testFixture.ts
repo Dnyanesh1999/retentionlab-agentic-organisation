@@ -1,6 +1,7 @@
 import {
   type HostedRun,
   type HostedRunCreateInput,
+  type HostedRunDecisionInput,
   HOSTED_RUN_CONTRACT_VERSION,
 } from "./contracts.js";
 
@@ -20,6 +21,20 @@ export function makeHostedRunCreateInput(): HostedRunCreateInput {
     account_slug: "northwind-retail",
     objective: "Recover lapsed premium subscribers with a consent-first winback sequence.",
     idempotency_key: "req-2026-08-14-northwind-001",
+  };
+}
+
+const MANAGER_ARTIFACT_SHA256 =
+  "3f2b1c8e9d4a7605f1e2c3b4a5968778899aabbccddeeff00112233445566778";
+
+export function makeHostedRunDecisionInput(): HostedRunDecisionInput {
+  return {
+    run_id: RUN_ID,
+    expected_manager_artifact_sha256: MANAGER_ARTIFACT_SHA256,
+    decision: "approve",
+    rationale:
+      "The sealed chain verifies end to end and the invitation stays within the consented channel.",
+    idempotency_key: "decision-2026-08-14-northwind-001",
   };
 }
 
