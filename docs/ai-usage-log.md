@@ -385,3 +385,34 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
   submission section.
 - Verification: 442 Vitest tests (was 441), 29 hosted worker tests, TypeScript, agent pipeline check,
   ESLint, build, 16 release tests, 2 data tests and a clean secret scan across 329 tracked files.
+
+## Entry 034 — Assistant slice 1: free text, provenance and a grounded answer tier
+
+- Date: 15 August 2026
+- Tools/models: Claude Code (Opus). No model call was made on behalf of any agent stage or by the
+  assistant itself; this slice contains no LLM. No migration, no deployment, no external action.
+- User prompt: plan the chatbot, then build it, with a real LLM as the chosen direction.
+- AI contribution: built the foundation the model tier will plug into. The live assistant previously
+  offered three preset buttons with hardcoded answers; it now accepts free text, resolves it against the
+  sealed Gate 9 record, and shows a provenance line beside every answer so a reader can tell a
+  record-derived answer from a generated one. A new `src/features/assistant` module owns this. The
+  answer that had been hardcoded prose about the consented channel is now composed from the Researcher's
+  sealed `consent_boundaries`, so it cannot drift from the record it quotes.
+- Correction to an earlier claim in the same session: two findings reported while planning were wrong
+  and are recorded here rather than quietly dropped. `CaseTabs` does not render broken tabs — it renders
+  nothing at all, because the only route reaching `CaseWorkspace` suppresses it. And the
+  `#/cases/organisation` redirect is deliberate, with a test named "redirects the legacy organisation
+  URL to the active case"; it was not restored.
+- Design note for the model tier: this deterministic layer is the fallback, not scaffolding to discard.
+  It ships in the client bundle, so it answers with the backend entirely unavailable, which is what the
+  project's fail-closed rule requires of a model tier that can time out, be rate limited, or return
+  output failing citation validation.
+- Regression found and fixed during verification: the composer and the sixth grounded question made the
+  fixed-position panel taller than a short viewport, so it ran off the bottom. It is now bounded with
+  `max-height` against both its desktop and small-viewport anchors, scrolls itself, and carries
+  `LENIS_PREVENT` so the wheel over it does not scroll the page behind it.
+- Student responsibility: the academic reflection and the cited submission section.
+- Verification: 453 Vitest tests (was 442; 11 added), TypeScript, agent pipeline check, ESLint, build,
+  16 release tests, 2 data tests, secret scan clean across 329 tracked files, Pages JS 609,601 of
+  1,200,000 bytes. Panel bounds confirmed in-browser at 1280x800, 1024x560 and 390x844 with no vertical
+  or horizontal overflow.

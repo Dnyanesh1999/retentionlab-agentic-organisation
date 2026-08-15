@@ -3,7 +3,6 @@ import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeft,
   ArrowRight,
-  Bot,
   Check,
   ChevronDown,
   CircleAlert,
@@ -12,13 +11,10 @@ import {
   Fingerprint,
   Hammer,
   Megaphone,
-  MessageSquareText,
   PenTool,
   Search,
   ShieldCheck,
-  Sparkles,
   UserRoundCog,
-  X,
 } from "lucide-react";
 
 import { BrandMark } from "../../components/BrandMark";
@@ -35,6 +31,7 @@ import {
   type ControlRoomClient,
 } from "../control-room/controlRoomClient";
 import type { PromotedCase } from "../../../runtime/hosted/contracts";
+import { CaseAssistant } from "../assistant/CaseAssistant";
 import {
   gate9Run,
   humanizeStatus,
@@ -62,16 +59,6 @@ const caseSections: ReadonlyArray<{ id: CaseSection; label: string }> = [
   { id: "experience", label: "Experience" },
   { id: "decision", label: "Decision" },
 ];
-
-const questionAnswers = {
-  "Why is this account at risk?":
-    "Product adoption and active-user counts declined while a medium-severity support case remained open. The Researcher preserved each claim with its source reference.",
-  "Can the organisation contact the customer?":
-    "Not autonomously. Email is an allowed channel, but the sealed Manager record requires a named human to approve the next action.",
-  "What should the manager review?": gate9Run.humanReviewFocus.join(" "),
-} as const;
-
-type Question = keyof typeof questionAnswers;
 
 type StageBrief = {
   headline: string;
@@ -522,32 +509,6 @@ export function CaseRecordScreen({ onBack }: { onBack: () => void }) {
         </aside>
       </div>
     </main>
-  );
-}
-
-export function CaseAssistant() {
-  const [open, setOpen] = useState(false);
-  const [question, setQuestion] = useState<Question | null>(null);
-
-  return (
-    <div className={`case-assistant${open ? " is-open" : ""}`}>
-      <StateSwap className="case-assistant__swap" state={open ? "open" : "closed"} live="off">
-        {open ? (
-          <section className="case-assistant__panel" aria-label="Ask this case">
-            <header><span><Bot aria-hidden="true" size={18} /> Ask this case</span><button aria-label="Close case assistant" onClick={() => setOpen(false)} type="button"><X aria-hidden="true" size={18} /></button></header>
-            <p>Answers come from the sealed assessed record—not a live model call.</p>
-            <div className="case-assistant__questions">
-              {(Object.keys(questionAnswers) as Question[]).map((item) => <button aria-pressed={question === item} key={item} onClick={() => setQuestion(item)} type="button">{item}</button>)}
-            </div>
-            <StateSwap className="case-assistant__answer" state={question ?? "empty"}>
-              {question ? <p><Sparkles aria-hidden="true" size={15} />{questionAnswers[question]}</p> : <p><MessageSquareText aria-hidden="true" size={15} />Choose a question to inspect the case record.</p>}
-            </StateSwap>
-          </section>
-        ) : (
-          <button className="case-assistant__trigger" onClick={() => setOpen(true)} type="button"><MessageSquareText aria-hidden="true" size={18} /> Ask this case</button>
-        )}
-      </StateSwap>
-    </div>
   );
 }
 
