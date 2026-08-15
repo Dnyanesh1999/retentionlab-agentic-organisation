@@ -38,6 +38,26 @@ describe("StateSwap", () => {
     expect(region.children).toHaveLength(1);
   });
 
+  it("swaps instantly under reduced motion, with the new state on screen at once", () => {
+    const { getByText, queryByText, rerender } = render(
+      <StateSwap reducedMotion state="loading">
+        <p>Loading live account directory…</p>
+      </StateSwap>,
+    );
+
+    rerender(
+      <StateSwap reducedMotion state="ready">
+        <p>8 live records</p>
+      </StateSwap>,
+    );
+
+    // `mode="wait"` holds the incoming state until the outgoing one has left,
+    // so a non-zero exit would be time the new content is not on screen. Under
+    // reduced motion that wait must be nothing at all.
+    expect(getByText("8 live records")).toBeInTheDocument();
+    expect(queryByText("Loading live account directory…")).toBeNull();
+  });
+
   it("flags reduced motion for opacity-only swaps", () => {
     render(
       <StateSwap reducedMotion state="error">

@@ -356,3 +356,29 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
   `#/portfolio` and `#/cases/overview`, with a clean browser console on a fresh tab. Reduced-motion
   parity is asserted by unit test for every new primitive; it was not additionally confirmed by
   toggling the operating system setting in a live browser.
+
+## Entry 033 — Reduced-motion verification against production, and one defect it found
+
+- Date: 15 August 2026
+- Tools/models: Claude Code (Opus), plus headless Chromium for media-feature emulation. No model call
+  was made on behalf of any agent stage, no migration was written and no external action was taken.
+- User prompt: complete the remaining items, using computer control where possible.
+- AI contribution: verified reduced-motion parity against the deployed build rather than by unit test
+  alone, using Chromium's `--force-prefers-reduced-motion` flag so the machine's own accessibility
+  settings were left untouched. The deployed site correctly drops the scroll rail, renders the hero
+  heading as plain unsplit text, and never initialises Lenis, while keeping the active-nav rule drawn.
+  The comparison is recorded with its exact commands in `docs/claude-handoff.md` §10.1.
+  That check also surfaced a real defect in `StateSwap`, which predates this session's work: the
+  component documented an instant swap under reduced motion but still ran a 160ms opacity fade behind
+  `AnimatePresence mode="wait"`, which holds the incoming state until the outgoing one has finished
+  leaving. Reduced motion now bypasses the presence machinery entirely, so the swap is actually
+  instant. One regression test covers it.
+- Honest limits of this verification: `AnimatedNumber` is not covered, because the live account
+  directory does not load inside a headless virtual-time budget, so no counter appears in either DOM
+  dump. Its reduced-motion path remains unit-tested only. Three approval probes also remain outstanding
+  and were not attempted, because they require the operator password and AI must not enter credentials.
+- Student responsibility: the operator credential and the approval decisions themselves, the three
+  outstanding probes in `docs/qa-human-approval.md` §5.4, and the academic reflection and cited
+  submission section.
+- Verification: 442 Vitest tests (was 441), 29 hosted worker tests, TypeScript, agent pipeline check,
+  ESLint, build, 16 release tests, 2 data tests and a clean secret scan across 329 tracked files.
