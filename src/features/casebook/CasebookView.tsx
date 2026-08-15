@@ -1,19 +1,28 @@
 import { pushHashRoute } from "../../app/hashRoute";
 import {
+  ApprovedCaseScreen,
   CaseArchiveScreen,
   CaseAssistant,
   CaseRecordScreen,
 } from "../design-lab/DesignLabView";
 
-type CasebookViewProps = {
-  view: "archive" | "case";
-};
+type CasebookViewProps =
+  | { view: "archive" | "case"; runId?: undefined }
+  | { view: "approved"; runId: string };
 
-export function CasebookView({ view }: CasebookViewProps) {
+export function CasebookView({ view, runId }: CasebookViewProps) {
   if (view === "archive") {
     return (
       <div className="casebook-product">
         <CaseArchiveScreen onOpenCase={() => pushHashRoute("/cases/overview")} />
+      </div>
+    );
+  }
+
+  if (view === "approved") {
+    return (
+      <div className="casebook-product">
+        <ApprovedCaseScreen runId={runId} />
       </div>
     );
   }

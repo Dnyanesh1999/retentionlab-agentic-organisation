@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeft,
@@ -24,6 +24,11 @@ import {
 import { BrandMark } from "../../components/BrandMark";
 import { HashLink } from "../../components/HashLink";
 import { ProgressVeil, StaggerReveal, StateSwap } from "../../components/motion";
+import {
+  createControlRoomClient,
+  type ControlRoomClient,
+} from "../control-room/controlRoomClient";
+import type { PromotedCase } from "../../../runtime/hosted/contracts";
 import {
   gate9Run,
   humanizeStatus,
@@ -124,7 +129,189 @@ function producedAtCopy(iso: string) {
   return `${iso.slice(0, 10)} · ${iso.slice(11, 16)} UTC`;
 }
 
-export function CaseArchiveScreen({ onOpenCase }: { onOpenCase: () => void }) {
+type PromotedCaseState =
+  | { status: "loading" }
+  | { status: "ready"; cases: PromotedCase[] }
+  | { status: "error"; message: string };
+
+/**
+ * Approved live cases. A case is listed only because a human approved it and the service promoted it;
+ * this component invents nothing and shows an honest empty state until that has actually happened.
+ */
+function ApprovedCaseRegister({ client: suppliedClient }: { client?: ControlRoomClient }) {
+  const clientResult = useMemo(() => {
+    try {
+      return suppliedClient ?? createControlRoomClient();
+    } catch {
+      return null;
+    }
+  }, [suppliedClient]);
+  const [state, setState] = useState<PromotedCaseState>(() => clientResult
+    ? { status: "loading" }
+    : { status: "error", message: "Live case configuration is unavailable." });
+
+  useEffect(() => {
+    if (!clientResult) return;
+    const controller = new AbortController();
+    void clientResult.listPromotedCases(controller.signal).then(
+      (cases) => setState({ status: "ready", cases }),
+      (error: unknown) => {
+        if (!controller.signal.aborted) {
+          setState({
+            status: "error",
+            message: error instanceof Error ? error.message : "Approved cases are unavailable.",
+          });
+        }
+      },
+    );
+    return () => controller.abort();
+  }, [clientResult]);
+
+  return (
+    <section className="archive-register" aria-labelledby="approved-register-title">
+      <div className="archive-register__heading">
+        <h2 id="approved-register-title">Approved live cases</h2>
+        <p>A live run appears here only after an authenticated operator approved its sealed record.</p>
+      </div>
+
+      <StateSwap className="approved-register__state" state={state.status}>
+        {state.status === "loading" ? (
+          <p className="approved-register__note" role="status">Loading approved cases…</p>
+        ) : null}
+        {state.status === "error" ? (
+          <p className="approved-register__note approved-register__note--error" role="alert">{state.message}</p>
+        ) : null}
+        {state.status === "ready" && state.cases.length === 0 ? (
+          <p className="approved-register__note">
+            No live run has been approved yet. Decisions are recorded in the Control Room.
+          </p>
+        ) : null}
+        {state.status === "ready" && state.cases.length > 0 ? (
+          <ul className="approved-register__list">
+            {state.cases.map((promoted) => (
+              <li key={promoted.run_id}>
+                <HashLink className="archive-case" to={`/cases/approved/${promoted.run_id}`}>
+                  <span className="archive-case__mark"><ShieldCheck aria-hidden="true" /></span>
+                  <span className="archive-case__identity">
+                    <strong>{promoted.account_display_name}</strong>
+                    <small>{promoted.objective}</small>
+                  </span>
+                  <span className="archive-case__measure">
+                    <small>Workstream</small>
+                    <strong>{promoted.stage_summaries.length} of 5 stages sealed</strong>
+                  </span>
+                  <span className="archive-case__measure">
+                    <small>Decision state</small>
+                    <strong>Approved · {promoted.external_actions_permitted} external actions</strong>
+                  </span>
+                  <span className="archive-case__open">
+                    Open record <ArrowRight aria-hidden="true" size={17} />
+                  </span>
+                </HashLink>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </StateSwap>
+    </section>
+  );
+}
+
+/**
+ * One approved case, rendered from the same bounded public projection as the archive list. There is
+ * no second, richer source: if a fact is not in that projection, this screen does not show it.
+ */
+export function ApprovedCaseScreen({ runId, client: suppliedClient }: {
+  runId: string;
+  client?: ControlRoomClient;
+}) {
+  const clientResult = useMemo(() => {
+    try {
+      return suppliedClient ?? createControlRoomClient();
+    } catch {
+      return null;
+    }
+  }, [suppliedClient]);
+  const [state, setState] = useState<PromotedCaseState>(() => clientResult
+    ? { status: "loading" }
+    : { status: "error", message: "Live case configuration is unavailable." });
+
+  useEffect(() => {
+    if (!clientResult) return;
+    const controller = new AbortController();
+    void clientResult.listPromotedCases(controller.signal).then(
+      (cases) => setState({ status: "ready", cases }),
+      (error: unknown) => {
+        if (!controller.signal.aborted) {
+          setState({
+            status: "error",
+            message: error instanceof Error ? error.message : "This approved case is unavailable.",
+          });
+        }
+      },
+    );
+    return () => controller.abort();
+  }, [clientResult]);
+
+  const promoted = state.status === "ready"
+    ? state.cases.find((entry) => entry.run_id === runId)
+    : undefined;
+
+  return (
+    <main className="lab-content lab-archive" id="main-content">
+      <header className="lab-page-heading">
+        <div>
+          <p>Approved live case</p>
+          <h1>{promoted?.account_display_name ?? "Approved case"}</h1>
+        </div>
+        <HashLink className="approved-case__back" to="/portfolio">
+          <ArrowLeft aria-hidden="true" size={15} /> Case archive
+        </HashLink>
+      </header>
+
+      <StateSwap className="approved-case__state" state={state.status}>
+        {state.status === "loading" ? (
+          <p className="approved-register__note" role="status">Loading the approved record…</p>
+        ) : null}
+        {state.status === "error" ? (
+          <p className="approved-register__note approved-register__note--error" role="alert">{state.message}</p>
+        ) : null}
+        {state.status === "ready" && !promoted ? (
+          <p className="approved-register__note" role="status">
+            No approved case matches this link. It may not have been approved yet.
+          </p>
+        ) : null}
+        {promoted ? (
+          <section className="approved-case" aria-label="Approved case record">
+            <dl className="approved-case__facts">
+              <div><dt>Objective</dt><dd>{promoted.objective}</dd></div>
+              <div><dt>Approved</dt><dd>{new Date(promoted.approved_at).toLocaleString()}</dd></div>
+              <div><dt>External actions</dt><dd>{promoted.external_actions_permitted}</dd></div>
+            </dl>
+            <ol className="approved-case__stages" aria-label="Sealed stage summaries">
+              {promoted.stage_summaries.map((entry, index) => (
+                <li key={entry.stage}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <div><strong>{stageLabel(entry.stage)}</strong><small>{entry.public_summary}</small></div>
+                </li>
+              ))}
+            </ol>
+            <p className="approved-case__boundary">
+              <ShieldCheck aria-hidden="true" size={15} />
+              A human approved this record for internal promotion. No customer communication or other
+              external action was taken.
+            </p>
+          </section>
+        ) : null}
+      </StateSwap>
+    </main>
+  );
+}
+
+export function CaseArchiveScreen({ onOpenCase, client }: {
+  onOpenCase: () => void;
+  client?: ControlRoomClient;
+}) {
   return (
     <main className="lab-content lab-archive" id="main-content">
       <header className="lab-page-heading">
@@ -160,6 +347,8 @@ export function CaseArchiveScreen({ onOpenCase }: { onOpenCase: () => void }) {
           </span>
         </button>
       </section>
+
+      <ApprovedCaseRegister client={client} />
 
       <aside className="archive-principle">
         <ShieldCheck aria-hidden="true" />

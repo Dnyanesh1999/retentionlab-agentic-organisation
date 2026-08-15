@@ -1,10 +1,39 @@
 # Claude handoff — RetentionLab
 
-Handoff date: 14 August 2026
+Handoff date: 15 August 2026 (supersedes the 14 August Codex handoff)
 
-This document lets a fresh Claude Code session continue without relying on the prior Codex conversation.
-Treat repository code, committed QA evidence and live read-only checks as authoritative when they disagree
-with a summary.
+This document lets a fresh Claude Code session continue without the prior conversation. Treat
+repository code, committed QA evidence and live read-only checks as authoritative when they disagree
+with any summary — including this one.
+
+## 0. Start here — state on 15 August 2026
+
+**The human-approval loop is closed and proven in production.** Run
+`982ac99a-d9aa-47a6-ba61-09f366143715` was approved by the named human operator at **01:58:54 UTC on
+15 August 2026**. Its status is `approved`, it has 29 events, and all eight earlier `run_failed` events
+survived unchanged.
+
+- Open PR awaiting the student's merge decision:
+  <https://github.com/Dnyanesh1999/retentionlab-agentic-organisation/pull/9>
+- Branch: `claude/human-approval-portfolio`, 4 commits ahead of `main`
+- `main` has **not** been updated, so GitHub Pages does **not** yet serve the decision sheet
+
+### Do these first, in this order
+
+1. **Merge PR #9** if the student approves, then run `npm run release:check` on the tracked commit and
+   re-check the public site after Pages deploys.
+2. **Decide the stray run `4f505d07`.** A probe in the previous session called `create_run` on
+   `marble-current` to prove the account was released after approval; that created a real governed run
+   which is executing or paused. Rejecting it through the Control Room both frees the account and gives
+   the **`reject` path its first live proof** — currently it is covered by unit tests only. This side
+   effect is disclosed in `docs/qa-human-approval.md` §5.3; do not quietly delete it.
+3. **Fill the gaps in §5.4 of `docs/qa-human-approval.md`**: the reject path, idempotent replay against
+   production, and 390×844 QA of the decision sheet.
+
+### What is still the student's own work — do not write it
+
+The academic reflection, the cited GDPR / EU AI Act submission section, and any first-person claim about
+learning or authorship. `docs/brief-compliance.md` still records the submission section as pending.
 
 ## 1. Current outcome
 
@@ -14,20 +43,18 @@ It has exactly five bounded agents:
 `Researcher → Designer → Maker → Communicator → Manager`
 
 The complete pipeline is hosted and live through Supabase Edge Functions. A production Marble Current
-run completed all five stages and is paused at the mandatory human-approval boundary. No customer
-communication or other external action occurred.
+run completed all five stages, paused at the mandatory human-approval boundary, and was then approved
+by an authenticated human operator. No customer communication or other external action occurred at any
+point — `external_actions_permitted` is still `0`.
 
 - Public site: <https://dnyanesh1999.github.io/retentionlab-agentic-organisation/#/control-room>
 - GitHub repository: <https://github.com/Dnyanesh1999/retentionlab-agentic-organisation>
 - Supabase project ref: `luwrufuouosytyhdqnme`
-- Current `retentionlab-runs` Edge deployment: version `19`, active
-- Accepted production run: `982ac99a-d9aa-47a6-ba61-09f366143715`
-- Accepted status: `awaiting_human_approval`
-- Main merge commit: `0a135b63d4b7748345ba9f6ddf32fc78a69dcbc1`
-- Completing PR: <https://github.com/Dnyanesh1999/retentionlab-agentic-organisation/pull/7>
-- Full production proof: `docs/qa-hosted-five-agent-pipeline.md`
-
-At handoff, `main` equals `origin/main` and the worktree is clean before this handoff document is added.
+- Accepted production run: `982ac99a-d9aa-47a6-ba61-09f366143715`, status `approved`, 29 events
+- Live migrations added 15 August: `20260814153107_add_human_approval_decision.sql` and
+  `20260815005500_fix_decision_operator_ambiguity.sql`
+- Five-agent production proof: `docs/qa-hosted-five-agent-pipeline.md`
+- Approval and promotion proof: `docs/qa-human-approval.md`
 
 ## 2. What is implemented
 
@@ -48,12 +75,18 @@ At handoff, `main` equals `origin/main` and the worktree is clean before this ha
 - Safe expired-lease recovery and explicit failed-stage checkpoint retry.
 - Compact OpenRouter model deltas combined with deterministic policy compilers.
 - Manager completion always stops at human approval with autonomous external actions false.
+- Authenticated human decision at that boundary: a Supabase Auth operator, checked against a private
+  allow-list, records one idempotent `approve`/`reject` against the exact stored Manager artefact hash.
+  Approval promotes the sealed case record internally and sends nothing.
 
 ### Frontend
 
 - `#/control-room`: live account directory, governed launch, honest running/error/completion motion,
   five-agent execution trace and “Retry from sealed checkpoint.”
-- `#/portfolio`: assessed case archive.
+- `#/portfolio`: the Case archive — the committed assessed Copper Finch snapshot plus an "Approved
+  live cases" register fed by the hosted gateway. Rendered by `CaseArchiveScreen` in
+  `src/features/design-lab/DesignLabView.tsx`, **not** by a `PortfolioView` component.
+- `#/cases/approved/<run id>`: one approved live case, from the same bounded public projection.
 - `#/cases/overview`: four-tab practical casebook for the accepted Copper Finch assessed run.
 - `#/cases/recovery-room`: live Signal Garden customer experience.
 - Responsive desktop/mobile UI, reduced-motion support, accessible states and sealed-record assistant.
@@ -121,8 +154,22 @@ Do not weaken these to make a demo pass:
 
 ## 6. Recommended next feature
 
-The highest-value next slice is an authenticated human decision and portfolio promotion workflow.
-Do it incrementally, not as a broad redesign.
+**Status: implemented on `claude/human-approval-portfolio`, not yet applied or deployed.** Slices A, B
+and C below are built and locally verified; see `docs/qa-human-approval.md` for exactly what is proven
+and the outstanding live-probe list. The remaining work is: apply the one forward-only migration
+`20260814153107_add_human_approval_decision.sql`, seed an operator into `private.approval_operators`,
+redeploy the run function, and complete section 4 of that QA document.
+
+Two details the original plan below did not anticipate, both resolved in the implementation:
+
+- The browser never receives an artefact hash, so an operator could not attest to one. An
+  authenticated `get_decision_context` action returns the sealed Manager hash plus governance flags and
+  the consented channel to an allow-listed operator only.
+- Approving had to move the run out of `awaiting_human_approval`, because
+  `agent_runs_one_open_per_account_idx` treats that state as open and would have blocked the account
+  permanently. Hence the new `approved` / `rejected` terminal statuses.
+
+The original incremental plan follows for reference.
 
 ### Slice A — decision contract and database boundary
 
@@ -155,16 +202,61 @@ If the user chooses a different next feature, retain these invariants and update
 
 ## 7. Known limitations
 
-- Public hosted-run intake is synthetic-demo only and lacks real operator authentication/rate limiting.
-- Human approval and dynamic hosted-case portfolio promotion are not implemented yet.
-- Manager-directed typed revision execution remains fail-closed.
+- Public hosted-run *intake* is synthetic-demo only and lacks rate limiting. The approval path is
+  operator-authenticated; intake deliberately is not.
+- Human approval and hosted-case portfolio promotion are implemented but not yet applied or deployed.
+- Manager-directed typed revision execution remains fail-closed. Precisely:
+  `complete_agent_run_manager` requires `decision = 'approve'` and
+  `permitted_next_action = 'await_human_approval'`, so a Manager `revise` outcome is rejected by the
+  RPC and recorded as a Manager **stage failure**, not as a sealed revise decision. The human decision
+  vocabulary is `approve` / `reject` only.
 - The free OpenRouter route can return invalid structured output; schema validation and checkpoint retry
   contain this, but broader model-quality evaluation is still needed.
 - The accepted public casebook is a committed assessed snapshot; it is separate from live hosted runs.
 - A real organisation still needs authorisation, audit retention policy, observability, incident handling,
   privacy impact assessment and legal review.
 
-## 8. Supabase operational warning
+## 8. Supabase operational warning — CONFIRMED THE HARD WAY
+
+`npx supabase db push` **does not work on this project at all.** This was verified on 15 August:
+`--dry-run` fails with `LegacyDbPushMissingLocalError`, because six local migrations are live remotely
+under different timestamps:
+
+| Local | Remote |
+| --- | --- |
+| `20260814104956` | `20260814105637` |
+| `20260814105741` | `20260814105756` |
+| `20260814120907` | `20260814121336` |
+| `20260814123253` | `20260814123337` |
+| `20260814124809` | `20260814125323` |
+| `20260814133220` | `20260814134306` |
+
+The CLI's own suggestion — `migration repair --status reverted` on the six remote records — would then
+**replay six already-live migrations**. Do not follow it.
+
+**The only working route:** write the SQL to a new forward-only migration file, `pbcopy < <file>`, and
+have the student paste it into
+`https://supabase.com/dashboard/project/luwrufuouosytyhdqnme/sql/new` and press Run. Batch DDL, any
+seed and a verification `select` into one paste — the editor shows only the final statement's result.
+Warn them not to copy anything else in between; copying a URL once wiped the clipboard mid-task.
+
+There is no route for Claude to execute this SQL itself: `.env.local` holds no `SUPABASE_SECRET_KEY`,
+and sending the keychain-stored CLI token to the Management API is blocked by the permission
+classifier. That block is correct; do not attempt to work around it.
+
+What Claude *can* do directly: `npx supabase migration list --project-ref luwrufuouosytyhdqnme`,
+`npx supabase functions deploy`, and probing the deployed gateway with the publishable key.
+
+### Testing gap that has already cost two production defects
+
+Every test that touches an RPC mocks `fetch`, so **plpgsql bodies never execute locally** and there is
+no local Postgres. A migration can be green across 417 Vitest and 29 Deno tests and still be broken.
+Two defects shipped this way on 15 August — an ambiguous plpgsql identifier and a wrong gateway error
+mapping — and both were found only by curl probes against the deployed function, in *refusal* branches
+rather than happy paths. After any migration, probe every refusal path directly and assert exact status
+codes. Full write-up in `docs/qa-human-approval.md` §4.5 and §5.1.
+
+### Original warning, still applicable
 
 Do not blindly run `npx supabase db push`.
 
@@ -236,14 +328,17 @@ After committing the intended files, run `npm run release:check`; it packages `g
 uncommitted change is not part of that proof. Never commit generated `dist/`, release ZIPs, `.env.local`,
 root Deno lock churn or `supabase/functions/retentionlab-runs/deno.lock`.
 
-Last verified baseline before handoff:
+Baseline on `claude/human-approval-portfolio` (14 August 2026):
 
-- 399 Vitest application tests passed.
-- 15 hosted Deno worker tests passed.
+- 417 Vitest application tests passed.
+- 27 hosted Deno worker tests passed.
 - TypeScript, agent pipeline check, ESLint and production build passed.
 - 16 release tests and 2 data tests passed.
 - Secret scan clean across 309 tracked files.
-- Pages build 553,387 bytes JavaScript against a 1,200,000-byte ceiling.
+- Pages build 569,544 bytes JavaScript against a 1,200,000-byte ceiling.
+
+Baseline at the previous handoff (`main` at `9e9936d`): 399 Vitest tests, 15 hosted worker tests,
+311 tracked files (the earlier "309 tracked files" line predated the handoff commit) and 553,387 bytes.
 - Desktop and 390×844 browser QA: zero page overflow and zero console warning/error.
 
 ## 11. Git and publication
@@ -262,23 +357,35 @@ first-person reflection or invent academic claims; those remain the student's re
 
 Use this prompt verbatim if helpful:
 
-> Read `CLAUDE.md` and `docs/claude-handoff.md` completely, then inspect the referenced source and QA
-> files. Confirm the current branch, clean worktree, live-vs-assessed architecture and non-negotiable
-> governance boundaries. Do not implement yet. Return: (1) your verified understanding, (2) any stale or
-> contradictory handoff claim backed by file evidence, and (3) a feature-by-feature plan for the
-> authenticated human decision and portfolio promotion workflow. Preserve exactly five agents, private
-> artefacts, append-only failures, exact hash lineage, synthetic data and zero autonomous external
-> actions. Use Opus at medium effort if available and conserve tokens without reducing verification.
+> Read `CLAUDE.md` and `docs/claude-handoff.md` completely, starting with §0. Then check the live state
+> yourself before trusting any summary: current branch, whether PR #9 is merged, the status of run
+> `982ac99a-d9aa-47a6-ba61-09f366143715`, and what happened to the stray run `4f505d07`. Do not
+> implement anything yet. Return: (1) the verified current state with evidence, (2) anything in this
+> handoff that is now stale, with file or live evidence, and (3) a short plan for the next step —
+> normally closing the §5.4 verification gaps and deciding the stray run. Preserve exactly five agents,
+> private artefacts, append-only failures, exact hash lineage, synthetic data, mandatory human approval
+> and zero autonomous external actions. Never write the student's reflection or academic claims.
+
+### Working notes for whoever picks this up
+
+- The student writes in Hinglish when they want the reasoning rather than the steps. Lead with why,
+  then give short copy-pasteable instructions.
+- Any step needing the operator credential is theirs, not yours. The password was never shared and
+  should stay that way; a local script that prompts for it is the pattern that worked
+  (`read -s`, token used in-process, never written down).
+- The approval itself must always be performed by the named human. An AI performing it would falsify
+  the project's central claim.
 
 ## 13. Definition of a successful handoff
 
 Claude is ready to continue when it can correctly explain:
 
 - why the hosted and local assessed pipelines both exist;
-- which production run proves all five stages;
+- which production run proves all five stages, and that it is now `approved` rather than paused;
 - why Marble Current used `in_app` rather than email;
 - where private artefacts and public summaries separate;
-- why Manager completion is not human approval;
-- why an approved case is not yet dynamically promoted to Portfolio;
-- how to add a forward-only migration without replaying live migration history;
+- why Manager completion is not human approval, and why authentication alone is not authorisation;
+- why approval means internal promotion only and authorises no external action;
+- why `supabase db push` cannot be used here and what the only working route is;
+- why a green test run is not sufficient evidence before deploying SQL;
 - which exact checks must pass before the next deployment.

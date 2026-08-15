@@ -147,4 +147,69 @@ describe("AgentExecutionTrace", () => {
     expect(within(designer).getByText("Failed")).toBeInTheDocument();
     expect(within(designer).getByText(/could not reconcile/i)).toBeInTheDocument();
   });
+
+  it("reports a recorded approval and drops the awaiting-approval note", () => {
+    const events: HostedRunEvent[] = [
+      runCreated,
+      ...(["researcher", "designer", "maker", "communicator", "manager"] as const).map(
+        (stage, index): HostedRunEvent => ({
+          type: "stage_completed",
+          sequence: index + 2,
+          stage,
+          public_summary: `${stage} sealed its artefact.`,
+          occurred_at: `2026-08-14T09:0${index}:00.000Z`,
+        }),
+      ),
+      { type: "run_paused_for_approval", sequence: 7, stage: "manager", occurred_at: "2026-08-14T09:06:00.000Z" },
+      {
+        type: "run_approved",
+        sequence: 8,
+        stage: "manager",
+        public_summary:
+          "An authenticated operator approved the sealed case record for internal promotion. No customer action was sent.",
+        occurred_at: "2026-08-14T09:07:00.000Z",
+      },
+    ];
+    render(<AgentExecutionTrace run={makeRun({ status: "approved", current_stage: "manager" }, events)} />);
+
+    expect(screen.getAllByText("Sealed")).toHaveLength(5);
+    expect(screen.getByRole("status")).toHaveTextContent(/approved this case record/i);
+    const notes = screen.getAllByRole("note");
+    expect(notes).toHaveLength(1);
+    expect(notes[0]).toHaveTextContent(/No customer action was sent/i);
+    expect(screen.queryByText(/Awaiting human approval\./i)).not.toBeInTheDocument();
+  });
+
+  it("reports a recorded rejection without inventing a sent action", () => {
+    const events: HostedRunEvent[] = [
+      runCreated,
+      { type: "run_paused_for_approval", sequence: 2, stage: "manager", occurred_at: "2026-08-14T09:06:00.000Z" },
+      {
+        type: "run_rejected",
+        sequence: 3,
+        stage: "manager",
+        public_summary:
+          "An authenticated operator rejected the sealed case record. No customer action was sent.",
+        occurred_at: "2026-08-14T09:07:00.000Z",
+      },
+    ];
+    render(<AgentExecutionTrace run={makeRun({ status: "rejected", current_stage: "manager" }, events)} />);
+
+    expect(screen.getByRole("status")).toHaveTextContent(/rejected this case record/i);
+    expect(screen.getByRole("note")).toHaveTextContent(/No customer action was sent/i);
+  });
+
+  it("shows no decision note for a run still at the approval boundary", () => {
+    const events: HostedRunEvent[] = [
+      runCreated,
+      { type: "run_paused_for_approval", sequence: 2, stage: "manager", occurred_at: "2026-08-14T09:06:00.000Z" },
+    ];
+    render(
+      <AgentExecutionTrace run={makeRun({ status: "awaiting_human_approval", current_stage: "manager" }, events)} />,
+    );
+
+    const notes = screen.getAllByRole("note");
+    expect(notes).toHaveLength(1);
+    expect(notes[0]).toHaveTextContent(/Awaiting human approval/i);
+  });
 });

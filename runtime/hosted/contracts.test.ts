@@ -6,11 +6,17 @@ import {
   HOSTED_STAGE_ORDER,
   hostedRunCreateInputSchema,
   hostedRunCreateResponseSchema,
+  hostedRunDecisionInputSchema,
+  hostedRunDecisionResponseSchema,
   hostedRunEventSchema,
   hostedRunReadResponseSchema,
   hostedRunSchema,
 } from "./contracts.js";
-import { makeHostedRun, makeHostedRunCreateInput } from "./testFixture.js";
+import {
+  makeHostedRun,
+  makeHostedRunCreateInput,
+  makeHostedRunDecisionInput,
+} from "./testFixture.js";
 
 describe("Hosted run constants", () => {
   it("pins the five stages in pipeline order", () => {
@@ -28,6 +34,8 @@ describe("Hosted run constants", () => {
       "queued",
       "in_progress",
       "awaiting_human_approval",
+      "approved",
+      "rejected",
       "failed",
     ]);
     expect(HOSTED_EVENT_TYPE_ORDER).toEqual([
@@ -36,6 +44,8 @@ describe("Hosted run constants", () => {
       "stage_completed",
       "run_paused_for_approval",
       "run_failed",
+      "run_approved",
+      "run_rejected",
     ]);
   });
 });
@@ -160,5 +170,114 @@ describe("Hosted run responses", () => {
         latency_ms: 12,
       }),
     ).toThrow();
+  });
+});
+
+describe("Human decision events", () => {
+  it("accepts an approval event carrying only a bounded public summary", () => {
+    const event = hostedRunEventSchema.parse({
+      type: "run_approved",
+      sequence: 5,
+      stage: "manager",
+      public_summary:
+        "An authenticated operator approved the sealed case record for internal promotion.",
+      occurred_at: "2026-08-14T09:05:00.000Z",
+    });
+    expect(event.type).toBe("run_approved");
+  });
+
+  it("rejects a decision event that carries the operator rationale or identity", () => {
+    for (const leak of [
+      { rationale: "The chain verifies end to end and stays inside the consented channel." },
+      { operator_user_id: "1b4e28ba-2fa1-4d3b-9a2c-6f0d5e7c8b91" },
+      { manager_artifact_sha256: "a".repeat(64) },
+    ]) {
+      expect(() =>
+        hostedRunEventSchema.parse({
+          type: "run_approved",
+          sequence: 5,
+          stage: "manager",
+          public_summary: "An authenticated operator approved the sealed case record.",
+          occurred_at: "2026-08-14T09:05:00.000Z",
+          ...leak,
+        }),
+      ).toThrow();
+    }
+  });
+
+  it("keeps sequence strictly increasing once a decision event is appended", () => {
+    const run = makeHostedRun();
+    const decision = {
+      type: "run_rejected" as const,
+      sequence: 4,
+      stage: "manager" as const,
+      public_summary: "An authenticated operator rejected the sealed case record.",
+      occurred_at: "2026-08-14T09:07:00.000Z",
+    };
+    expect(() =>
+      hostedRunSchema.parse({ ...run, status: "rejected", events: [...run.events, decision] }),
+    ).toThrow();
+    expect(
+      hostedRunSchema.parse({
+        ...run,
+        status: "rejected",
+        events: [...run.events, { ...decision, sequence: 5 }],
+      }).events,
+    ).toHaveLength(5);
+  });
+});
+
+describe("Human decision input", () => {
+  it("accepts a well-formed decision payload", () => {
+    const input = hostedRunDecisionInputSchema.parse(makeHostedRunDecisionInput());
+    expect(input.decision).toBe("approve");
+    expect(input.expected_manager_artifact_sha256).toHaveLength(64);
+  });
+
+  it("rejects a hash that is not a 64-character lowercase digest", () => {
+    for (const hash of ["", "a".repeat(63), "a".repeat(65), "A".repeat(64), `${"a".repeat(62)}zz`]) {
+      expect(() =>
+        hostedRunDecisionInputSchema.parse({
+          ...makeHostedRunDecisionInput(),
+          expected_manager_artifact_sha256: hash,
+        }),
+      ).toThrow();
+    }
+  });
+
+  it("requires an explicit bounded rationale", () => {
+    for (const rationale of ["", "too short", "x".repeat(1_001)]) {
+      expect(() =>
+        hostedRunDecisionInputSchema.parse({ ...makeHostedRunDecisionInput(), rationale }),
+      ).toThrow();
+    }
+  });
+
+  it("rejects a decision outside the approve/reject vocabulary", () => {
+    for (const decision of ["revise", "approved", "send", ""]) {
+      expect(() =>
+        hostedRunDecisionInputSchema.parse({ ...makeHostedRunDecisionInput(), decision }),
+      ).toThrow();
+    }
+  });
+
+  it("refuses a caller-supplied operator identity (strict)", () => {
+    expect(() =>
+      hostedRunDecisionInputSchema.parse({
+        ...makeHostedRunDecisionInput(),
+        operator_user_id: "1b4e28ba-2fa1-4d3b-9a2c-6f0d5e7c8b91",
+      }),
+    ).toThrow();
+  });
+
+  it("wraps a decided run in a decision response", () => {
+    const run = makeHostedRun();
+    const response = hostedRunDecisionResponseSchema.parse({
+      replayed: false,
+      decision: "approve",
+      run: { ...run, status: "approved" },
+    });
+    expect(response.run.status).toBe("approved");
+    expect(response.replayed).toBe(false);
   });
 });

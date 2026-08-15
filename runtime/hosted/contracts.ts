@@ -21,11 +21,14 @@ export type HostedStage = (typeof HOSTED_STAGE_ORDER)[number];
 
 // Hosted run lifecycle. `queued` is the entry state a create yields; `in_progress` is the only state
 // from which stages execute; `awaiting_human_approval` and `failed` are terminal for the hosted
-// machine (no autonomous progression past either).
+// machine (no autonomous progression past either). `approved` and `rejected` are reachable only from
+// `awaiting_human_approval` and only through an authenticated human decision — never by an agent.
 export const HOSTED_RUN_STATUS_ORDER = [
   "queued",
   "in_progress",
   "awaiting_human_approval",
+  "approved",
+  "rejected",
   "failed",
 ] as const;
 export type HostedRunStatus = (typeof HOSTED_RUN_STATUS_ORDER)[number];
@@ -38,6 +41,8 @@ export const HOSTED_EVENT_TYPE_ORDER = [
   "stage_completed",
   "run_paused_for_approval",
   "run_failed",
+  "run_approved",
+  "run_rejected",
 ] as const;
 export type HostedEventType = (typeof HOSTED_EVENT_TYPE_ORDER)[number];
 
@@ -86,6 +91,28 @@ export const publicSummarySchema = z.string().trim().min(1).max(PUBLIC_SUMMARY_M
 // Bounded failure reason recorded on a run_failed event.
 export const FAILURE_REASON_MAX = 500;
 export const failureReasonSchema = z.string().trim().min(1).max(FAILURE_REASON_MAX);
+
+// A 64-character lowercase SHA-256 digest. A decision names the exact stored predecessor identity it
+// was taken against; nothing here recomputes or substitutes a hash.
+export const sha256Schema = z
+  .string()
+  .regex(/^[0-9a-f]{64}$/, "expected a 64-character lowercase SHA-256 digest");
+
+// The human decision vocabulary. `approve` clears the sealed case record for internal portfolio
+// promotion — it never authorises a customer-facing or other external action.
+export const HOSTED_DECISION_ORDER = ["approve", "reject"] as const;
+export type HostedDecision = (typeof HOSTED_DECISION_ORDER)[number];
+export const hostedDecisionSchema = z.enum(HOSTED_DECISION_ORDER);
+
+// The operator's written justification. Required, bounded, and stored privately — it is never carried
+// on a public event.
+export const DECISION_RATIONALE_MIN = 20;
+export const DECISION_RATIONALE_MAX = 1_000;
+export const decisionRationaleSchema = z
+  .string()
+  .trim()
+  .min(DECISION_RATIONALE_MIN)
+  .max(DECISION_RATIONALE_MAX);
 
 // --- Create input ------------------------------------------------------------------------------
 
@@ -147,6 +174,26 @@ export const hostedRunEventSchema = z.discriminatedUnion("type", [
       sequence: sequenceSchema,
       stage: hostedStageSchema,
       reason: failureReasonSchema,
+      occurred_at: isoTimestampSchema,
+    })
+    .strict(),
+  // Human decision events. They carry the governed outcome only: never the operator's rationale, the
+  // operator's identity, or any artefact hash.
+  z
+    .object({
+      type: z.literal("run_approved"),
+      sequence: sequenceSchema,
+      stage: hostedStageSchema,
+      public_summary: publicSummarySchema,
+      occurred_at: isoTimestampSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("run_rejected"),
+      sequence: sequenceSchema,
+      stage: hostedStageSchema,
+      public_summary: publicSummarySchema,
       occurred_at: isoTimestampSchema,
     })
     .strict(),
@@ -227,3 +274,92 @@ export const hostedRunReadResponseSchema = z
   })
   .strict();
 export type HostedRunReadResponse = z.infer<typeof hostedRunReadResponseSchema>;
+
+// --- Human decision ------------------------------------------------------------------------------
+
+// The exact payload a decision endpoint accepts. The operator's identity is NOT part of this input:
+// it is established server-side from a verified bearer token, never supplied by the caller.
+// `expected_manager_artifact_sha256` is the decision's optimistic-concurrency anchor — the service
+// records nothing unless it exactly equals the stored Manager artefact hash for this run.
+export const hostedRunDecisionInputSchema = z
+  .object({
+    run_id: runIdSchema,
+    expected_manager_artifact_sha256: sha256Schema,
+    decision: hostedDecisionSchema,
+    rationale: decisionRationaleSchema,
+    idempotency_key: idempotencyKeySchema,
+  })
+  .strict();
+export type HostedRunDecisionInput = z.infer<typeof hostedRunDecisionInputSchema>;
+
+// The bounded context an authorised operator reviews before deciding. It carries the sealed Manager
+// hash so the operator attests to the exact artefact they saw — never an artefact body, a prompt, a
+// rationale, or any other stage's hash.
+export const hostedRunDecisionContextSchema = z
+  .object({
+    run_id: runIdSchema,
+    manager_artifact_sha256: sha256Schema,
+    chain_verified: z.boolean(),
+    human_approval_required: z.literal(true),
+    autonomous_external_actions: z.literal(false),
+    external_actions_permitted: z.literal(0),
+    permitted_next_action: z.string().trim().min(1).max(80),
+    consented_channel: z.string().trim().min(1).max(40).nullable(),
+  })
+  .strict();
+export type HostedRunDecisionContext = z.infer<typeof hostedRunDecisionContextSchema>;
+
+export const hostedRunDecisionContextResponseSchema = z
+  .object({
+    context: hostedRunDecisionContextSchema,
+  })
+  .strict();
+export type HostedRunDecisionContextResponse = z.infer<
+  typeof hostedRunDecisionContextResponseSchema
+>;
+
+// --- Portfolio promotion -------------------------------------------------------------------------
+
+// A case becomes publicly visible only after a human approval promoted it. The projection is
+// deliberately narrow: identity, the operator's objective, the same bounded stage summaries the event
+// stream already carries, and the zero-external-action fact. No hashes, artefacts, prompts, rationale
+// or operator identity appear here, so this shape cannot widen by accident.
+export const promotedCaseSchema = z
+  .object({
+    run_id: runIdSchema,
+    account_slug: accountSlugSchema,
+    account_display_name: z.string().trim().min(1).max(160),
+    objective: objectiveSchema,
+    approved_at: isoTimestampSchema,
+    external_actions_permitted: z.literal(0),
+    stage_summaries: z
+      .array(
+        z
+          .object({
+            stage: hostedStageSchema,
+            public_summary: publicSummarySchema,
+          })
+          .strict(),
+      )
+      .max(HOSTED_STAGE_ORDER.length),
+  })
+  .strict();
+export type PromotedCase = z.infer<typeof promotedCaseSchema>;
+
+export const promotedCaseListResponseSchema = z
+  .object({
+    cases: z.array(promotedCaseSchema),
+  })
+  .strict();
+export type PromotedCaseListResponse = z.infer<typeof promotedCaseListResponseSchema>;
+
+// Decision response. `replayed` is true when the call matched an already-recorded decision and
+// returned it unchanged rather than appending a second one.
+export const hostedRunDecisionResponseSchema = z
+  .object({
+    replayed: z.boolean(),
+    decision: hostedDecisionSchema,
+    run: hostedRunSchema,
+  })
+  .strict();
+export type HostedRunDecisionResponse = z.infer<typeof hostedRunDecisionResponseSchema>;

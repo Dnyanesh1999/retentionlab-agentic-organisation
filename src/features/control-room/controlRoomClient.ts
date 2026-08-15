@@ -3,9 +3,16 @@ import { z } from "zod";
 import {
   hostedRunCreateInputSchema,
   hostedRunCreateResponseSchema,
+  hostedRunDecisionContextResponseSchema,
+  hostedRunDecisionInputSchema,
+  hostedRunDecisionResponseSchema,
   hostedRunReadResponseSchema,
+  promotedCaseListResponseSchema,
   type HostedRun,
   type HostedRunCreateInput,
+  type HostedRunDecisionContext,
+  type HostedRunDecisionInput,
+  type PromotedCase,
 } from "../../../runtime/hosted/contracts";
 import { SignalGardenClientError } from "../recovery-room/liveEvidenceClient";
 
@@ -51,6 +58,23 @@ const snapshotProbeSchema = z.object({
 
 const gatewayErrorSchema = z.object({ error: z.string().min(1) }).passthrough();
 
+// Supabase Auth's password grant. Only the access token and the operator's identity are kept; the
+// session lives in memory for the tab's lifetime and is never written to storage, so a refresh
+// deliberately requires signing in again before another decision can be taken.
+const authSessionSchema = z.object({
+  access_token: z.string().min(20),
+  token_type: z.string().min(1),
+  user: z.object({
+    id: z.string().uuid(),
+    email: z.string().email().nullish(),
+  }).passthrough(),
+}).passthrough();
+
+export type ControlRoomOperator = {
+  userId: string;
+  email: string | null;
+};
+
 export type ControlRoomAccount = z.infer<typeof accountSchema>;
 export type ControlRoomSource = z.infer<typeof sourceSchema>;
 
@@ -71,6 +95,15 @@ export type ControlRoomClient = {
   createRun(input: HostedRunCreateInput, signal?: AbortSignal): Promise<{ run: HostedRun; idempotentReplay: boolean }>;
   readRun(runId: string, signal?: AbortSignal): Promise<HostedRun>;
   retryRun(runId: string, signal?: AbortSignal): Promise<HostedRun>;
+  signIn(email: string, password: string, signal?: AbortSignal): Promise<ControlRoomOperator>;
+  signOut(): Promise<void>;
+  currentOperator(): ControlRoomOperator | null;
+  readDecisionContext(runId: string, signal?: AbortSignal): Promise<HostedRunDecisionContext>;
+  listPromotedCases(signal?: AbortSignal): Promise<PromotedCase[]>;
+  decideRun(
+    input: HostedRunDecisionInput,
+    signal?: AbortSignal,
+  ): Promise<{ run: HostedRun; replayed: boolean }>;
 };
 
 type BrowserEnvironment = {
@@ -103,7 +136,11 @@ export function createControlRoomClient(
 
   const gatewayUrl = `${baseUrl}/functions/v1/${functionName}`;
   const runsGatewayUrl = `${baseUrl}/functions/v1/${runsFunctionName}`;
+  const authUrl = `${baseUrl}/auth/v1`;
   const callerKey = publishableKey;
+
+  // In-memory only. The access token never reaches localStorage, sessionStorage or a URL.
+  let session: { accessToken: string; operator: ControlRoomOperator } | null = null;
 
   async function call(tool: "list_accounts" | "get_account_snapshot", args: Record<string, unknown>, signal?: AbortSignal) {
     let response: Response;
@@ -140,7 +177,20 @@ export function createControlRoomClient(
     return body;
   }
 
-  async function callRuns(action: "create_run" | "get_run" | "retry_run", args: Record<string, unknown>, signal?: AbortSignal) {
+  async function callRuns(
+    action:
+      | "create_run"
+      | "get_run"
+      | "retry_run"
+      | "get_decision_context"
+      | "decide_run"
+      | "list_promoted_cases",
+    args: Record<string, unknown>,
+    signal?: AbortSignal,
+    // Supplied only for decide_run. Every other action is a publishable-key call, and attaching an
+    // operator token to them would widen the credential's reach for no reason.
+    accessToken?: string,
+  ) {
     let response: Response;
     try {
       response = await fetchImplementation.call(globalThis, runsGatewayUrl, {
@@ -149,6 +199,7 @@ export function createControlRoomClient(
           accept: "application/json",
           apikey: callerKey,
           "content-type": "application/json",
+          ...(accessToken ? { authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({ action, arguments: args }),
         cache: "no-store",
@@ -219,6 +270,112 @@ export function createControlRoomClient(
       );
       if (!parsed.success) throw clientError("Hosted run gateway returned an invalid retry contract.", 502);
       return parsed.data.run;
+    },
+
+    async signIn(email, password, signal) {
+      let response: Response;
+      try {
+        response = await fetchImplementation.call(globalThis, `${authUrl}/token?grant_type=password`, {
+          method: "POST",
+          headers: {
+            accept: "application/json",
+            apikey: callerKey,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+          cache: "no-store",
+          signal,
+        });
+      } catch (error) {
+        if (signal?.aborted) throw new SignalGardenClientError("aborted", "Sign-in cancelled.");
+        throw new SignalGardenClientError(
+          "network",
+          `Operator sign-in unreachable: ${error instanceof Error ? error.message : "network failure"}`,
+          503,
+        );
+      }
+
+      const body: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        // Never echo the provider's message back: it distinguishes "no such user" from "wrong
+        // password" and would turn this form into an account probe.
+        throw new SignalGardenClientError(
+          "invalid_request",
+          "Those operator credentials were not accepted.",
+          response.status === 400 || response.status === 401 ? 401 : response.status,
+        );
+      }
+
+      const parsed = authSessionSchema.safeParse(body);
+      if (!parsed.success) throw clientError("Operator sign-in returned an invalid session.", 502);
+      const operator: ControlRoomOperator = {
+        userId: parsed.data.user.id,
+        email: parsed.data.user.email ?? null,
+      };
+      session = { accessToken: parsed.data.access_token, operator };
+      return operator;
+    },
+
+    async signOut() {
+      const active = session;
+      session = null;
+      if (!active) return;
+      try {
+        await fetchImplementation.call(globalThis, `${authUrl}/logout`, {
+          method: "POST",
+          headers: {
+            accept: "application/json",
+            apikey: callerKey,
+            authorization: `Bearer ${active.accessToken}`,
+          },
+          cache: "no-store",
+        });
+      } catch {
+        // The local session is already discarded, so a failed revoke must not surface as an error.
+      }
+    },
+
+    currentOperator() {
+      return session?.operator ?? null;
+    },
+
+    async listPromotedCases(signal) {
+      const parsed = promotedCaseListResponseSchema.safeParse(
+        await callRuns("list_promoted_cases", {}, signal),
+      );
+      if (!parsed.success) throw clientError("Hosted run gateway returned an invalid case archive contract.", 502);
+      return parsed.data.cases;
+    },
+
+    async readDecisionContext(runId, signal) {
+      if (!session) {
+        throw new SignalGardenClientError(
+          "invalid_request",
+          "Approval requires an authenticated operator.",
+          401,
+        );
+      }
+      const parsed = hostedRunDecisionContextResponseSchema.safeParse(
+        await callRuns("get_decision_context", { run_id: runId }, signal, session.accessToken),
+      );
+      if (!parsed.success) throw clientError("Hosted run gateway returned an invalid decision context.", 502);
+      return parsed.data.context;
+    },
+
+    async decideRun(input, signal) {
+      if (!session) {
+        throw new SignalGardenClientError(
+          "invalid_request",
+          "Approval requires an authenticated operator.",
+          401,
+        );
+      }
+      const validated = hostedRunDecisionInputSchema.parse(input);
+      const parsed = hostedRunDecisionResponseSchema.safeParse(
+        await callRuns("decide_run", validated, signal, session.accessToken),
+      );
+      if (!parsed.success) throw clientError("Hosted run gateway returned an invalid decision contract.", 502);
+      return { run: parsed.data.run, replayed: parsed.data.replayed };
     },
   };
 }
