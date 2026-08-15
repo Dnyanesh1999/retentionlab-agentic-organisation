@@ -15,7 +15,15 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { ProgressVeil, StateSwap, StaggerReveal } from "../../components/motion";
+import {
+  AnimatedNumber,
+  LENIS_PREVENT,
+  ProgressVeil,
+  Spotlight,
+  StateSwap,
+  StaggerReveal,
+  TextReveal,
+} from "../../components/motion";
 import type {
   HostedDecision,
   HostedRun,
@@ -419,6 +427,7 @@ function LaunchSheet({ account, client, onClose }: {
       onMouseDown={(event) => event.target === event.currentTarget && onClose()}
     >
       <motion.section
+        {...LENIS_PREVENT}
         aria-labelledby="launch-title"
         aria-modal="true"
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -564,7 +573,7 @@ export function CommandCenterView({ client: suppliedClient }: { client?: Control
       <header className="control-room__hero">
         <div>
           <span className="control-room__date">Today · live organisation</span>
-          <h1>Protect revenue.<br />Prove value. Move early.</h1>
+          <TextReveal as="h1" text={"Protect revenue.\nProve value. Move early."} />
         </div>
         <div className="readiness-line" aria-label="System readiness">
           <span><i />Live readiness</span>
@@ -585,16 +594,22 @@ export function CommandCenterView({ client: suppliedClient }: { client?: Control
         ) : null}
         {directory.status === "ready" && selected ? (
           <>
-            <section className="account-command" aria-label="Selected account command">
+            <Spotlight as="section" className="account-command" aria-label="Selected account command">
               <div className="account-command__identity"><span className="account-monogram">{selected.display_name.slice(0, 1)}</span><div><small>{selected.sector}</small><h2>{selected.display_name}</h2><span>{selected.plan_tier} · {selected.region}</span></div></div>
               <dl>
                 <div><dt>Priority</dt><dd data-tone={urgency(selected).tone}><i />{urgency(selected).label}</dd></div>
-                <div><dt>Renewal</dt><dd>{daysUntil(selected.renewal_at)} days</dd></div>
-                <div><dt>MRR</dt><dd>{money(selected.monthly_recurring_revenue, selected.contract_currency)}</dd></div>
+                {/*
+                  The figures count to their real values. `key` restarts the
+                  count when the operator selects a different account, so the
+                  number never appears to drift from one account's figure to
+                  another's.
+                */}
+                <div><dt>Renewal</dt><dd><AnimatedNumber format={(value) => `${Math.round(value)} days`} key={`renewal-${selected.slug}`} value={daysUntil(selected.renewal_at)} /></dd></div>
+                <div><dt>MRR</dt><dd><AnimatedNumber format={(value) => money(value, selected.contract_currency)} key={`mrr-${selected.slug}`} value={selected.monthly_recurring_revenue} /></dd></div>
                 <div><dt>Evidence</dt><dd>{relativeFreshness(selected.source_updated_at)} fresh</dd></div>
               </dl>
               <button className="account-command__action" onClick={() => setLaunchOpen(true)} type="button">Start governed case <ArrowRight /></button>
-            </section>
+            </Spotlight>
 
             <div className="control-room__grid">
               <section className="account-ledger" aria-labelledby="priority-accounts-title">

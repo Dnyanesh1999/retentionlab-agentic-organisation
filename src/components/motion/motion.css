@@ -2,6 +2,101 @@
   filter: drop-shadow(0 1px 0 rgb(255 255 255 / 45%));
 }
 
+/* --- TextReveal ---------------------------------------------------------- */
+
+/*
+ * Each word rides up out of its own mask. `inline-block` on the mask keeps the
+ * line wrapping like normal text; the overflow clip is what makes the word
+ * appear to rise from behind the baseline rather than just fade upward.
+ */
+.text-reveal__mask {
+  display: inline-block;
+  overflow: hidden;
+  /* Room for descenders, which the clip would otherwise shave off. */
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+  vertical-align: bottom;
+}
+
+.text-reveal__word {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* --- AnimatedNumber ------------------------------------------------------ */
+
+/*
+ * Tabular figures stop the surrounding layout jittering while digits change
+ * width mid-count.
+ */
+.animated-number {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Spotlight ----------------------------------------------------------- */
+
+/*
+ * A warm forest wash tracking the pointer. Painted in an isolated ::after
+ * layer so it never affects layout, and only while the pointer is inside.
+ */
+[data-spotlight="on"] {
+  position: relative;
+  isolation: isolate;
+}
+
+[data-spotlight="on"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    240px circle at var(--spotlight-x, 50%) var(--spotlight-y, 50%),
+    rgb(11 81 63 / 7%),
+    transparent 68%
+  );
+  transition: opacity var(--motion-duration-standard, 220ms) var(--motion-ease-standard);
+}
+
+[data-spotlight="on"][data-spotlight-lit="true"]::after {
+  opacity: 1;
+}
+
+/* --- ScrollProgress ------------------------------------------------------ */
+
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  width: 100%;
+  height: 2px;
+  transform-origin: 0 50%;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--forest, #0b513f), var(--violet, #5a3fe0));
+}
+
+/*
+ * Belt and braces: every primitive already gates itself in JS, but a user who
+ * flips the OS setting mid-session should not have to reload to be rid of the
+ * decorative layers.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-progress {
+    display: none;
+  }
+
+  [data-spotlight="on"]::after {
+    display: none;
+  }
+
+  .text-reveal__word {
+    will-change: auto;
+  }
+}
+
 .progress-veil {
   display: grid;
   gap: var(--space-6, 24px);

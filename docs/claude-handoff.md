@@ -91,6 +91,33 @@ point — `external_actions_permitted` is still `0`.
 - `#/cases/recovery-room`: live Signal Garden customer experience.
 - Responsive desktop/mobile UI, reduced-motion support, accessible states and sealed-record assistant.
 
+### Motion primitive layer
+
+`src/components/motion` holds the shared interaction layer. Every primitive resolves reduced motion
+through the single `useResolvedReducedMotion` gate and has unit tests asserting its reduced-motion
+behaviour. Do not add a primitive that skips that gate.
+
+- `MotionConfigProvider`, `StaggerReveal`, `HandoffTrace`, `StateSwap`, `ProgressVeil` — the original set.
+- `AnimatedNumber` — counts to a real figure. The wrapper is `role="img"` named with the exact final
+  formatted value, so assistive technology never hears an intermediate frame. Never feed it a figure
+  the page does not actually hold.
+- `TextReveal` — word-by-word masked entrance. It renders its own heading element because the animated
+  words are `aria-hidden`; the complete string is supplied as the accessible name.
+- `Spotlight` — pointer-tracked wash; off for coarse pointers and under reduced motion.
+- `ScrollProgress` — rail driven by real document scroll offset. It is `aria-hidden` and carries no
+  `progressbar` role deliberately: a progress role here would read as work in progress.
+- `SharedIndicator` — one underline travelling between items via `layoutId`. Used by the masthead nav
+  and the case tabs. Each group needs its own `layoutId`.
+- `SmoothScroll` — Lenis momentum scrolling, mounted once in `src/main.tsx`. Lazily imported, so the
+  library is never fetched under reduced motion. `anchors` is off because this app routes on the hash
+  and Lenis would otherwise claim every nav link. Any region that scrolls its own content must spread
+  `LENIS_PREVENT` (see `src/components/motion/lenisPrevent.ts`) or the wheel will scroll the page
+  instead; `.launch-sheet` and `.agent-inspector__scroll` already do.
+
+Route transitions in `src/app/App.tsx` are entrance-only by design. An exit animation would need
+`AnimatePresence mode="wait"` to avoid two `<main id="main-content">` landmarks coexisting, and
+`mode="wait"` stalls navigation whenever animation frames are throttled, such as in a background tab.
+
 ### Separate local assessed runtime
 
 `agents/orchestrator` is the reproducible local pipeline: strict state machine, hash-chained JSONL events,
@@ -328,18 +355,25 @@ After committing the intended files, run `npm run release:check`; it packages `g
 uncommitted change is not part of that proof. Never commit generated `dist/`, release ZIPs, `.env.local`,
 root Deno lock churn or `supabase/functions/retentionlab-runs/deno.lock`.
 
-Baseline on `claude/human-approval-portfolio` (14 August 2026):
+Baseline on `claude/ui-feel-pass` (15 August 2026):
 
-- 417 Vitest application tests passed.
-- 27 hosted Deno worker tests passed.
+- 441 Vitest application tests passed.
+- 29 hosted Deno worker tests passed.
 - TypeScript, agent pipeline check, ESLint and production build passed.
 - 16 release tests and 2 data tests passed.
-- Secret scan clean across 309 tracked files.
-- Pages build 569,544 bytes JavaScript against a 1,200,000-byte ceiling.
+- Secret scan clean across 316 tracked files.
+- Pages build 608,200 bytes JavaScript against a 1,200,000-byte ceiling.
+- 1280×800 and 390×844 browser QA on `#/control-room`, `#/portfolio` and `#/cases/overview`: zero page
+  overflow and a clean console on a fresh tab.
 
-Baseline at the previous handoff (`main` at `9e9936d`): 399 Vitest tests, 15 hosted worker tests,
-311 tracked files (the earlier "309 tracked files" line predated the handoff commit) and 553,387 bytes.
-- Desktop and 390×844 browser QA: zero page overflow and zero console warning/error.
+Earlier baselines: `main` at `27df2a5` (PR #9) had 417 Vitest tests, 29 hosted worker tests, 315 tracked
+files and 569,544 bytes. `main` at `9e9936d` had 399 Vitest tests, 15 hosted worker tests, 311 tracked
+files and 553,387 bytes.
+
+Note when verifying: do not run `npm install` while the Vite dev server is running. Doing so during this
+work left `node_modules` in a state where the jest-dom matchers silently failed to register, which
+presents as 113 tests failing with "Invalid Chai property: toBeInTheDocument" and is not a code defect.
+`npm ci` restores it.
 
 ## 11. Git and publication
 

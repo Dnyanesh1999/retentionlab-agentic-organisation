@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 
 import { App } from "./app/App";
 import { MotionConfigProvider } from "./components/motion/MotionConfigProvider";
+import { SmoothScroll } from "./components/motion/SmoothScroll";
 import "./styles/tokens.css";
 import "./styles/global.css";
 
@@ -18,7 +19,9 @@ if (!root) {
 createRoot(root).render(
   <StrictMode>
     <MotionConfigProvider>
-      <App />
+      <SmoothScroll>
+        <App />
+      </SmoothScroll>
     </MotionConfigProvider>
   </StrictMode>,
 );

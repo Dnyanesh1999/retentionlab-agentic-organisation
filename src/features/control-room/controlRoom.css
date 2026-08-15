@@ -4,10 +4,17 @@
   padding: clamp(34px, 5vw, 72px) 0 80px;
 }
 
+/*
+ * A soft forest light behind the hero type, bled off the top-left so the
+ * masthead reads as lit rather than printed flat. Painted as the element's own
+ * background rather than a pseudo-element: no stacking context to reason about,
+ * and it cannot be trapped behind a transformed route-transition wrapper.
+ */
 .control-room__hero {
   display: grid;
   gap: 28px;
   margin-bottom: 34px;
+  background: radial-gradient(60% 70% at 8% 0%, rgb(11 81 63 / 6%), transparent 68%);
 }
 
 .control-room__date {
@@ -182,6 +189,26 @@
 .account-command__action:hover { transform: translateY(-2px); box-shadow: 0 16px 30px rgb(6 59 47 / 20%); }
 .account-command__action svg { width: 15px; transition: transform 180ms ease; }
 .account-command__action:hover svg { transform: translateX(3px); }
+
+/*
+ * The press returns the button past its resting position. Paired with the
+ * hover lift this gives the control a physical feel — lift on approach, give
+ * under the finger — at the cost of one transform.
+ */
+.account-command__action:active { transform: translateY(1px) scale(0.985); box-shadow: 0 6px 14px rgb(6 59 47 / 16%); }
+
+@media (prefers-reduced-motion: reduce) {
+  .account-command__action,
+  .account-command__action svg {
+    transition: none;
+  }
+
+  .account-command__action:hover,
+  .account-command__action:active,
+  .account-command__action:hover svg {
+    transform: none;
+  }
+}
 
 .control-room__grid {
   display: grid;

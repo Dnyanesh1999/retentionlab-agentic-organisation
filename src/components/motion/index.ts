@@ -12,6 +12,13 @@ export { StaggerReveal, StaggerItem } from "./StaggerReveal";
 export { HandoffTrace } from "./HandoffTrace";
 export { StateSwap } from "./StateSwap";
 export { ProgressVeil, type ProgressStage } from "./ProgressVeil";
+export { AnimatedNumber } from "./AnimatedNumber";
+export { TextReveal } from "./TextReveal";
+export { Spotlight } from "./Spotlight";
+export { ScrollProgress } from "./ScrollProgress";
+export { SmoothScroll } from "./SmoothScroll";
+export { LENIS_PREVENT } from "./lenisPrevent";
+export { SharedIndicator } from "./SharedIndicator";
 export {
   motionEase,
   motionDuration,
