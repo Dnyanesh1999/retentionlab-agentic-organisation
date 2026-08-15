@@ -32,9 +32,8 @@ survived unchanged.
    Use the Control Room, or a read-only query in the Supabase SQL editor.
 2. **Fill the gaps in §5.4 of `docs/qa-human-approval.md`**: the reject path, idempotent replay against
    production, and 390×844 QA of the decision sheet.
-3. ~~Confirm reduced-motion parity in a real browser.~~ **Done — see §10.1.** One gap remains: the
-   `AnimatedNumber` counters could not be covered, because the account directory does not load inside a
-   headless virtual-time budget. Their reduced-motion path is unit-tested only.
+3. ~~Confirm reduced-motion parity in a real browser.~~ **Done against the deployed build — see §10.1**,
+   including the counters. No item remains here.
 
 ### What is still the student's own work — do not write it
 
@@ -408,13 +407,24 @@ Observed on 15 August 2026 against the deployed `015e6d4` build:
 | `.global-nav__underline` | 1 | 1 — still drawn, correctly, as a static rule |
 | `class="lenis"` on `<html>` | 1 | **0** — Lenis never initialises, so the chunk is never fetched |
 
-Not covered by this method: `AnimatedNumber`. The account directory does not load within a headless
-virtual-time budget, so no counter is in either dump. Its reduced-motion path is unit-tested only.
+`AnimatedNumber` under reduced motion, from the same reduced dump — each counter renders its real
+figure immediately, with no count:
+
+| Accessible name | Rendered text | `data-reduced-motion` |
+| --- | --- | --- |
+| `14 days` | `14 days` | true |
+| `€9.6K` | `€9.6K` | true |
+
+One asymmetry is expected and is itself evidence: the counters appear only in the **reduced** dump. With
+animation enabled, the directory's ready state is gated on animation frames that a headless virtual-time
+budget does not advance, so the default dump is still on the loading skeleton. Under reduced motion the
+swap is synchronous, so the real content is there at once.
 
 This check is also what surfaced the `StateSwap` defect fixed in the same session: under reduced motion
 it still ran a 160ms fade behind `AnimatePresence mode="wait"`, so the incoming state was held until the
-outgoing one finished leaving, despite the component documenting an instant swap. Reduced motion now
-bypasses the presence machinery entirely.
+outgoing one finished leaving, despite the component documenting an instant swap. Before that fix, the
+reduced dump showed `data-state="ready"` while still rendering the skeleton at `opacity: 0`. Reduced
+motion now bypasses the presence machinery entirely.
 
 ## 11. Git and publication
 

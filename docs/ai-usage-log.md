@@ -373,10 +373,13 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
   `AnimatePresence mode="wait"`, which holds the incoming state until the outgoing one has finished
   leaving. Reduced motion now bypasses the presence machinery entirely, so the swap is actually
   instant. One regression test covers it.
-- Honest limits of this verification: `AnimatedNumber` is not covered, because the live account
-  directory does not load inside a headless virtual-time budget, so no counter appears in either DOM
-  dump. Its reduced-motion path remains unit-tested only. Three approval probes also remain outstanding
-  and were not attempted, because they require the operator password and AI must not enter credentials.
+- After the fix was deployed, the same check was re-run and closed its own gap: with the swap now
+  synchronous under reduced motion, the account directory renders at once in the headless dump, so the
+  `AnimatedNumber` counters could finally be observed live. Both show their real figure immediately
+  (`14 days`, `€9.6K`) with no count. The counters appear only in the reduced dump, which is itself
+  evidence of the fix.
+- Honest limits: three approval probes remain outstanding and were not attempted, because they require
+  the operator password and AI must not enter credentials into any field.
 - Student responsibility: the operator credential and the approval decisions themselves, the three
   outstanding probes in `docs/qa-human-approval.md` §5.4, and the academic reflection and cited
   submission section.
