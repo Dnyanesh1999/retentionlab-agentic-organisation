@@ -32,10 +32,9 @@ survived unchanged.
    Use the Control Room, or a read-only query in the Supabase SQL editor.
 2. **Fill the gaps in §5.4 of `docs/qa-human-approval.md`**: the reject path, idempotent replay against
    production, and 390×844 QA of the decision sheet.
-3. **Confirm reduced-motion parity in a real browser.** Every motion primitive asserts it by unit test,
-   but no one has yet loaded the deployed site with the OS "Reduce motion" setting on. Expected: no
-   scroll rail, no word-by-word heading reveal, figures rendered at their final value immediately, and
-   native rather than momentum scrolling.
+3. ~~Confirm reduced-motion parity in a real browser.~~ **Done — see §10.1.** One gap remains: the
+   `AnimatedNumber` counters could not be covered, because the account directory does not load inside a
+   headless virtual-time budget. Their reduced-motion path is unit-tested only.
 
 ### What is still the student's own work — do not write it
 
@@ -362,13 +361,13 @@ After committing the intended files, run `npm run release:check`; it packages `g
 uncommitted change is not part of that proof. Never commit generated `dist/`, release ZIPs, `.env.local`,
 root Deno lock churn or `supabase/functions/retentionlab-runs/deno.lock`.
 
-Baseline on `claude/ui-feel-pass` (15 August 2026):
+Baseline on `main` after the motion layer (15 August 2026):
 
-- 441 Vitest application tests passed.
+- 442 Vitest application tests passed.
 - 29 hosted Deno worker tests passed.
 - TypeScript, agent pipeline check, ESLint and production build passed.
 - 16 release tests and 2 data tests passed.
-- Secret scan clean across 316 tracked files.
+- Secret scan clean across 329 tracked files.
 - Pages build 608,200 bytes JavaScript against a 1,200,000-byte ceiling.
 - 1280×800 and 390×844 browser QA on `#/control-room`, `#/portfolio` and `#/cases/overview`: zero page
   overflow and a clean console on a fresh tab.
@@ -381,6 +380,41 @@ Note when verifying: do not run `npm install` while the Vite dev server is runni
 work left `node_modules` in a state where the jest-dom matchers silently failed to register, which
 presents as 113 tests failing with "Invalid Chai property: toBeInTheDocument" and is not a code defect.
 `npm ci` restores it.
+
+### 10.1 Reduced-motion proof against the deployed site
+
+Do not toggle the operating system setting to check this. Chromium can force the media feature, which
+makes the check reproducible and leaves the machine's accessibility settings alone:
+
+```bash
+CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+URL="https://dnyanesh1999.github.io/retentionlab-agentic-organisation/#/control-room"
+
+"$CHROME" --headless=new --disable-gpu --virtual-time-budget=5000 \
+  --user-data-dir=/tmp/cr-normal --dump-dom "$URL" > /tmp/dom-normal.html
+
+"$CHROME" --headless=new --disable-gpu --virtual-time-budget=5000 \
+  --force-prefers-reduced-motion \
+  --user-data-dir=/tmp/cr-reduced --dump-dom "$URL" > /tmp/dom-reduced.html
+```
+
+Observed on 15 August 2026 against the deployed `015e6d4` build:
+
+| Signal | Default | Reduced |
+| --- | --- | --- |
+| `.scroll-progress` rail | 1 | **0** — not rendered |
+| `.text-reveal__mask` word spans | 6 | **0** — heading is plain text |
+| `<h1 data-reduced-motion="true">` | 0 | **1** |
+| `.global-nav__underline` | 1 | 1 — still drawn, correctly, as a static rule |
+| `class="lenis"` on `<html>` | 1 | **0** — Lenis never initialises, so the chunk is never fetched |
+
+Not covered by this method: `AnimatedNumber`. The account directory does not load within a headless
+virtual-time budget, so no counter is in either dump. Its reduced-motion path is unit-tested only.
+
+This check is also what surfaced the `StateSwap` defect fixed in the same session: under reduced motion
+it still ran a 160ms fade behind `AnimatePresence mode="wait"`, so the incoming state was held until the
+outgoing one finished leaving, despite the component documenting an instant swap. Reduced motion now
+bypasses the presence machinery entirely.
 
 ## 11. Git and publication
 

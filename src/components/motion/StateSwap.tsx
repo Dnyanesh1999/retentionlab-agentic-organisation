@@ -38,8 +38,8 @@ export function StateSwap({
   const { ease, duration } = useMotionConfig();
   const shouldReduceMotion = useResolvedReducedMotion(reducedMotion);
 
-  const enter = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: distance };
-  const exit = shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -distance };
+  const enter = { opacity: 0, y: distance };
+  const exit = { opacity: 0, y: -distance };
 
   return (
     <div
@@ -48,22 +48,30 @@ export function StateSwap({
       data-reduced-motion={shouldReduceMotion ? "true" : undefined}
       data-state={state}
     >
-      {/* `initial={false}` avoids animating the very first paint; `mode="wait"`
-          keeps a single state mounted so interrupted swaps never overlap. */}
-      <AnimatePresence initial={false} mode="wait">
-        <motion.div
-          animate={{ opacity: 1, y: 0 }}
-          exit={exit}
-          initial={enter}
-          key={state}
-          transition={{
-            duration: shouldReduceMotion ? duration.fast : duration.base,
-            ease: ease.standard,
-          }}
-        >
-          {children}
-        </motion.div>
-      </AnimatePresence>
+      {shouldReduceMotion ? (
+        /*
+         * A genuinely instant swap: no presence machinery at all. Even a
+         * zero-duration exit costs a frame under `mode="wait"`, because the
+         * incoming state is held until the outgoing one has finished leaving —
+         * and that is time the new content is not on screen. Rendering the
+         * child directly is the only way this is actually instant.
+         */
+        <div key={state}>{children}</div>
+      ) : (
+        /* `initial={false}` avoids animating the very first paint; `mode="wait"`
+           keeps a single state mounted so interrupted swaps never overlap. */
+        <AnimatePresence initial={false} mode="wait">
+          <motion.div
+            animate={{ opacity: 1, y: 0 }}
+            exit={exit}
+            initial={enter}
+            key={state}
+            transition={{ duration: duration.base, ease: ease.standard }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
+      )}
     </div>
   );
 }
