@@ -313,27 +313,22 @@
   font: var(--type-label-base);
 }
 
-.casebook-tabs button::after {
+/*
+ * A real element rather than a pseudo-element, so one shared instance can
+ * travel between tabs via `layoutId`. See `SharedIndicator`.
+ */
+.casebook-tabs__indicator {
   position: absolute;
   right: 0;
   bottom: -1px;
   left: 0;
   height: 2px;
   background: var(--forest);
-  content: "";
-  opacity: 0;
-  transform: scaleX(0.3);
-  transition: opacity var(--motion-duration-standard), transform var(--motion-duration-standard) var(--motion-ease-standard);
 }
 
 .casebook-tabs button:hover,
 .casebook-tabs button.is-active {
   color: var(--ink);
-}
-
-.casebook-tabs button.is-active::after {
-  opacity: 1;
-  transform: scaleX(1);
 }
 
 .casebook-grid {
@@ -1062,7 +1057,6 @@
 @media (prefers-reduced-motion: reduce) {
   .archive-case,
   .lab-masthead nav button::after,
-  .casebook-tabs button::after,
   .ledger-stage,
   .ledger-stage__chevron,
   .ledger-stage__drawer {

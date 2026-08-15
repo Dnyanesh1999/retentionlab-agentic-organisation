@@ -321,3 +321,38 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
   `#/cases/approved/<id>` with no hash, rationale, operator identity or prompt. 417 Vitest tests, 29
   hosted worker tests and every release gate pass. A disclosed side effect of the account-release probe
   is recorded in `docs/qa-human-approval.md` §5.3.
+
+## Entry 032 — Interaction and motion pass on the existing design system
+
+- Date: 15 August 2026
+- Tools/models: Claude Code (Opus). No model call was made on behalf of any agent stage, no migration
+  was written, no Edge Function was redeployed and no external action was taken. This entry is
+  presentation-layer work only; the five-agent contract, lineage, evidence and approval boundaries are
+  untouched.
+- User prompt: merge the open approval pull request and make it live, then plan and carry out user
+  interface improvements — stronger styling, better animation, and use of additional libraries.
+- AI contribution: merged PR #9 after re-running the full local gate set, confirmed the GitHub Pages
+  deployment carried the approval and promotion code, then added a motion primitive layer on top of the
+  existing Casebook/Control Room system. New primitives: `AnimatedNumber` (a count to a real figure,
+  named with the exact final value so assistive technology never hears a partial number),
+  `TextReveal` (word-by-word masked entrance that keeps the complete string as the heading's accessible
+  name), `Spotlight` (pointer-tracked warm wash, disabled for coarse pointers), `ScrollProgress` (a rail
+  derived from real document scroll offset), `SharedIndicator` (one underline that travels between nav
+  items and case tabs via `layoutId`) and `SmoothScroll` (momentum scrolling via Lenis, lazily imported
+  and never fetched under reduced motion). Also added paper grain and a two-part elevation ramp as
+  tokens, a sticky masthead that earns its rule on scroll, and press affordances on the primary action.
+  One new runtime dependency: `lenis`.
+- Honest notes on the work: the route transition was first written with `AnimatePresence mode="wait"`
+  and was changed to an entrance-only keyed transition, because `mode="wait"` holds the outgoing route
+  until its exit animation finishes and therefore stalls navigation whenever animation frames are
+  throttled. `AnimatedNumber` was also rewritten once, after its first implementation tripped the
+  project's React hooks lint rules.
+- Student responsibility: the academic reflection, the design judgement about how much motion the
+  submission should carry, and the cited submission section remain the student's own work.
+- Verification: 441 Vitest tests (was 417; 24 added for the new primitives), 29 hosted Deno worker
+  tests, TypeScript, agent pipeline check, ESLint, production build, 16 release tests, 2 data tests and
+  a clean secret scan across 316 tracked files all pass. The Pages build is 608,200 bytes of JavaScript
+  against the 1,200,000-byte ceiling. Zero page overflow at 1280x800 and 390x844 on `#/control-room`,
+  `#/portfolio` and `#/cases/overview`, with a clean browser console on a fresh tab. Reduced-motion
+  parity is asserted by unit test for every new primitive; it was not additionally confirmed by
+  toggling the operating system setting in a live browser.

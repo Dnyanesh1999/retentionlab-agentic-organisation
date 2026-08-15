@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
+import { LENIS_PREVENT } from "../../components/motion";
 import { gate9Run, humanizeStatus, shortHash, stageLabel, type StageEvidence } from "./gate9Run";
 import { useInspectorScroll } from "./inspectorScroll";
 
@@ -43,6 +44,7 @@ export function AgentInspector({ stage, icon: Icon }: AgentInspectorProps) {
   return (
     <aside className="agent-inspector" aria-label={`${stage.agentName} details`}>
       <div
+        {...LENIS_PREVENT}
         className="agent-inspector__scroll"
         ref={scrollRef}
         onKeyDown={onScrollKeyDown}

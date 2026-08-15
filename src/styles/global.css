@@ -91,7 +91,31 @@ a {
 }
 
 .app-shell {
+  position: relative;
   min-height: 100vh;
+}
+
+/*
+ * A single fixed grain layer over the whole canvas. Fixed rather than
+ * per-panel so the texture belongs to the paper the app is printed on and does
+ * not swim as the page scrolls.
+ *
+ * It sits *above* the content rather than behind it, which keeps the rule to
+ * one selector: no z-index has to be assigned to every child (that would
+ * collide with the fixed-position scroll rail at equal specificity). At this
+ * opacity, and with pointer events off, an overlay is indistinguishable from
+ * an underlay — except that it also grains the panels, which is the intent.
+ * The sticky masthead and the scroll rail deliberately sit above it.
+ */
+.app-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.028;
+  background-image: var(--texture-grain);
+  background-repeat: repeat;
 }
 
 .signal-garden-loading {
@@ -908,14 +932,36 @@ a {
 }
 
 .masthead {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   display: grid;
   grid-template-columns: minmax(210px, 1fr) auto minmax(210px, 1fr);
   align-items: stretch;
   min-height: 72px;
   padding: 0 clamp(18px, 3vw, 46px);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid transparent;
   background: rgb(247 244 237 / 91%);
   backdrop-filter: blur(14px);
+  transition:
+    border-color var(--motion-duration-standard) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-standard) var(--motion-ease-standard);
+}
+
+/*
+ * The rule and shadow are earned by scrolling. At the top of the page the
+ * masthead sits flush on the canvas; once content passes beneath it, the
+ * separation appears.
+ */
+.masthead[data-scrolled="true"] {
+  border-bottom-color: var(--line);
+  box-shadow: var(--elevation-subtle);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .masthead {
+    transition: none;
+  }
 }
 
 .brand {
@@ -968,7 +1014,12 @@ a {
   transition: color 180ms ease;
 }
 
-.global-nav__link::after {
+/*
+ * The active underline is a real element rather than a pseudo-element, so a
+ * single shared instance can travel between nav items via `layoutId`. A
+ * pseudo-element cannot be animated across DOM nodes that way.
+ */
+.global-nav__underline {
   position: absolute;
   right: 0;
   bottom: 0;
@@ -976,20 +1027,11 @@ a {
   height: 2px;
   border-radius: 3px 3px 0 0;
   background: var(--forest);
-  content: "";
-  opacity: 0;
-  transform: scaleX(0.4);
-  transition: opacity 180ms ease, transform 180ms ease;
 }
 
 .global-nav__link:hover,
 .global-nav__link.is-active {
   color: var(--ink);
-}
-
-.global-nav__link.is-active::after {
-  opacity: 1;
-  transform: scaleX(1);
 }
 
 .profile-control {

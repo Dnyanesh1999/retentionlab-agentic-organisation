@@ -23,7 +23,13 @@ import {
 
 import { BrandMark } from "../../components/BrandMark";
 import { HashLink } from "../../components/HashLink";
-import { ProgressVeil, StaggerReveal, StateSwap } from "../../components/motion";
+import {
+  ProgressVeil,
+  SharedIndicator,
+  StaggerReveal,
+  StateSwap,
+  TextReveal,
+} from "../../components/motion";
 import {
   createControlRoomClient,
   type ControlRoomClient,
@@ -317,7 +323,7 @@ export function CaseArchiveScreen({ onOpenCase, client }: {
       <header className="lab-page-heading">
         <div>
           <p>Governed customer recovery records</p>
-          <h1>Case archive</h1>
+          <TextReveal as="h1" text="Case archive" />
         </div>
         <span className="lab-count">1 assessed case</span>
       </header>
@@ -481,7 +487,7 @@ export function CaseRecordScreen({ onBack }: { onBack: () => void }) {
       <header className="casebook-heading">
         <div>
           <p>Copper Finch · retention recovery</p>
-          <h1>An accountable path from risk signal to human decision.</h1>
+          <TextReveal as="h1" text="An accountable path from risk signal to human decision." />
         </div>
         <span className="casebook-status"><ShieldCheck aria-hidden="true" size={16} /> Awaiting human approval</span>
       </header>
@@ -490,6 +496,10 @@ export function CaseRecordScreen({ onBack }: { onBack: () => void }) {
         {caseSections.map((item) => (
           <button aria-current={section === item.id ? "page" : undefined} className={section === item.id ? "is-active" : undefined} key={item.id} onClick={() => setSection(item.id)} type="button">
             {item.label}
+            {/* One shared indicator that travels between tabs — see AppMasthead. */}
+            {section === item.id ? (
+              <SharedIndicator className="casebook-tabs__indicator" layoutId="casebook-tab-indicator" />
+            ) : null}
           </button>
         ))}
       </nav>
