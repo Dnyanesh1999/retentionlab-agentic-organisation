@@ -13,22 +13,29 @@ with any summary — including this one.
 15 August 2026**. Its status is `approved`, it has 29 events, and all eight earlier `run_failed` events
 survived unchanged.
 
-- Open PR awaiting the student's merge decision:
-  <https://github.com/Dnyanesh1999/retentionlab-agentic-organisation/pull/9>
-- Branch: `claude/human-approval-portfolio`, 4 commits ahead of `main`
-- `main` has **not** been updated, so GitHub Pages does **not** yet serve the decision sheet
+- PR #9 (human approval and portfolio promotion) is **merged**: `main` at `27df2a5`.
+- PR #10 (motion primitive layer) is **merged**: `main` at `015e6d4`.
+- Both are deployed. GitHub Pages serves the decision sheet, the promoted case and the motion layer;
+  verified against the deployed asset hashes, not just a green workflow.
+- `main` equals `origin/main` and the worktree is clean.
 
 ### Do these first, in this order
 
-1. **Merge PR #9** if the student approves, then run `npm run release:check` on the tracked commit and
-   re-check the public site after Pages deploys.
-2. **Decide the stray run `4f505d07`.** A probe in the previous session called `create_run` on
+1. **Decide the stray run `4f505d07`.** A probe in an earlier session called `create_run` on
    `marble-current` to prove the account was released after approval; that created a real governed run
    which is executing or paused. Rejecting it through the Control Room both frees the account and gives
    the **`reject` path its first live proof** — currently it is covered by unit tests only. This side
    effect is disclosed in `docs/qa-human-approval.md` §5.3; do not quietly delete it.
-3. **Fill the gaps in §5.4 of `docs/qa-human-approval.md`**: the reject path, idempotent replay against
+
+   Note the trap: do **not** inspect it with the `get_run` gateway action to find out its state first.
+   `get_run` calls `scheduleHostedWorker`, so reading the run resumes it and spends OpenRouter quota.
+   Use the Control Room, or a read-only query in the Supabase SQL editor.
+2. **Fill the gaps in §5.4 of `docs/qa-human-approval.md`**: the reject path, idempotent replay against
    production, and 390×844 QA of the decision sheet.
+3. **Confirm reduced-motion parity in a real browser.** Every motion primitive asserts it by unit test,
+   but no one has yet loaded the deployed site with the OS "Reduce motion" setting on. Expected: no
+   scroll rail, no word-by-word heading reveal, figures rendered at their final value immediately, and
+   native rather than momentum scrolling.
 
 ### What is still the student's own work — do not write it
 
@@ -181,11 +188,10 @@ Do not weaken these to make a demo pass:
 
 ## 6. Recommended next feature
 
-**Status: implemented on `claude/human-approval-portfolio`, not yet applied or deployed.** Slices A, B
-and C below are built and locally verified; see `docs/qa-human-approval.md` for exactly what is proven
-and the outstanding live-probe list. The remaining work is: apply the one forward-only migration
-`20260814153107_add_human_approval_decision.sql`, seed an operator into `private.approval_operators`,
-redeploy the run function, and complete section 4 of that QA document.
+**Status: done, applied, deployed and merged to `main`.** Slices A, B and C below are implemented; both
+migrations are live, an operator is seeded, the run function is redeployed, and the loop is proven in
+production. See `docs/qa-human-approval.md` for exactly what is proven and §5.4 for the three probes
+still outstanding. This section is kept for the reasoning, not as a to-do list.
 
 Two details the original plan below did not anticipate, both resolved in the implementation:
 
@@ -231,7 +237,8 @@ If the user chooses a different next feature, retain these invariants and update
 
 - Public hosted-run *intake* is synthetic-demo only and lacks rate limiting. The approval path is
   operator-authenticated; intake deliberately is not.
-- Human approval and hosted-case portfolio promotion are implemented but not yet applied or deployed.
+- Human approval and hosted-case portfolio promotion are implemented, deployed and proven live. The
+  `reject` path and idempotent replay are still unit-test-only; see `docs/qa-human-approval.md` §5.4.
 - Manager-directed typed revision execution remains fail-closed. Precisely:
   `complete_agent_run_manager` requires `decision = 'approve'` and
   `permitted_next_action = 'await_human_approval'`, so a Manager `revise` outcome is rejected by the
