@@ -163,15 +163,49 @@ fail-closed throughout, and this is practical evidence of that.
 One row in `private.approval_operators`, bound to a confirmed Supabase Auth user. The credential was
 created by the student in the dashboard and never entered this repository, any log, or any AI context.
 
-## 5. Operator-authenticated probes and the approval — OUTSTANDING
+### 4.7 Objective floor fix, confirmed live
 
-Record actual observed results; do not pre-populate expected values.
+`create_run` with a 17-character objective now returns **400**
+`objective must contain 20 to 500 characters`. Before this slice the gateway accepted it and Postgres
+rejected it, surfacing as an opaque 502.
+
+## 5. Operator-authenticated probes
+
+Run against production as the allow-listed operator. The operator's password was entered locally by
+the student; it never entered this repository, any log, or any AI context.
 
 | # | Probe | Observed |
 | --- | --- | --- |
-| P8 | `get_decision_context` as the allow-listed operator | |
-| P9 | `decide_run` with a wrong Manager hash | |
-| P10 | `get_decision_context` for a non-existent run | |
+| P8 | `get_decision_context` as the allow-listed operator | **200**, `manager_artifact_sha256 = d253e409ec1984b5f316e831e85637d77dd0900aaf55e0f342753af21494e605`, `chain_verified = true` |
+| P9 | `decide_run` with a wrong Manager hash | **409** `The supplied Manager artefact hash does not match the sealed record` |
+| P10 | `get_decision_context` for a non-existent run | **502** initially — defect, see 5.1; **404** after the fix |
+
+### 5.1 Second defect found and fixed by a live probe
+
+An unknown run id returned **502** `Decision could not be recorded` instead of **404**. The RPC
+correctly raised `P0002` and PostgREST correctly surfaced 404, but `callRpc` collapsed every non-OK
+response into a single 502 with a message that also claimed a *write* had failed when the call was a
+read.
+
+No security impact: nothing leaked and nothing was recorded. But the error was untruthful in two ways
+at once — wrong status and wrong operation — which is precisely what this project's error handling is
+supposed to avoid.
+
+Fixed in `decision.ts`: a 404 from the store is preserved as 404 `Run not found`, and each caller now
+names the operation it was attempting, so a read failure no longer reports a failed write. Two
+regression tests cover both. Redeployed and re-verified.
+
+P9 is the single most important line in this document. It is live proof that the exact stored
+predecessor hash governs the decision: an operator holding a valid token, correctly allow-listed, at a
+run genuinely awaiting approval, was still refused because the hash they presented did not match the
+sealed record.
+
+## 5.2 The approval itself — OUTSTANDING
+
+Record actual observed results; do not pre-populate expected values.
+
+| # | Step | Observed |
+| --- | --- | --- |
 | P11 | Approval of `982ac99a…` through the Control Room | |
 | P12 | Replay of the same idempotency key | |
 | P13 | Event count after approval (28 → expect 29) | |

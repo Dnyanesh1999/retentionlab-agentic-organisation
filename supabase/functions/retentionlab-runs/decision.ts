@@ -137,6 +137,8 @@ export async function verifyOperator(options: {
 async function callRpc(options: {
   name: string;
   body: Record<string, unknown>;
+  // What the caller was attempting, so a failure reports that rather than always claiming a write.
+  attempting: string;
   supabaseUrl: string;
   secretKey: string;
   fetchImplementation?: typeof fetch;
@@ -161,7 +163,10 @@ async function callRpc(options: {
   const payload: unknown = await response.json().catch(() => null);
   if (!response.ok) {
     console.error(`Decision RPC failed: ${response.status}`);
-    throw new DecisionError("Decision could not be recorded", 502);
+    // The RPC raises P0002 for an unknown run, which PostgREST surfaces as 404. Reporting that as a
+    // generic 502 would blame the service for what is actually a bad run id.
+    if (response.status === 404) throw new DecisionError("Run not found", 404);
+    throw new DecisionError(options.attempting, 502);
   }
   return payload;
 }
@@ -180,6 +185,7 @@ export async function loadDecisionContext(options: {
   const payload = await callRpc({
     name: "get_agent_run_decision_context",
     body: { p_run_id: options.runId, p_operator_user_id: options.operatorUserId },
+    attempting: "Decision context could not be loaded",
     supabaseUrl: options.supabaseUrl,
     secretKey: options.secretKey,
     fetchImplementation: options.fetchImplementation,
@@ -225,6 +231,7 @@ export async function recordHumanDecision(options: {
       p_rationale: options.input.rationale,
       p_idempotency_key: options.input.idempotency_key,
     },
+    attempting: "Decision could not be recorded",
     supabaseUrl: options.supabaseUrl,
     secretKey: options.secretKey,
     fetchImplementation: options.fetchImplementation,

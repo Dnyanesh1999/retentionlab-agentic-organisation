@@ -279,6 +279,23 @@ Deno.test("refuses decision context for an unauthorised operator or a run off th
   );
 });
 
+Deno.test("reports an unknown run as 404 rather than blaming the service", async () => {
+  // The RPC raises P0002 for a missing run, which PostgREST surfaces as 404. Collapsing that into a
+  // generic 502 told the operator the service had failed when the run id was simply wrong.
+  const notFound: typeof fetch = () =>
+    Promise.resolve(Response.json({ code: "P0002", message: "hosted run not found" }, { status: 404 }));
+
+  await assertDecisionError(context(notFound), 404, "Run not found");
+  await assertDecisionError(record(notFound), 404, "Run not found");
+});
+
+Deno.test("names the operation that failed instead of always claiming a write", async () => {
+  const broken: typeof fetch = () => Promise.resolve(Response.json({ error: "boom" }, { status: 500 }));
+
+  await assertDecisionError(context(broken), 502, "Decision context could not be loaded");
+  await assertDecisionError(record(broken), 502, "Decision could not be recorded");
+});
+
 Deno.test("fails closed when the decision store is unreachable or returns nonsense", async () => {
   await assertDecisionError(
     record(() => Promise.reject(new TypeError("network down"))),
