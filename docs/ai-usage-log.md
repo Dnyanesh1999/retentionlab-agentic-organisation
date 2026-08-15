@@ -296,3 +296,28 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
   build, 16 release tests, 2 data tests, a clean secret scan and a 569,544-byte Pages build all pass
   locally. The migration is **not** applied and the function is **not** redeployed, so no production
   claim is made; outstanding live probes are listed in `docs/qa-human-approval.md`.
+
+## Entry 031 — Live approval of the accepted production run
+
+- Date: 15 August 2026
+- Tools/models: Claude Code (Opus) applied the migrations through the dashboard SQL path, redeployed the
+  run function, and ran the probe matrix. No model call was made on behalf of any agent stage and no
+  external action was taken. The approval itself was performed by the student, not by AI.
+- User prompt: "aap baki ka complete karlo" — complete the remaining deployment and verification work.
+- AI contribution: confirmed the handoff §8 migration hazard against the live project (six local
+  migrations live under different remote names, so `db push` is unusable and its own repair suggestion
+  would replay live migrations); applied both migrations through the dashboard SQL editor; redeployed
+  `retentionlab-runs`; ran ten production probes. Two defects were found by those probes and fixed
+  forward-only: an ambiguous `operator` identifier that made a non-allow-listed operator receive 502
+  instead of 403, and a gateway mapping that reported an unknown run as a generic 502 write failure
+  instead of 404. Both failed closed; neither recorded anything.
+- Student responsibility: created and holds the operator credential, wrote the decision rationale, and
+  performed the approval as the named human. The academic reflection and cited submission section
+  remain the student's own work.
+- Verification: run `982ac99a-d9aa-47a6-ba61-09f366143715` moved to `approved` at 01:58:54 UTC with
+  exactly one appended event (28 → 29). All eight earlier `run_failed` events and
+  `run_paused_for_approval` survived unchanged, sequence still strictly increasing, and no 64-character
+  digest appears anywhere in the public event stream. The promoted case renders at `#/portfolio` and
+  `#/cases/approved/<id>` with no hash, rationale, operator identity or prompt. 417 Vitest tests, 29
+  hosted worker tests and every release gate pass. A disclosed side effect of the account-release probe
+  is recorded in `docs/qa-human-approval.md` §5.3.

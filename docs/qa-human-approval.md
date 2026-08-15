@@ -200,19 +200,39 @@ predecessor hash governs the decision: an operator holding a valid token, correc
 run genuinely awaiting approval, was still refused because the hash they presented did not match the
 sealed record.
 
-## 5.2 The approval itself — OUTSTANDING
+## 5.2 The approval — recorded 15 August 2026, 01:58:54 UTC
 
-Record actual observed results; do not pre-populate expected values.
+The named human operator signed in through the Control Room, reviewed the sealed context, wrote a
+rationale and confirmed. The decision sheet displayed
+`d253e409ec1984b5f316e831e85637d77dd0900aaf55e0f342753af21494e605`, `SEALED CHAIN Verified`,
+`CONSENTED CHANNEL in_app`, `PERMITTED NEXT ACTION await human approval` and `EXTERNAL ACTIONS 0` —
+the same hash P8 returned, so the operator attested to the artefact they actually saw.
 
 | # | Step | Observed |
 | --- | --- | --- |
-| P11 | Approval of `982ac99a…` through the Control Room | |
-| P12 | Replay of the same idempotency key | |
-| P13 | Event count after approval (28 → expect 29) | |
-| P14 | Earlier Designer/Communicator failure events still present | |
-| P15 | Account released for a new run | |
-| P16 | Promoted case visible at `#/portfolio` and `#/cases/approved/<id>` with no hash or artefact leak | |
-| P17 | Desktop and 390×844 QA: overflow and console clean | |
+| P11 | Approval of `982ac99a…` | `status = approved`; last event `run_approved`, "No customer action was sent" |
+| P13 | Event count | **28 → 29**, exactly one event appended |
+| P14 | Earlier failures preserved | **8** `run_failed` events intact — 3 Designer (seq 5, 7, 9), 5 Communicator (seq 15, 17, 19, 21, 23), including seq 23 "email is not present in the sealed Maker channel". `run_paused_for_approval` also unchanged; sequence still strictly increasing |
+| P15 | Account released | A fresh run was accepted on `marble-current` with a new id, proving the rebuilt open-run index frees a decided account |
+| P16 | Promoted case | `list_promoted_cases` returns 1 case: Marble Current, 5 stage summaries, `external_actions_permitted = 0`. Leak checks on the raw payload: no 64-character digest, no rationale, no operator identity, no prompt |
+| — | Public event stream | No 64-character digest present anywhere in the 29 events |
+
+### 5.3 Probe side effect, disclosed
+
+The P15 check was performed by actually calling `create_run`, which does not merely test the index — it
+created a real governed run (`4f505d07…`) and scheduled its Researcher. This was an avoidable side
+effect of the verification method: a read-only check of the index predicate would have proved the same
+property without consuming model quota or opening a run on the account. It is recorded here rather than
+quietly discarded. The run is synthetic, governed, and cannot take an external action; it is a
+candidate for exercising the `reject` path, which the approval flow has not yet demonstrated live.
+
+### 5.4 Not yet demonstrated live
+
+- The `reject` path (`run_rejected`, `status = rejected`) — covered by unit tests only.
+- Idempotent replay of a decision key against production — covered by unit tests only. It was not run
+  against `982ac99a…` because the run is now terminal, so a replay there would exercise the
+  already-decided branch rather than the replay branch.
+- Responsive and console QA of the decision sheet at 390×844.
 
 1. `npx supabase migration list --project-ref luwrufuouosytyhdqnme` and inspect the remote schema
    before applying. Local `20260814133220_add_hosted_remaining_workers.sql` is live remotely under a
