@@ -1,0 +1,121 @@
+{
+  "chunks": [
+    {
+      "id": "manager-decision",
+      "source": "manager.operational-decision.v1",
+      "text": "The Manager decision was approve. Human approval required: true. Autonomous external actions: false. Permitted next action: await_human_approval. The organisation stops at this boundary and a named human decides what happens next.",
+      "keywords": [
+        "manager",
+        "decision",
+        "decide",
+        "approve",
+        "verdict",
+        "outcome",
+        "next action"
+      ]
+    },
+    {
+      "id": "autonomy",
+      "source": "manager.operational-decision.v1 · governance",
+      "text": "No stage may send, publish, deploy or mutate customer data on its own. Autonomous external actions are false for this run. Nothing was sent to any customer at any point in this case.",
+      "keywords": [
+        "autonomous",
+        "automatic",
+        "alone",
+        "without a human",
+        "send",
+        "sent",
+        "act"
+      ]
+    },
+    {
+      "id": "consent",
+      "source": "researcher.research-brief.v1 · consent_boundaries",
+      "text": "The sealed consent boundary allows the following channels: email. A channel being allowed is not permission to use it; a named human must still approve.",
+      "keywords": [
+        "consent",
+        "channel",
+        "email",
+        "contact",
+        "customer",
+        "message",
+        "communicate"
+      ]
+    },
+    {
+      "id": "lineage",
+      "source": "gate-9 transcript · lineage",
+      "text": "Each stage verifies the exact stored hash of its predecessor before using its output. A stage whose predecessor hash does not match fails closed rather than proceeding. The chain for this case was verified end to end across all five stages.",
+      "keywords": [
+        "chain",
+        "lineage",
+        "verified",
+        "hash",
+        "link",
+        "evidence",
+        "predecessor"
+      ]
+    },
+    {
+      "id": "failure-history",
+      "source": "gate-9 transcript · failed_stage_retries",
+      "text": "This run recorded 1 stage failure(s) before completing. Failures are append-only and are never rewritten or hidden. A retry restarts only the failed stage, from its last sealed checkpoint.",
+      "keywords": [
+        "fail",
+        "failed",
+        "failure",
+        "retry",
+        "error",
+        "recover",
+        "communicator",
+        "designer"
+      ]
+    },
+    {
+      "id": "five-agents",
+      "source": "gate-9 transcript · stages",
+      "text": "The organisation has exactly five bounded agents in a fixed order: Researcher, Designer, Maker, Communicator, then Manager. Each one hands a sealed artefact to the next and cannot skip ahead or run twice in parallel.",
+      "keywords": [
+        "agent",
+        "agents",
+        "stage",
+        "stages",
+        "five",
+        "order",
+        "pipeline",
+        "researcher",
+        "designer",
+        "maker",
+        "communicator"
+      ]
+    },
+    {
+      "id": "communication",
+      "source": "communicator.communication-plan.v2",
+      "text": "The Communicator prepared a view-only invitation carrying 2 claims, each supported by sealed evidence. The plan targets the email channel, which is the consented one. It was never sent. Preparing a message and sending one are separate things, and only the second needs a human.",
+      "keywords": [
+        "communicator",
+        "message",
+        "invitation",
+        "claim",
+        "claims",
+        "draft",
+        "wrote"
+      ]
+    },
+    {
+      "id": "evidence-rules",
+      "source": "researcher.research-brief.v1 · provenance",
+      "text": "The Researcher may cite only evidence returned by tools in its own session. Every later stage may cite only evidence inherited through the verified chain. No stage may introduce a fact from outside that record.",
+      "keywords": [
+        "evidence",
+        "cite",
+        "source",
+        "provenance",
+        "tool",
+        "research",
+        "invent"
+      ]
+    }
+  ]
+}

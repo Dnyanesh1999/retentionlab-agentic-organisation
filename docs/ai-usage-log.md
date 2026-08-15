@@ -416,3 +416,36 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
   16 release tests, 2 data tests, secret scan clean across 329 tracked files, Pages JS 609,601 of
   1,200,000 bytes. Panel bounds confirmed in-browser at 1280x800, 1024x560 and 390x844 with no vertical
   or horizontal overflow.
+
+## Entry 035 — Assistant slice 2: the model tier, and the rule that makes it acceptable
+
+- Date: 15 August 2026
+- Tools/models: Claude Code (Opus). The assistant function calls OpenRouter at runtime, but no model
+  call was made during this work: every test drives a stubbed completion. No migration was applied, no
+  function was deployed, and no external action was taken.
+- User prompt: build the LLM assistant.
+- AI contribution: a separate `retentionlab-assistant` Edge Function, plus the shared contract that
+  governs it. The design principle is that the model may choose words but may not introduce facts, and
+  that this is enforced after the model speaks rather than requested in a prompt. A reply is discarded
+  whole unless it parses to a fixed shape, cites only chunks sent in that same request, and every quoted
+  span occurs verbatim in the chunk it cites. Retrieval is deterministic and runs in code, so what the
+  model may see is auditable and identical for the same question every time. If retrieval finds nothing,
+  the model is not called at all — that is the state in which models invent.
+- Deliberate design change from the plan given to the user: no rate-limit migration was written. The
+  function holds no service key and has no database access whatsoever; its entire world is the corpus
+  file beside it. A durable limit would require giving it credentials and losing that isolation, to
+  defend against abuse whose only cost is model quota. It ships instead with an in-memory per-instance
+  brake, documented in the source as what it is rather than as a quota. This trade is the student's to
+  confirm.
+- On corpus safety: every source artefact is already imported by `gate9Run.ts` and therefore already
+  ships in full to every browser loading the case record, so the corpus widens nothing. The generator
+  refuses to emit a chunk containing a 64-character digest, and refuses to emit one that rendered a
+  missing value as the literal string "undefined" — a mistyped field path would otherwise have become a
+  fact the model quoted back faithfully. That guard caught four wrong field paths during this work.
+- Student responsibility: deciding whether the in-memory limit is sufficient, setting
+  `OPENROUTER_ASSISTANT_MODEL` and deploying the function, and the academic reflection.
+- Verification: 470 Vitest tests (was 453; 17 added for the contract), 12 new hosted Deno tests for the
+  assistant covering fabricated quotes, unseen-chunk citation, prompt injection, invented digests,
+  non-JSON replies and endpoint failure, plus 5 corpus drift tests wired into `test:release`.
+  TypeScript, `deno check`, agent pipeline check, ESLint, build, data tests and a clean secret scan
+  across 334 tracked files all pass. Pages JS 609,638 of 1,200,000 bytes.
