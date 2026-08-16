@@ -101,3 +101,58 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* --- Tiers -------------------------------------------------------------- */
+
+/*
+ * The tier badge is the reader's only way to tell a generated answer from a
+ * record-derived one, so the two are visually distinct rather than variations
+ * of the same chip.
+ */
+.case-assistant__provenance[data-tier="model-cited"] {
+  color: var(--violet);
+}
+
+.case-assistant__provenance[data-tier="model-cited"] svg {
+  color: var(--violet);
+}
+
+/*
+ * Why a lower tier answered. Stated plainly, because a fallback presented
+ * without explanation reads as a fault.
+ */
+.case-assistant__fallback {
+  display: block;
+  margin-top: 9px;
+  color: var(--ink-soft);
+  font: var(--type-label-small);
+}
+
+.case-assistant__citations {
+  display: grid;
+  gap: 9px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.case-assistant__citations li {
+  display: grid;
+  gap: 3px;
+  padding: 9px 11px;
+  border-left: 2px solid var(--line-strong);
+  border-radius: 0 var(--radius-control) var(--radius-control) 0;
+  background: var(--surface);
+}
+
+.case-assistant__citations q {
+  color: var(--ink);
+  font: var(--type-label-small);
+  font-style: italic;
+}
+
+.case-assistant__citations small {
+  color: var(--ink-soft);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}

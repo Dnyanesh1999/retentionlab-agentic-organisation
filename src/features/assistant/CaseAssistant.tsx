@@ -1,43 +1,71 @@
 /**
- * CaseAssistant — ask the sealed case record a question.
+ * CaseAssistant — ask this case a question.
  *
- * This is the surface a model tier will later plug into, so it is built around
- * provenance from the start: every answer carries where it came from, and the
- * reader always sees it. A generated answer and a build-time record answer must
- * never look alike.
+ * Built around provenance. Four tiers can answer, and the reader is always
+ * told which one did: a generated answer verified against the record, a
+ * deterministic answer composed from the record, the retrieved passages with
+ * no prose at all, or an honest refusal.
  *
- * Today there is exactly one tier — the sealed record — and the panel says so
- * plainly rather than implying a capability it does not have.
+ * A lower tier is never dressed up as a higher one. When the model tier stands
+ * down the reason is shown in plain words, so a fallback reads as a deliberate
+ * behaviour rather than as something broken.
  */
-import { useState, type FormEvent } from "react";
-import { Bot, FileLock2, MessageSquareText, Sparkles, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { Bot, FileLock2, LoaderCircle, MessageSquareText, Quote, Sparkles, X } from "lucide-react";
 
 import { LENIS_PREVENT, StateSwap } from "../../components/motion";
-import { answerFromSealedRecord, suggestedQuestions, type AssistantReply } from "./groundedAnswers";
+import { askWithFallback, explainReason, type LadderResult } from "./askLadder";
+import { createAssistantClient, type AssistantClient } from "./assistantClient";
+import { suggestedQuestions } from "./groundedAnswers";
 
 import "./assistant.css";
 
-export function CaseAssistant() {
+type PanelState =
+  | { status: "idle" }
+  | { status: "thinking" }
+  | { status: "settled"; result: LadderResult };
+
+export function CaseAssistant({ client: suppliedClient }: { client?: AssistantClient | null }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
-  const [reply, setReply] = useState<AssistantReply | null>(null);
+  const [state, setState] = useState<PanelState>({ status: "idle" });
+  const controller = useRef<AbortController | null>(null);
 
-  function ask(question: string) {
+  const client = useMemo(
+    () => (suppliedClient === undefined ? createAssistantClient() : suppliedClient),
+    [suppliedClient],
+  );
+
+  useEffect(() => () => controller.current?.abort(), []);
+
+  async function ask(question: string) {
+    if (!question.trim()) return;
+
+    // Only the newest question may settle the panel.
+    controller.current?.abort();
+    const next = new AbortController();
+    controller.current = next;
+
     setDraft(question);
-    setReply(answerFromSealedRecord(question));
+    setState({ status: "thinking" });
+
+    const result = await askWithFallback(question, client, next.signal);
+    if (!next.signal.aborted) {
+      setState({ status: "settled", result });
+    }
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setReply(answerFromSealedRecord(draft));
+    void ask(draft);
   }
+
+  const settled = state.status === "settled" ? state.result : null;
 
   return (
     <div className={`case-assistant${open ? " is-open" : ""}`}>
       <StateSwap className="case-assistant__swap" state={open ? "open" : "closed"} live="off">
         {open ? (
-          // The panel is bounded and scrolls itself, so LENIS_PREVENT keeps the
-          // wheel over it from scrolling the page behind it. See SmoothScroll.
           <section {...LENIS_PREVENT} className="case-assistant__panel" aria-label="Ask this case">
             <header>
               <span>
@@ -47,7 +75,7 @@ export function CaseAssistant() {
                 <X aria-hidden="true" size={18} />
               </button>
             </header>
-            <p>Answers come from the sealed assessed record—not a live model call.</p>
+            <p>Every answer is checked against this case's sealed record.</p>
 
             <form className="case-assistant__composer" onSubmit={handleSubmit}>
               <label className="sr-only" htmlFor="case-assistant-question">
@@ -60,17 +88,14 @@ export function CaseAssistant() {
                 placeholder="Ask about the decision, evidence or approval…"
                 value={draft}
               />
-              <button type="submit">Ask</button>
+              <button disabled={state.status === "thinking"} type="submit">
+                {state.status === "thinking" ? "Asking…" : "Ask"}
+              </button>
             </form>
 
             <div className="case-assistant__questions">
               {suggestedQuestions.map((item) => (
-                <button
-                  aria-pressed={reply?.status === "answered" && reply.answer.id === item.id}
-                  key={item.id}
-                  onClick={() => ask(item.question)}
-                  type="button"
-                >
+                <button key={item.id} onClick={() => void ask(item.question)} type="button">
                   {item.question}
                 </button>
               ))}
@@ -78,27 +103,15 @@ export function CaseAssistant() {
 
             <StateSwap
               className="case-assistant__answer"
-              state={reply?.status === "answered" ? reply.answer.id : (reply?.status ?? "empty")}
+              state={state.status === "settled" ? state.result.tier : state.status}
             >
-              {reply?.status === "answered" ? (
-                <div>
-                  <p>
-                    <Sparkles aria-hidden="true" size={15} />
-                    {reply.answer.answer}
-                  </p>
-                  {/* Provenance is not decoration. It is how a reader tells a
-                      record-derived answer from a generated one. */}
-                  <p className="case-assistant__provenance">
-                    <FileLock2 aria-hidden="true" size={13} />
-                    <span>Sealed record</span>
-                    <small>{reply.answer.source}</small>
-                  </p>
-                </div>
-              ) : reply?.status === "unmatched" ? (
-                <p>
-                  <MessageSquareText aria-hidden="true" size={15} />
-                  {reply.notice}
+              {state.status === "thinking" ? (
+                <p role="status">
+                  <LoaderCircle aria-hidden="true" size={15} />
+                  Checking the sealed record…
                 </p>
+              ) : settled ? (
+                <AnswerView result={settled} />
               ) : (
                 <p>
                   <MessageSquareText aria-hidden="true" size={15} />
@@ -113,6 +126,87 @@ export function CaseAssistant() {
           </button>
         )}
       </StateSwap>
+    </div>
+  );
+}
+
+function FellBackFrom({ reason }: { reason?: string }) {
+  if (!reason) return null;
+
+  return (
+    <p className="case-assistant__fallback">
+      {explainReason(reason)} Answering from the sealed record instead.
+    </p>
+  );
+}
+
+function AnswerView({ result }: { result: LadderResult }) {
+  if (result.tier === "model-cited") {
+    return (
+      <div>
+        <p>
+          <Sparkles aria-hidden="true" size={15} />
+          {result.answer}
+        </p>
+        <p className="case-assistant__provenance" data-tier="model-cited">
+          <Quote aria-hidden="true" size={13} />
+          <span>Generated · every quote verified</span>
+        </p>
+        <ul className="case-assistant__citations">
+          {result.citations.map((citation, index) => (
+            <li key={`${citation.chunkId}-${index}`}>
+              <q>{citation.quote}</q>
+              <small>{citation.source}</small>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  if (result.tier === "sealed-record") {
+    return (
+      <div>
+        <p>
+          <Sparkles aria-hidden="true" size={15} />
+          {result.answer}
+        </p>
+        <p className="case-assistant__provenance" data-tier="sealed-record">
+          <FileLock2 aria-hidden="true" size={13} />
+          <span>Sealed record</span>
+          <small>{result.source}</small>
+        </p>
+        <FellBackFrom reason={result.fallbackFrom} />
+      </div>
+    );
+  }
+
+  if (result.tier === "evidence") {
+    return (
+      <div>
+        <p>
+          <MessageSquareText aria-hidden="true" size={15} />
+          {explainReason(result.fallbackFrom)} Here is what the record says.
+        </p>
+        <ul className="case-assistant__citations">
+          {result.evidence.map((excerpt, index) => (
+            <li key={`${excerpt.source}-${index}`}>
+              <q>{excerpt.text}</q>
+              <small>{excerpt.source}</small>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <p>
+        <MessageSquareText aria-hidden="true" size={15} />
+        {result.notice}
+      </p>
+      <FellBackFrom reason={result.fallbackFrom} />
     </div>
   );
 }
