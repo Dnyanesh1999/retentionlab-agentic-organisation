@@ -21,6 +21,12 @@ const { managerOutcome, recovery, lineageLinks, stages } = gate9Run;
 const managerStage = stages.find((stage) => stage.id === "manager");
 const verifiedLinkCount = lineageLinks.filter((link) => link.verified).length;
 
+// The consented channels are read from the Researcher's sealed consent
+// boundary rather than restated as prose, so this answer cannot drift from the
+// record it claims to quote.
+const researcherDetail = stages.find((stage) => stage.id === "researcher")?.detail;
+const allowedChannels = researcherDetail?.kind === "researcher" ? researcherDetail.allowedChannels : [];
+
 export const managerAnswers: readonly ManagerAnswer[] = [
   {
     id: "decision",
@@ -58,6 +64,17 @@ export const managerAnswers: readonly ManagerAnswer[] = [
       : "No specific human-review focus was recorded.",
     source: "manager.operational-decision.v1 · human_review_focus",
     keywords: ["review", "human", "focus", "check", "reviewer"],
+  },
+  {
+    id: "contact",
+    question: "Can the organisation contact the customer?",
+    answer: `Not autonomously. The sealed consent boundary allows ${
+      allowedChannels.length ? allowedChannels.join(", ") : "no channel"
+    }, but the Manager record requires a named human to approve the next action. Autonomous external actions: ${
+      managerOutcome.autonomousExternalActions ? "true" : "false"
+    }.`,
+    source: "researcher.research-brief.v1 · consent_boundaries",
+    keywords: ["contact", "email", "customer", "message", "communicate", "channel"],
   },
 ] as const;
 

@@ -1,8 +1,8 @@
 import { pushHashRoute } from "../../app/hashRoute";
+import { CaseAssistant } from "../assistant/CaseAssistant";
 import {
   ApprovedCaseScreen,
   CaseArchiveScreen,
-  CaseAssistant,
   CaseRecordScreen,
 } from "../design-lab/DesignLabView";
 
