@@ -579,3 +579,32 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
   than a transport one.
 - Student responsibility: the approval and rejection decisions themselves, and whether to relax the
   workers' request contract to admit stronger models.
+
+## Entry 040 — Closing the reject path as a decision, not a gap
+
+- Date: 16 August 2026
+- Tools/models: Claude Code (Opus). Four production retries were run; the worker request contract was
+  relaxed; no approval or rejection was recorded, and no external action was taken.
+- User prompt: relax the contract and retry; then keep the free model and close the documentation.
+- AI contribution: removed `reasoning_effort: "none"` from all five workers, since combined with
+  `require_parameters` it left exactly one compatible model while being only a performance hint;
+  compared citation `retrieved_at` as an instant rather than a string, so identical moments written in
+  different ISO formats stop failing runs; and split the three evidence-integrity guards so a rejection
+  names which one fired. Each retry then got further — past the endpoint, past the schema, to a valid
+  ResearchBrief — and stopped at citation integrity, where the model named a real evidence key but
+  attributed it to the wrong `source_tool`.
+- The decision recorded: that guard was **not** relaxed. Loosening it would have produced a live
+  `reject` event at the cost of the exact-`source_tool` provenance claim, which is among the strongest
+  assertions this project makes. Two capable models — `nvidia/nemotron-3-super-120b-a12b:free` and
+  `openai/gpt-4o-mini` — attempted to mis-attribute evidence provenance and were both refused. The
+  refusals are better evidence than the demonstration would have been. `docs/qa-human-approval.md` §5.4
+  now records the reject path as closed by decision rather than as an outstanding gap.
+- Disclosed rather than discarded: run `068c2a2b` exists because of incorrect advice from this
+  assistant, and carries this session's failed attempts. It is recorded in §5.3a on the same principle
+  as the earlier probe side effect in §5.3.
+- Settled configuration: all five workers are back on the free
+  `nvidia/nemotron-3-super-120b-a12b:free`. Nothing needs a paid model, because no run is being driven
+  to the approval boundary. The assistant remains on its own key and model.
+- Student responsibility: the remaining §5.4 items (idempotent replay, 390×844 decision-sheet QA), and
+  the academic reflection and cited submission section.
+- Verification: 487 Vitest tests, 29 hosted Deno tests, lint and typecheck pass.
