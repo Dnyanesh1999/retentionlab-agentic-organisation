@@ -59,9 +59,16 @@ describe("validateModelReply", () => {
     expect(result).toEqual({ ok: false, reason: "quote-not-found" });
   });
 
-  it("rejects a citation naming a chunk that was never offered", () => {
+  it("rejects an unoffered id whose quote appears in no offered passage", () => {
+    // A quote that does exist in offered material is recovered instead — see
+    // the mislabelled-citations suite below. What can never be recovered is a
+    // quote that is nowhere in what was sent.
     const result = validateModelReply(
-      reply({ citations: [{ chunk_id: "private-artefact", quote: "Autonomous external actions remained false" }] }),
+      reply({
+        citations: [
+          { chunk_id: "private-artefact", quote: "the private artefact was released to the browser" },
+        ],
+      }),
       chunks,
     );
 
@@ -190,5 +197,65 @@ describe("retrieveChunks", () => {
     }));
 
     expect(retrieveChunks("manager", many)).toHaveLength(ASSISTANT_LIMITS.maxChunks);
+  });
+});
+
+describe("validateModelReply — mislabelled citations", () => {
+  it("recovers a real quote the model attributed to the wrong id", () => {
+    // Models paraphrase identifiers far more readily than they fabricate
+    // sentences. The quote still had to occur verbatim in offered material.
+    const result = validateModelReply(
+      reply({
+        citations: [
+          { chunk_id: "researcher.research-brief.v1", quote: "allows the email channel only" },
+        ],
+      }),
+      chunks,
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    // Attribution is corrected to the passage the quote actually came from.
+    expect(result.citations[0].chunkId).toBe("consent");
+    expect(result.citations[0].source).toContain("consent_boundaries");
+  });
+
+  it("still rejects a fabricated quote under a wrong id", () => {
+    const result = validateModelReply(
+      reply({
+        citations: [{ chunk_id: "made-up-id", quote: "The Manager authorised an automatic email" }],
+      }),
+      chunks,
+    );
+
+    expect(result).toEqual({ ok: false, reason: "unknown-chunk" });
+  });
+
+  it("refuses to guess when a quote could have come from two passages", () => {
+    const duplicated = [
+      { ...chunks[0], id: "a", source: "source-a" },
+      { ...chunks[0], id: "b", source: "source-b" },
+    ];
+
+    const result = validateModelReply(
+      reply({ citations: [{ chunk_id: "wrong", quote: "Autonomous external actions remained false" }] }),
+      duplicated,
+    );
+
+    // Attributing it to the wrong source would be its own untruth.
+    expect(result).toEqual({ ok: false, reason: "ambiguous-citation" });
+  });
+
+  it("keeps an exactly-named chunk authoritative, not the quote search", () => {
+    const result = validateModelReply(
+      reply({
+        citations: [{ chunk_id: "consent", quote: "Autonomous external actions remained false" }],
+      }),
+      chunks,
+    );
+
+    // Named the wrong chunk for a quote that exists elsewhere: that is a
+    // genuine mismatch and must fail, not silently reattribute.
+    expect(result).toEqual({ ok: false, reason: "quote-not-found" });
   });
 });

@@ -63,6 +63,11 @@ const SYSTEM_PROMPT = [
   "",
   `Keep the answer under ${ASSISTANT_LIMITS.answerMaxLength} characters and cite at most ${ASSISTANT_LIMITS.maxCitations} passages.`,
   "Each quote must be at least 16 characters and must appear word for word in the cited passage.",
+  "",
+  // Mislabelled ids were the single largest cause of rejected replies in live
+  // probing — the quotes were genuine, the identifier was invented.
+  "chunk_id must be copied exactly from the square brackets that label each passage,",
+  "for example [manager-decision]. Do not use the source name, the file name, or invent an id.",
 ].join("\n");
 
 function renderEvidence(chunks: readonly CorpusChunk[]): string {
