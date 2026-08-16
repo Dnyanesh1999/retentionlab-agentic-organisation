@@ -68,17 +68,19 @@ function json(body: unknown, status = 200) {
  * instances are recycled and can run in parallel, so a determined caller can
  * exceed this.
  *
- * The daily cap matters more than the per-minute one, and the reason is
- * specific to this project. OpenRouter's free tier allows 50 requests per day
- * on an unfunded account (1000 once $10 of credits has ever been purchased),
- * and the five agents draw from that same pool. A chatbot left on a public
- * page can therefore starve the pipeline that the whole project exists to
- * demonstrate. The first version of this limiter allowed 12 per minute — over
- * 17,000 a day — which protected nothing at all.
+ * Measured against the deployed function, this stops almost nothing: 14
+ * parallel requests all succeeded, because each landed on its own isolate with
+ * its own empty counter. Treat it as a brake on one stuck client loop and
+ * nothing more. It is documented rather than removed so that no one mistakes
+ * its presence for protection.
  *
- * The real protections are choosing a paid model for the assistant so the two
- * pools never mix, and OpenRouter's own account limits. This is the last line,
- * not the first.
+ * The protection that actually works here is an OpenRouter key scoped to the
+ * assistant, carrying its own spending limit and reset period — see
+ * OPENROUTER_ASSISTANT_API_KEY below. That caps abuse at a chosen amount and
+ * keeps it away from the quota the five agents share. Free models allow only
+ * 50 requests a day on an unfunded account, and the agents draw from that same
+ * pool, so an unprotected assistant can starve the pipeline this project
+ * exists to demonstrate.
  */
 const WINDOW_MS = 60_000;
 const DAY_MS = 86_400_000;
@@ -146,7 +148,13 @@ Deno.serve(async (request) => {
     return json({ status: "refused", reason: "rate-limited" }, 429);
   }
 
-  const apiKey = Deno.env.get("OPENROUTER_API_KEY");
+  // A dedicated key is strongly preferred over sharing the agents' one.
+  // OpenRouter keys carry their own spending limit and reset period, so a key
+  // scoped to the assistant caps abuse at a chosen amount and cannot touch the
+  // quota the five agents depend on. Falls back to the shared key so the
+  // function still works before a dedicated one exists.
+  const apiKey = Deno.env.get("OPENROUTER_ASSISTANT_API_KEY") ??
+    Deno.env.get("OPENROUTER_API_KEY");
   const model = Deno.env.get("OPENROUTER_ASSISTANT_MODEL");
   if (!apiKey || !model) {
     // Not configured is a refusal, not a crash: the browser falls back to its
