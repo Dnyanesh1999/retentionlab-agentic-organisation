@@ -4080,3 +4080,106 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* --- Boundary beam --------------------------------------------------------
+ *
+ * A light travelling the border of the card that states the governance
+ * boundary. It is the one place in the interface where drawing the eye is the
+ * correct thing to do: "human approval required, nothing was sent" is the
+ * claim the whole project rests on, and it was previously the quietest card on
+ * the page.
+ *
+ * Built from a registered custom property so the angle is a real animatable
+ * type. The gradient is masked to the border box, so only the 1px frame is
+ * painted and the card's own background is untouched.
+ *
+ * It carries no information a reader could miss by not seeing it — the text
+ * says everything — so under reduced motion it settles to a static frame
+ * rather than being removed.
+ */
+@property --beam-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.boundary-beam {
+  position: relative;
+  isolation: isolate;
+}
+
+.boundary-beam::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -1px;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--beam-angle),
+    transparent 0deg 200deg,
+    color-mix(in srgb, var(--forest) 35%, transparent) 280deg,
+    var(--forest) 330deg,
+    transparent 360deg
+  );
+  animation: boundary-beam-sweep 7s linear infinite;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+@keyframes boundary-beam-sweep {
+  to {
+    --beam-angle: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boundary-beam::before {
+    animation: none;
+  }
+}
+
+/* --- Route view transitions -----------------------------------------------
+ *
+ * Only the outgoing frame is animated. The incoming route keeps the entrance
+ * it already has in `RouteTransition`, so the two do not cross-fade against
+ * each other and read as one movement.
+ *
+ * This is what finally gives routes an exit. `AnimatePresence mode="wait"` was
+ * ruled out because it holds the outgoing route mounted — two
+ * `<main id="main-content">` landmarks at once, and a navigation that stalls
+ * when frames are throttled. A view transition animates a snapshot, so the DOM
+ * swap stays synchronous and neither problem exists.
+ */
+::view-transition-old(root) {
+  animation: route-leave 170ms var(--motion-ease-standard, ease) both;
+}
+
+::view-transition-new(root) {
+  animation: none;
+}
+
+@keyframes route-leave {
+  to {
+    opacity: 0;
+  }
+}
+
+/*
+ * Reduced motion is handled in `hashRoute.ts`, which skips the transition
+ * entirely, but the rule is repeated here so a transition started by anything
+ * else cannot animate either.
+ */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

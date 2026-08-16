@@ -89,6 +89,30 @@ const transcriptSchema = z
       })
       .passthrough(),
     stage_attempts: z.array(stageAttemptSchema),
+    /*
+     * The append-only event stream, hash-chained: each entry carries its own
+     * hash and its predecessor's. It is validated here like every other part of
+     * the transcript so the interface cannot show a stream the schema rejects.
+     */
+    events: z.array(
+      z
+        .object({
+          seq: z.number().int().nonnegative(),
+          prev_hash: z.string().length(64),
+          hash: z.string().length(64),
+          event: z
+            .object({
+              type: z.string().min(1),
+              stage: z.enum(STAGE_ORDER).optional(),
+              version: z.number().int().positive().optional(),
+              reason: z.string().min(1).optional(),
+              error: z.string().min(1).optional(),
+              created_at: isoDatetime,
+            })
+            .passthrough(),
+        })
+        .passthrough(),
+    ),
     lineage: lineageSchema,
     stage_failures: z.array(
       z
@@ -386,6 +410,23 @@ export type StageEvidence = {
   detail: StageDetail;
 };
 
+/**
+ * One entry in the append-only stream, as the interface needs it.
+ *
+ * `hash` is the event's own place in the chain. It is exposed truncated by the
+ * surfaces that show it, like every other identity in this application.
+ */
+export type RunEvent = {
+  seq: number;
+  type: string;
+  stage: StageId | null;
+  version: number | null;
+  /** The recorded reason or error, whichever the event carries. */
+  note: string | null;
+  occurredAt: string;
+  hash: string;
+};
+
 export type Gate9Run = {
   runId: string;
   accountSlug: string;
@@ -394,6 +435,7 @@ export type Gate9Run = {
   finalStatus: string;
   requiresHumanApproval: boolean;
   eventCount: number;
+  events: RunEvent[];
   stages: StageEvidence[];
   lineageLinks: LineageLink[];
   recovery: RecoveryRecord;
@@ -665,6 +707,27 @@ const stages: StageEvidence[] = STAGE_ORDER.map((id) => {
 
 const lineageLinks: LineageLink[] = STAGE_ORDER.flatMap((id) => lineageInto(id));
 
+/*
+ * The stream, in recorded order. Nothing is filtered: the Communicator's v1
+ * failure and its retry stay in the list exactly where they happened, because
+ * an append-only history that hides its failures is not one.
+ */
+const runEvents: RunEvent[] = [...transcript.events]
+  .sort((a, b) => a.seq - b.seq)
+  .map((entry) => ({
+    seq: entry.seq,
+    type: entry.event.type,
+    stage: entry.event.stage ?? null,
+    version: entry.event.version ?? null,
+    note: entry.event.error ?? entry.event.reason ?? null,
+    occurredAt: entry.event.created_at,
+    hash: entry.hash,
+  }));
+
+if (runEvents.length !== transcript.run.event_count) {
+  throw new Error("Gate 9 event stream length does not match the recorded event count.");
+}
+
 export const gate9Run: Gate9Run = {
   runId: transcript.run.run_id,
   accountSlug: transcript.run.account_slug,
@@ -673,6 +736,7 @@ export const gate9Run: Gate9Run = {
   finalStatus: transcript.run.final_status,
   requiresHumanApproval: transcript.run.requires_human_approval,
   eventCount: transcript.run.event_count,
+  events: runEvents,
   stages,
   lineageLinks,
   recovery,
