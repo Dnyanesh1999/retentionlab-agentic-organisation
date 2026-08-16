@@ -1,0 +1,47 @@
+/*
+ * The seal is drawn in the case palette rather than in colours of its own, so a
+ * row of marks reads as one family and the variation the reader notices is the
+ * hash, not the styling.
+ */
+.artifact-glyph {
+  display: block;
+  flex: none;
+  overflow: visible;
+}
+
+.artifact-glyph__body {
+  fill: color-mix(in srgb, var(--mint) 62%, transparent);
+  stroke: var(--forest);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.artifact-glyph__ring {
+  fill: none;
+  stroke: color-mix(in srgb, var(--forest) 38%, transparent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.artifact-glyph__core {
+  fill: var(--forest);
+}
+
+/*
+ * Muted is for a stage that is not the current selection: the mark stays
+ * legible enough to compare against its neighbours, but stops competing with
+ * the row the reader is actually on.
+ */
+.artifact-glyph.is-muted .artifact-glyph__body {
+  fill: color-mix(in srgb, var(--line) 40%, transparent);
+  stroke: var(--ink-soft);
+}
+
+.artifact-glyph.is-muted .artifact-glyph__ring {
+  stroke: color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.artifact-glyph.is-muted .artifact-glyph__core {
+  fill: var(--ink-soft);
+}
