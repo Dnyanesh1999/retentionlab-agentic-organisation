@@ -64,21 +64,37 @@ function json(body: unknown, status = 200) {
 /**
  * In-memory, per-instance request budget.
  *
- * An honest description of what this is: a cheap brake on a single warm
- * instance, not a real quota. Edge instances are recycled and can run in
- * parallel, so a determined caller can exceed this. It is here so that a stuck
- * client loop cannot drain the model budget in one burst. A durable limit
- * belongs in Postgres and is the next slice.
+ * An honest description: a brake on a single warm instance, not a quota. Edge
+ * instances are recycled and can run in parallel, so a determined caller can
+ * exceed this.
+ *
+ * The daily cap matters more than the per-minute one, and the reason is
+ * specific to this project. OpenRouter's free tier allows 50 requests per day
+ * on an unfunded account (1000 once $10 of credits has ever been purchased),
+ * and the five agents draw from that same pool. A chatbot left on a public
+ * page can therefore starve the pipeline that the whole project exists to
+ * demonstrate. The first version of this limiter allowed 12 per minute — over
+ * 17,000 a day — which protected nothing at all.
+ *
+ * The real protections are choosing a paid model for the assistant so the two
+ * pools never mix, and OpenRouter's own account limits. This is the last line,
+ * not the first.
  */
 const WINDOW_MS = 60_000;
-const MAX_PER_WINDOW = 12;
+const DAY_MS = 86_400_000;
+const MAX_PER_WINDOW = 5;
+const MAX_PER_DAY = 30;
 const hits: number[] = [];
 
 function withinBudget(now: number): boolean {
-  while (hits.length > 0 && now - hits[0] > WINDOW_MS) {
+  while (hits.length > 0 && now - hits[0] > DAY_MS) {
     hits.shift();
   }
-  if (hits.length >= MAX_PER_WINDOW) return false;
+  if (hits.length >= MAX_PER_DAY) return false;
+
+  const recent = hits.filter((at) => now - at <= WINDOW_MS).length;
+  if (recent >= MAX_PER_WINDOW) return false;
+
   hits.push(now);
   return true;
 }

@@ -22,10 +22,20 @@ import {
   type ValidatedCitation,
 } from "../../../runtime/assistant/contracts.ts";
 
+/** A retrieved passage, returned on refusal so the reader still sees the record. */
+export type EvidenceExcerpt = { source: string; text: string };
+
 export type AssistantOutcome =
   | { status: "answered"; answer: string; citations: ValidatedCitation[] }
-  /** Honest, expected refusals. The browser shows its own grounded tier. */
-  | { status: "refused"; reason: string };
+  /**
+   * Honest, expected refusals.
+   *
+   * When retrieval did find material, it is returned alongside. A failed
+   * generation should not cost the reader the evidence — showing the passages
+   * without prose is more useful than an apology, and it is the tier between
+   * a model answer and a bare refusal.
+   */
+  | { status: "refused"; reason: string; evidence?: EvidenceExcerpt[] };
 
 export type AskOptions = {
   question: string;
@@ -102,6 +112,13 @@ export async function askAssistant({
     return { status: "refused", reason: "no-evidence" };
   }
 
+  // Returned with every refusal from here on: retrieval succeeded, so the
+  // reader can still be shown the record even if generation fails.
+  const evidence: EvidenceExcerpt[] = offered.map((chunk) => ({
+    source: chunk.source,
+    text: chunk.text,
+  }));
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -130,13 +147,13 @@ export async function askAssistant({
     });
 
     if (!response.ok) {
-      return { status: "refused", reason: "model-unavailable" };
+      return { status: "refused", reason: "model-unavailable", evidence };
     }
     payload = await response.json();
   } catch {
     // Timeout, abort, network failure, unparseable envelope — all the same
     // outcome from the caller's point of view.
-    return { status: "refused", reason: "model-unavailable" };
+    return { status: "refused", reason: "model-unavailable", evidence };
   } finally {
     clearTimeout(timer);
   }
@@ -144,12 +161,12 @@ export async function askAssistant({
   const content = (payload as { choices?: { message?: { content?: unknown } }[] })
     ?.choices?.[0]?.message?.content;
   if (typeof content !== "string") {
-    return { status: "refused", reason: "model-unavailable" };
+    return { status: "refused", reason: "model-unavailable", evidence };
   }
 
   const result = validateModelReply(extractJson(content), offered);
   if (!result.ok) {
-    return { status: "refused", reason: result.reason };
+    return { status: "refused", reason: result.reason, evidence };
   }
 
   return { status: "answered", answer: result.answer, citations: result.citations };

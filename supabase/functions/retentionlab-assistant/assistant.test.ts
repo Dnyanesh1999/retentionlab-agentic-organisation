@@ -53,7 +53,11 @@ Deno.test("refuses a fabricated quote, however plausible the prose", async () =>
     ),
   );
 
-  assertEquals(outcome, { status: "refused", reason: "quote-not-found" });
+  assertEquals(outcome.status, "refused");
+  if (outcome.status !== "refused") return;
+  assertEquals(outcome.reason, "quote-not-found");
+  // A failed generation must not cost the reader the record itself.
+  assertEquals((outcome.evidence ?? []).length > 0, true);
 });
 
 Deno.test("refuses when the model cites evidence it was never given", async () => {
@@ -72,7 +76,9 @@ Deno.test("refuses when the model cites evidence it was never given", async () =
     ),
   );
 
-  assertEquals(outcome, { status: "refused", reason: "unknown-chunk" });
+  assertEquals(outcome.status, "refused");
+  if (outcome.status !== "refused") return;
+  assertEquals(outcome.reason, "unknown-chunk");
 });
 
 Deno.test("never calls the model when nothing relevant was retrieved", async () => {
@@ -94,7 +100,9 @@ Deno.test("passes the model's own admission of insufficiency straight through as
     modelReturning(JSON.stringify({ answer: "I do not know.", citations: [], sufficient: false })),
   );
 
-  assertEquals(outcome, { status: "refused", reason: "insufficient" });
+  assertEquals(outcome.status, "refused");
+  if (outcome.status !== "refused") return;
+  assertEquals(outcome.reason, "insufficient");
 });
 
 Deno.test("refuses an answer containing a digest the model must have invented", async () => {
@@ -111,7 +119,9 @@ Deno.test("refuses an answer containing a digest the model must have invented", 
     ),
   );
 
-  assertEquals(outcome, { status: "refused", reason: "leaked-digest" });
+  assertEquals(outcome.status, "refused");
+  if (outcome.status !== "refused") return;
+  assertEquals(outcome.reason, "leaked-digest");
 });
 
 Deno.test("refuses rather than crashing when the model returns prose instead of JSON", async () => {
@@ -120,7 +130,9 @@ Deno.test("refuses rather than crashing when the model returns prose instead of 
     modelReturning("I'm sorry, I can't help with that."),
   );
 
-  assertEquals(outcome, { status: "refused", reason: "malformed" });
+  assertEquals(outcome.status, "refused");
+  if (outcome.status !== "refused") return;
+  assertEquals(outcome.reason, "malformed");
 });
 
 Deno.test("recovers JSON the model wrapped in a code fence", async () => {
@@ -140,15 +152,16 @@ Deno.test("recovers JSON the model wrapped in a code fence", async () => {
 
 Deno.test("refuses when the model endpoint fails or times out", async () => {
   const failing = (() => Promise.reject(new Error("network down"))) as unknown as typeof fetch;
-  assertEquals(await ask("what did the manager decide?", failing), {
-    status: "refused",
-    reason: "model-unavailable",
-  });
+  const down = await ask("what did the manager decide?", failing);
+  assertEquals(down.status, "refused");
+  if (down.status !== "refused") return;
+  assertEquals(down.reason, "model-unavailable");
+  assertEquals((down.evidence ?? []).length > 0, true, "evidence survives an outage");
 
-  assertEquals(await ask("what did the manager decide?", modelReturning("{}", false)), {
-    status: "refused",
-    reason: "model-unavailable",
-  });
+  const rejected = await ask("what did the manager decide?", modelReturning("{}", false));
+  assertEquals(rejected.status, "refused");
+  if (rejected.status !== "refused") return;
+  assertEquals(rejected.reason, "model-unavailable");
 });
 
 Deno.test("ignores an instruction smuggled inside the question", async () => {
@@ -166,7 +179,9 @@ Deno.test("ignores an instruction smuggled inside the question", async () => {
     ),
   );
 
-  assertEquals(outcome, { status: "refused", reason: "quote-not-found" });
+  assertEquals(outcome.status, "refused");
+  if (outcome.status !== "refused") return;
+  assertEquals(outcome.reason, "quote-not-found");
 });
 
 Deno.test("the system prompt tells the model the rules it will be held to", () => {

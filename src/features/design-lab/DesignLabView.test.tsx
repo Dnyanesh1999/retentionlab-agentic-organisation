@@ -38,14 +38,18 @@ describe("interactive design lab", () => {
     expect(document.querySelector(".ledger-detail")).not.toBeInTheDocument();
   });
 
-  it("answers questions only from the sealed case record", async () => {
+  it("still answers from the sealed record when the model tier is unreachable", async () => {
+    // The assistant's resilience claim: with no reachable generated-answer
+    // service, the deterministic tier still answers, and says it did.
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
     render(<DesignLabView />);
 
     fireEvent.click(screen.getByRole("button", { name: "Ask this case" }));
-    expect(await screen.findByText(/not a live model call/i)).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole("button", { name: "Can the organisation contact the customer?" }));
 
-    fireEvent.click(screen.getByRole("button", { name: "Can the organisation contact the customer?" }));
     expect(await screen.findByText(/requires a named human to approve/i)).toBeInTheDocument();
+    expect(await screen.findByText("Sealed record")).toBeInTheDocument();
+    vi.unstubAllGlobals();
   });
 
   it("demonstrates honest loading and recoverable error states", async () => {

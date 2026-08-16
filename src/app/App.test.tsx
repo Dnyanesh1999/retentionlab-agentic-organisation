@@ -47,16 +47,19 @@ describe("RetentionLab application shell", () => {
     expect(screen.queryByRole("navigation", { name: "Case workspace" })).not.toBeInTheDocument();
   });
 
-  it("answers case questions only from the sealed record", async () => {
+  it("answers case questions from the sealed record when no model tier answers", async () => {
+    // fetch is stubbed so the unit suite never reaches the deployed function;
+    // the refusal it produces is the same one a real outage would.
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
     renderApp();
 
     const managerToggle = await screen.findByRole("button", { name: /Ask this case/ });
     fireEvent.click(managerToggle);
 
-    expect(await screen.findByText(/sealed assessed record/i)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "Can the organisation contact the customer?" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Can the organisation contact the customer?" }));
     expect(await screen.findByText(/requires a named human to approve/i)).toBeInTheDocument();
+    expect(await screen.findByText("Sealed record")).toBeInTheDocument();
+    vi.unstubAllGlobals();
   });
 
   it("redirects the legacy organisation URL to the active case", async () => {

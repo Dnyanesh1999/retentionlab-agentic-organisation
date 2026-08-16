@@ -480,3 +480,37 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
   trade recorded in entry 035, and the academic reflection.
 - Verification: 13 hosted Deno tests for the assistant (was 12), 470 Vitest tests, and the live probe
   matrix above.
+
+## Entry 037 — Assistant slice 3: the fallback ladder, and a model choice driven by quota
+
+- Date: 16 August 2026
+- Tools/models: Claude Code (Opus). Researched OpenRouter's published limits and model catalogue. No
+  assistant model call was made: the deployed function still has no model configured, so the live check
+  exercised the fallback path exactly as a real outage would.
+- User prompt: research free models and their rate limits, decide which to use, and build slice 3.
+- AI contribution: wired the browser to the model tier through a single ladder — model-cited → sealed
+  record → retrieved passages without prose → honest refusal — with the tier shown to the reader every
+  time and the reason a lower tier answered stated in plain words. The server now returns the retrieved
+  passages alongside a refusal, so a failed generation does not also cost the reader the evidence.
+- Research finding that changed a decision: OpenRouter free models are capped at 20 requests per minute
+  and **50 per day** on an account that has never purchased credits (1000 per day once $10 has been
+  purchased, as a lifetime unlock). The five agents draw from that same pool, so a chatbot left running
+  on a public page can starve the pipeline this project exists to demonstrate.
+- Defect this found in the author's own work: the rate limiter written in slice 2 allowed 12 requests
+  per minute — over 17,000 a day — against a 50-a-day budget. It protected nothing. It is now 5 per
+  minute and 30 per day per instance, and the source states plainly that the real protections are model
+  choice and OpenRouter's own account limits rather than an in-memory counter.
+- Model recommendation recorded for the student: `google/gemma-4-26b-a4b-it:free` is the same model the
+  five agents already use and supports structured outputs, but it shares the 50-a-day pool. A paid
+  `google/gemini-2.5-flash-lite` costs roughly $0.00023 per question — about 23 cents per thousand — and
+  removes the competition entirely. The choice is the student's.
+- Two committed tests were changed rather than kept passing: both asserted the panel's old claim that
+  answers are "not a live model call". That claim is now false, so the tests assert the resilience
+  property instead — with the model tier unreachable, the deterministic tier still answers and says so.
+  Both stub `fetch`, so the unit suite no longer reaches the deployed function.
+- Live check: the panel on `#/cases/overview` made exactly one request to the deployed function, which
+  returned `not-configured`, and the ladder resolved to the sealed-record tier as designed.
+- Student responsibility: choosing the assistant model, confirming the rate-limit trade, and the
+  academic reflection.
+- Verification: 483 Vitest tests (was 470), 13 hosted Deno tests, typecheck, `deno check`, lint, build,
+  release and data tests, secret scan clean across 343 tracked files, Pages JS 614,661 of 1,200,000.
