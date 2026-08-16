@@ -21,17 +21,15 @@ survived unchanged.
 
 ### Do these first, in this order
 
-1. **Decide the stray run `4f505d07`.** A probe in an earlier session called `create_run` on
-   `marble-current` to prove the account was released after approval; that created a real governed run
-   which is executing or paused. Rejecting it through the Control Room both frees the account and gives
-   the **`reject` path its first live proof** — currently it is covered by unit tests only. This side
-   effect is disclosed in `docs/qa-human-approval.md` §5.3; do not quietly delete it.
+1. ~~Decide the stray run `4f505d07`.~~ **Closed — it was never at the approval boundary.** It has been
+   `failed` since 15 August 2026, so it could not be rejected. The handoff's earlier claim that it was
+   "executing or paused" was wrong. Nothing is blocked by it: a failed run is not open, so the account
+   is free.
 
-   Note the trap: do **not** inspect it with the `get_run` gateway action to find out its state first.
-   `get_run` calls `scheduleHostedWorker`, so reading the run resumes it and spends OpenRouter quota.
-   Use the Control Room, or a read-only query in the Supabase SQL editor.
-2. **Fill the gaps in §5.4 of `docs/qa-human-approval.md`**: the reject path, idempotent replay against
-   production, and 390×844 QA of the decision sheet.
+2. **Two gaps remain in §5.4 of `docs/qa-human-approval.md`**: idempotent replay against production,
+   and 390×844 QA of the decision sheet. The `reject` path is **closed as a deliberate decision**, not
+   an outstanding task — see §5.4 for why the citation-integrity guard was not relaxed to force a run
+   to the boundary.
 3. ~~Confirm reduced-motion parity in a real browser.~~ **Done against the deployed build — see §10.1**,
    including the counters. No item remains here.
 
@@ -347,6 +345,13 @@ npx supabase functions deploy retentionlab-runs \
 
 `verify_jwt=false` is intentional for this function because it validates the configured publishable key
 itself and keeps worker RPCs behind the service key. Do not remove that custom caller check.
+
+## 8.0 Settled worker model
+
+All five workers run `nvidia/nemotron-3-super-120b-a12b:free`, which is also the hard-coded fallback in
+`index.ts`. It is free, and since `reasoning_effort` was removed from the request contract it is no
+longer the *only* compatible model — but nothing needs a stronger one, because no run is being driven
+to the approval boundary. The assistant is separate and uses its own key and model.
 
 ## 8.1 Model compatibility — measured, not assumed
 

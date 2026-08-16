@@ -217,6 +217,17 @@ the same hash P8 returned, so the operator attested to the artefact they actuall
 | P16 | Promoted case | `list_promoted_cases` returns 1 case: Marble Current, 5 stage summaries, `external_actions_permitted = 0`. Leak checks on the raw payload: no 64-character digest, no rationale, no operator identity, no prompt |
 | — | Public event stream | No 64-character digest present anywhere in the 29 events |
 
+### 5.3a Second side effect, disclosed
+
+Run `068c2a2b-24bc-4773-af3b-156e8b61e153` was created on `marble-current` at 01:41 on 16 August 2026.
+It exists because the assistant told the student that pressing "Create hosted run" would resume the
+existing run rather than create a new one. That was asserted without checking: `4f505d07` had been
+`failed` since 15 August, not open, so the idempotent create had nothing to return and made a new run.
+
+That run then carried the four retry attempts described in 5.4. Its `run_failed` events are append-only
+and are not being removed. It is recorded here rather than quietly discarded, on the same principle as
+5.3 below.
+
 ### 5.3 Probe side effect, disclosed
 
 The P15 check was performed by actually calling `create_run`, which does not merely test the index — it
@@ -226,9 +237,24 @@ property without consuming model quota or opening a run on the account. It is re
 quietly discarded. The run is synthetic, governed, and cannot take an external action; it is a
 candidate for exercising the `reject` path, which the approval flow has not yet demonstrated live.
 
-### 5.4 Not yet demonstrated live
+### 5.4 Not demonstrated live, and the decision behind that
 
-- The `reject` path (`run_rejected`, `status = rejected`) — covered by unit tests only.
+- **The `reject` path (`run_rejected`, `status = rejected`) is covered by unit tests only, and stays
+  that way deliberately.** A live rejection needs a run sitting at `awaiting_human_approval`. On
+  16 August 2026 four attempts were made to bring one there. Each got further — past the model
+  endpoint, past the JSON Schema, to a valid ResearchBrief — and each was then refused by the
+  Researcher's citation-integrity guard, because the model named a real evidence key but attributed it
+  to the wrong `source_tool`.
+
+  That guard could have been relaxed to let a run through. It was not. The exact-`source_tool` claim is
+  one of the strongest things this project asserts, and weakening it to manufacture a demonstration
+  would have cost more than the demonstration is worth. The refusals are themselves evidence: two
+  capable production models — `nvidia/nemotron-3-super-120b-a12b:free` and `openai/gpt-4o-mini` —
+  attempted to mis-attribute evidence provenance, and the Researcher failed closed on both.
+
+  What the `reject` path does have: 13 hosted Deno tests, including refusal on a wrong Manager hash,
+  and probe P9 in section 5, where an authorised operator at a valid run was refused live for
+  presenting a hash that did not match the sealed record.
 - Idempotent replay of a decision key against production — covered by unit tests only. It was not run
   against `982ac99a…` because the run is now terminal, so a replay there would exercise the
   already-decided branch rather than the replay branch.
