@@ -11,6 +11,7 @@
  * behaviour rather than as something broken.
  */
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { Bot, FileLock2, LoaderCircle, MessageSquareText, Quote, Sparkles, X } from "lucide-react";
 
 import { LENIS_PREVENT, StateSwap } from "../../components/motion";
@@ -62,7 +63,17 @@ export function CaseAssistant({ client: suppliedClient }: { client?: AssistantCl
 
   const settled = state.status === "settled" ? state.result : null;
 
-  return (
+  /*
+   * Portalled to the body, because this is `position: fixed` and the route it
+   * is mounted inside animates its entrance with a transform. A transformed
+   * ancestor becomes the containing block for fixed descendants, so while that
+   * animation runs the panel is positioned against the route wrapper rather
+   * than the viewport — which put the trigger hundreds of pixels away, and made
+   * it appear on entrance and then jump elsewhere once the transform cleared.
+   * Rendering outside the wrapper is the only way the viewport anchor holds at
+   * every frame.
+   */
+  return createPortal(
     <div className={`case-assistant${open ? " is-open" : ""}`}>
       <StateSwap className="case-assistant__swap" state={open ? "open" : "closed"} live="off">
         {open ? (
@@ -126,7 +137,8 @@ export function CaseAssistant({ client: suppliedClient }: { client?: AssistantCl
           </button>
         )}
       </StateSwap>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

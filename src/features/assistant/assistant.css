@@ -9,21 +9,22 @@
 
 /*
  * The panel is anchored to the viewport, and the composer plus the grounded
- * question set made it tall enough to run off the bottom of a short window.
- * Bound it to the space actually available and let it scroll itself.
+ * question set made it tall enough to run off a short window. Bound it to the
+ * space actually available and let it scroll itself.
  *
- * `top: 118px` is the desktop anchor in designLab.css; the small-viewport rules
- * there re-anchor to the bottom, so the bound is expressed against both edges.
+ * The panel opens upward from `bottom: 84px` in designLab.css, so the bound is
+ * that anchor plus a margin at the top of the viewport. The small-viewport
+ * rules there raise the trigger, so the bound tightens to match.
  */
 .case-assistant__panel {
-  max-height: calc(100dvh - 138px);
+  max-height: calc(100dvh - 108px);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
 @media (max-width: 980px) {
   .case-assistant__panel {
-    max-height: calc(100dvh - 92px);
+    max-height: calc(100dvh - 96px);
   }
 }
 

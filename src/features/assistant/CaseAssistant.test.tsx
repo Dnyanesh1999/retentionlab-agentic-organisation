@@ -132,4 +132,22 @@ describe("CaseAssistant", () => {
 
     expect(await screen.findByRole("button", { name: /Ask this case/ })).toBeInTheDocument();
   });
+
+  /*
+   * The panel is `position: fixed`, and the route it mounts inside animates its
+   * entrance with a transform. A transformed ancestor becomes the containing
+   * block for fixed descendants, so rendering in place anchored the panel to the
+   * route wrapper instead of the viewport and threw the trigger off screen while
+   * that animation ran. It must escape any such ancestor, whatever it renders in.
+   */
+  it("renders outside its parent, so an animating ancestor cannot anchor it", () => {
+    const { container } = render(<CaseAssistant client={null} />, {
+      wrapper: ({ children }) => <div style={{ transform: "translateY(10px)" }}>{children}</div>,
+    });
+
+    const trigger = screen.getByRole("button", { name: /Ask this case/ });
+
+    expect(container.contains(trigger)).toBe(false);
+    expect(trigger.closest(".case-assistant")?.parentElement).toBe(document.body);
+  });
 });

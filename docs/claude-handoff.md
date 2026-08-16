@@ -22,7 +22,15 @@ Verified live on 16 August 2026, against the deployed build rather than a green 
 | Digest in the public run projection | none |
 | Run gateway / assistant without a key | 401 / 401 |
 | Assistant | answers with verified citations; refuses injection, full-hash and out-of-scope questions |
-| Local gates | 487 Vitest · 29 Deno · lint · typecheck · build · release · data · secret scan clean (346 files) · Pages JS 614,661 / 1,200,000 |
+| Local gates | 488 Vitest · 29 Deno · lint · typecheck · build · release · data · secret scan clean (347 files) · Pages JS 614,807 / 1,200,000 |
+
+One presentation defect was found and fixed after that sweep: the case assistant's trigger was anchored
+into the sticky masthead's band beneath it, and `position: fixed` was being resolved against the
+route-transition wrapper's transform, so on desktop the control appeared during the route entrance and
+then vanished under the masthead. It is now bottom-right at every width, above the masthead in paint
+order, and portalled to `document.body` so no ancestor transform can anchor it. Measurements and the
+re-runnable probe are in `docs/qa-assistant-viewport-anchor.md`. Nothing in the agent pipeline, the
+contracts or the answer ladder changed.
 
 ### What is left
 

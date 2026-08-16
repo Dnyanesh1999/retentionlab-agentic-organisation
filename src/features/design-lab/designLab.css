@@ -741,15 +741,26 @@
   font: var(--type-label-small);
 }
 
+/*
+ * Anchored to the bottom right at every width.
+ *
+ * It used to be anchored to the top, which put the trigger inside the sticky
+ * masthead's band (0-72px, z-index 50) on any viewport above the 900px
+ * breakpoint below. The masthead is 91% opaque over a 14px backdrop blur, so
+ * the trigger was painted underneath it as a faint smudge and was not
+ * hit-testable either — `elementFromPoint` at its centre returned the masthead,
+ * so clicking exactly where it appeared did nothing. The small-viewport rules
+ * already moved it clear of that band, which is why the assistant worked on a
+ * phone and was unreachable on a laptop.
+ *
+ * The z-index sits above the masthead's 50 so the open panel cannot be clipped
+ * by it either: the bottom anchor fixes the trigger, the z-index fixes the panel.
+ */
 .case-assistant {
   position: fixed;
-  top: 46px;
   right: clamp(18px, 3vw, 40px);
-  z-index: 40;
-}
-
-.casebook-product .case-assistant {
-  top: 8px;
+  bottom: 24px;
+  z-index: 60;
 }
 
 .case-assistant__trigger {
@@ -766,10 +777,11 @@
   font: var(--type-label-base);
 }
 
+/* Opens upward from the trigger, so both stay clear of the masthead band. */
 .case-assistant__panel {
   position: fixed;
-  top: 118px;
   right: clamp(18px, 3vw, 40px);
+  bottom: 84px;
   width: min(390px, calc(100vw - 32px));
   padding: 20px;
   border: 1px solid var(--line);
@@ -891,17 +903,11 @@
   }
 
   .case-assistant {
-    top: auto;
     right: 18px;
     bottom: 18px;
   }
 
-  .casebook-product .case-assistant {
-    top: auto;
-  }
-
   .case-assistant__panel {
-    top: auto;
     right: 18px;
     bottom: 72px;
   }
