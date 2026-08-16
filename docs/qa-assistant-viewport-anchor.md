@@ -106,5 +106,7 @@ it is layout.
 
 ## Gates
 
-488 Vitest tests (487 before, plus the new regression case), typecheck, agent pipeline check, ESLint,
-production build, 21 release tests, 2 data tests, and a clean secret scan across 346 tracked files.
+488 Vitest tests (487 before, plus the new regression case), 29 hosted Deno worker tests, typecheck,
+agent pipeline check, ESLint, production build, 21 release tests, 2 data tests, and a clean secret scan
+across 347 tracked files. `release:check` on the tracked commit passes; Pages JS is 614,807 of the
+1,200,000-byte ceiling, up 146 bytes.
