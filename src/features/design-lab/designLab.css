@@ -1347,3 +1347,10 @@
   padding-top: var(--space-6);
   border-top: 1px solid var(--line);
 }
+
+/* The stream sits under the ledger as its own region, sharing the panel. */
+.case-ledger .event-scrubber {
+  margin-top: var(--space-7);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--line);
+}

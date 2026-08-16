@@ -1,0 +1,142 @@
+.event-scrubber__ticks {
+  display: flex;
+  gap: 3px;
+  margin: var(--space-5) 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+
+.event-tick {
+  flex: 1;
+  height: 26px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--line) 80%, transparent);
+  transition:
+    background var(--motion-duration-fast) var(--motion-ease-standard),
+    transform var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.event-tick.is-past {
+  background: color-mix(in srgb, var(--forest) 34%, transparent);
+}
+
+.event-tick.is-current {
+  background: var(--forest);
+  transform: scaleY(1.25);
+}
+
+/*
+ * A failure keeps its own colour at every position — past, current or ahead of
+ * the reader. Letting it fade into the "past" tone once scrubbed beyond would
+ * quietly smooth over the part of the history that matters most.
+ */
+.event-tick.is-failure,
+.event-tick.is-failure.is-past {
+  background: var(--warning, #b4541f);
+}
+
+.event-tick.is-recovery,
+.event-tick.is-recovery.is-past {
+  background: color-mix(in srgb, var(--warning, #b4541f) 45%, var(--canvas));
+}
+
+.event-tick.is-failure.is-current,
+.event-tick.is-recovery.is-current {
+  transform: scaleY(1.25);
+}
+
+.event-scrubber__range {
+  display: block;
+  width: 100%;
+  margin: 0 0 var(--space-5);
+  accent-color: var(--forest);
+}
+
+.event-scrubber__range:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+
+.event-scrubber__readout {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.event-scrubber__type {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font: var(--type-heading-panel);
+}
+
+.event-scrubber__type em {
+  color: var(--ink-soft);
+  font: var(--type-label-small);
+  font-style: normal;
+}
+
+.event-scrubber__seq {
+  color: var(--ink-soft);
+  font: var(--type-label-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.event-scrubber__readout.is-failure .event-scrubber__type {
+  color: var(--warning, #b4541f);
+}
+
+.event-scrubber__note {
+  max-width: 60ch;
+  margin: 8px 0 0;
+  color: var(--ink-soft);
+  font: var(--type-body-base);
+  text-wrap: pretty;
+}
+
+.event-scrubber__meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: var(--space-4) 0 0;
+}
+
+.event-scrubber__meta > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.event-scrubber__meta dt {
+  color: var(--ink-soft);
+  font: var(--type-label-small);
+}
+
+.event-scrubber__meta dd {
+  margin: 0;
+  font: var(--type-label-base);
+  font-variant-numeric: tabular-nums;
+}
+
+.event-scrubber__empty {
+  margin: var(--space-5) 0 0;
+  color: var(--ink-soft);
+  font: var(--type-body-base);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-tick {
+    transition: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .event-scrubber__meta {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .event-tick {
+    height: 20px;
+  }
+}

@@ -20,6 +20,7 @@ import {
 import { BrandMark } from "../../components/BrandMark";
 import { ArtifactGlyph } from "../../components/glyph/ArtifactGlyph";
 import { HashLink } from "../../components/HashLink";
+import { EventScrubber } from "../lineage/EventScrubber";
 import { LineageConstellation } from "../lineage/LineageConstellation";
 import {
   AnimatedNumber,
@@ -430,6 +431,16 @@ function StageLedger({ selectedId, onSelect }: { selectedId: StageId; onSelect: 
           );
         })}
       </StaggerReveal>
+
+      {/*
+        The ledger shows the five sealed outcomes; the stream underneath shows
+        how the run actually got there, including the Communicator attempt that
+        failed and the retry that followed it.
+      */}
+      <EventScrubber
+        description="Every recorded event for this run, in order. The failed Communicator attempt is still here."
+        events={gate9Run.events}
+      />
     </section>
   );
 }
@@ -576,7 +587,9 @@ export function CaseRecordScreen({ onBack }: { onBack: () => void }) {
 
       <div className="casebook-grid">
         <StateSwap className="casebook-main" state={section}>{selectedSection}</StateSwap>
-        <aside className="decision-rail" aria-label="Case decision summary">
+        {/* The boundary is the claim this project rests on; the beam is the one
+            place where drawing the eye is the right call. */}
+        <aside className="decision-rail boundary-beam" aria-label="Case decision summary">
           <div className="decision-rail__top"><span>Current boundary</span><ShieldCheck aria-hidden="true" size={19} /></div>
           <strong>Human approval required</strong>
           <p>All five specialist artefacts are complete. No communication has been sent.</p>
