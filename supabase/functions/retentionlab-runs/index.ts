@@ -105,7 +105,15 @@ async function rest(path: string, init?: RequestInit) {
   const payload: unknown = await response.json().catch(() => null);
   if (!response.ok) {
     console.error(`Run store request failed: ${response.status}`);
-    throw new RunGatewayError(response.status === 404 ? "Run not found" : "Run store request failed", response.status === 404 ? 404 : 502);
+    // The upstream status is carried into the message. Without it every store
+    // failure looks identical from the browser, which made a write being
+    // refused indistinguishable from the store being down — and cost a long
+    // diagnosis. A status code names no table, column, policy or key, so this
+    // stays within what a public caller may see.
+    throw new RunGatewayError(
+      response.status === 404 ? "Run not found" : `Run store request failed (upstream ${response.status})`,
+      response.status === 404 ? 404 : 502,
+    );
   }
   return payload;
 }
