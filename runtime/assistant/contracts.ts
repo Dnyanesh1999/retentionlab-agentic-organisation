@@ -68,6 +68,7 @@ export type ValidationFailure =
   | "no-citations"
   | "too-many-citations"
   | "unknown-chunk"
+  | "ambiguous-citation"
   | "quote-too-short"
   | "quote-not-found"
   | "leaked-digest";
@@ -157,18 +158,37 @@ export function validateModelReply(raw: unknown, offered: readonly CorpusChunk[]
   const citations: ValidatedCitation[] = [];
 
   for (const citation of raw.citations) {
-    const chunk = byId.get(citation.chunk_id);
-    if (!chunk) return { ok: false, reason: "unknown-chunk" };
-
     const quote = citation.quote.trim();
     if (quote.length < ASSISTANT_LIMITS.quoteMinLength) {
       return { ok: false, reason: "quote-too-short" };
     }
-    if (!normalise(chunk.text).includes(normalise(quote))) {
-      return { ok: false, reason: "quote-not-found" };
+
+    const named = byId.get(citation.chunk_id);
+
+    if (named) {
+      if (!normalise(named.text).includes(normalise(quote))) {
+        return { ok: false, reason: "quote-not-found" };
+      }
+      citations.push({ chunkId: named.id, quote, source: named.source });
+      continue;
     }
 
-    citations.push({ chunkId: chunk.id, quote, source: chunk.source });
+    /*
+     * The model named a passage that was not offered. That is usually a
+     * mislabelled id rather than an invention — models paraphrase identifiers
+     * far more readily than they fabricate sentences — so the quote is given a
+     * chance to identify itself.
+     *
+     * This does not weaken the guarantee. The quote must still occur verbatim
+     * in material actually sent this request; only the label is forgiven. A
+     * quote matching two passages is rejected rather than guessed at, because
+     * attributing it to the wrong source would be its own kind of untruth.
+     */
+    const matches = offered.filter((chunk) => normalise(chunk.text).includes(normalise(quote)));
+    if (matches.length === 0) return { ok: false, reason: "unknown-chunk" };
+    if (matches.length > 1) return { ok: false, reason: "ambiguous-citation" };
+
+    citations.push({ chunkId: matches[0].id, quote, source: matches[0].source });
   }
 
   return { ok: true, answer, citations };

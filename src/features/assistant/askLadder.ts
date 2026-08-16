@@ -45,6 +45,7 @@ const REASON_COPY: Record<string, string> = {
   insufficient: "The record does not answer that question.",
   "quote-not-found": "The generated answer could not be verified against the record.",
   "unknown-chunk": "The generated answer could not be verified against the record.",
+  "ambiguous-citation": "The generated answer's quote could not be traced to one passage.",
   "leaked-digest": "The generated answer could not be verified against the record.",
   "no-citations": "The generated answer cited nothing, so it was discarded.",
   malformed: "The generated answer could not be verified against the record.",
