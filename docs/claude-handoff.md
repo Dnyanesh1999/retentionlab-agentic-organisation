@@ -348,6 +348,52 @@ npx supabase functions deploy retentionlab-runs \
 `verify_jwt=false` is intentional for this function because it validates the configured publishable key
 itself and keeps worker RPCs behind the service key. Do not remove that custom caller check.
 
+## 8.1 Model compatibility — measured, not assumed
+
+The hosted workers send a request contract that is far more restrictive than it looks. Every stage
+sends, together:
+
+- `provider: { require_parameters: true }` — OpenRouter must route only to a provider supporting
+  **every** parameter below;
+- `reasoning_effort: "none"`;
+- `response_format` as a **strict** `json_schema`, roughly 6 KB for the ResearchBrief.
+
+Measured against OpenRouter on 16 August 2026, with the real schema and the real parameters:
+
+| Model | Result |
+| --- | --- |
+| `nvidia/nemotron-3-super-120b-a12b:free` | **200** — the only candidate that passed |
+| `google/gemini-2.5-flash-lite` | 400 — *"schema produces a constraint that has too many states for serving"* |
+| `openai/gpt-4o-mini` | 4xx — does not support `reasoning_effort` |
+| `openai/gpt-5-nano` | 404 — no endpoint matches all parameters |
+| `openai/gpt-oss-120b`, `openai/gpt-oss-20b:free` | 400 |
+| `google/gemma-4-26b-a4b-it:free` | 429 at the time — rate limited upstream |
+
+Two conclusions worth keeping:
+
+1. **Google models cannot serve these schemas at all.** Their structured-output engine rejects the
+   ResearchBrief outright. Do not pick one for a worker, however good it is elsewhere. It is fine for
+   the assistant, whose schema is tiny.
+2. **The set of usable models is currently one.** `nvidia/nemotron-3-super-120b-a12b:free` is also the
+   hard-coded fallback in `index.ts`, so the workers already default to the only thing that works.
+
+If a better model is wanted, the contract has to give somewhere — dropping `reasoning_effort`, or
+relaxing `require_parameters`, or simplifying the emitted JSON Schema. Each is a change to the assessed
+pipeline's contract and should be a deliberate decision, not a config tweak.
+
+Separately: with nemotron the Researcher now gets **past** the endpoint and returns valid structured
+JSON, and fails later at `"the model response did not preserve verified evidence lineage"`. That is the
+governance guard doing its job on weak model output, not a transport or schema problem. Reaching
+`awaiting_human_approval` is therefore a model-quality question now, which is why the `reject` path
+still has no live proof.
+
+## 8.2 Redeploy after any function deploy
+
+Deploying a **second** Edge Function re-provisions the project's platform secrets. A function that is
+not redeployed afterwards keeps stale key material: on 16 August 2026 `retentionlab-runs` kept serving
+reads correctly while every write failed with an opaque 502. Redeploying it restored writes
+immediately. After deploying any function, redeploy the others.
+
 ## 9. Secrets and environment
 
 `.env.local` exists locally and is ignored. Never print its values or paste them into prompts, logs,
