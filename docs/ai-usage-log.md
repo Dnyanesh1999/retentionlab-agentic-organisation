@@ -608,3 +608,31 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
 - Student responsibility: the remaining §5.4 items (idempotent replay, 390×844 decision-sheet QA), and
   the academic reflection and cited submission section.
 - Verification: 487 Vitest tests, 29 hosted Deno tests, lint and typecheck pass.
+
+## Entry 041 — Case assistant unreachable on desktop
+
+- Date: 16 August 2026
+- Tools/models: Claude Code (Opus). Browser measurement against the deployed build and the local dev
+  server; no migration, no Edge Function deploy, no model call in the pipeline.
+- User prompt: "i am not able to see chat bot what you have build" — followed by "it comes for a second
+  and disappeared, thats why it is not visible to me", with a Safari screenshot.
+- AI contribution: reproduced the report against the deployed site and measured two distinct causes.
+  First, the trigger was anchored to the top of the viewport at `z-index: 40` inside the sticky
+  masthead's band (y 0–72, `z-index: 50`, 91% opaque over a 14px backdrop blur), so it was painted
+  underneath it and `elementFromPoint` at its centre returned the masthead — not visible and not
+  clickable. Second, `RouteTransition` animates each route's entrance with a transform, and a
+  transformed ancestor becomes the containing block for `position: fixed` descendants, so while that
+  animation ran the trigger was anchored to the route wrapper rather than the viewport. The two together
+  explain the reported symptom exactly: visible below the masthead during the animation, then moved into
+  the masthead band and hidden once the transform cleared. Fixed by anchoring bottom-right at every
+  width, raising `z-index` above the masthead so the open panel is never clipped, and portalling the
+  component into `document.body` so no ancestor transform can claim it.
+- Scope boundary: presentation only. No agent, contract, artefact, lineage, consent or governance
+  surface was touched, and the answer ladder is unchanged.
+- Student responsibility: confirm the bottom-right placement is the wanted design, and re-check the
+  public URL after Pages deploys.
+- Verification: 488 Vitest tests (one added, guarding the containing-block regression), typecheck,
+  agent pipeline check, ESLint, production build, 21 release tests, 2 data tests, secret scan clean
+  across 346 tracked files. Browser measurements at 1280×800, 1440×820, 390×844 and 1280×600 are
+  recorded in `docs/qa-assistant-viewport-anchor.md`, including the before/after occlusion figures. The
+  `model-cited` answer tier was re-confirmed after the change.
