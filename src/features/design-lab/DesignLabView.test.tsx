@@ -25,8 +25,13 @@ describe("interactive design lab", () => {
     expect(await screen.findByRole("heading", { name: "Manager decision" })).toBeInTheDocument();
   });
 
-  it("keeps each contribution inside its animated specialist drawer", () => {
+  it("keeps each contribution inside its animated specialist drawer", async () => {
     render(<DesignLabView />);
+
+    // The ledger is on Workstream; Overview is a separate summary panel. The
+    // panels swap through `StateSwap`, so wait for the ledger to arrive.
+    fireEvent.click(screen.getByRole("button", { name: "Workstream" }));
+    await screen.findByRole("heading", { name: /Handoff ledger/i });
 
     const designerButton = screen.getByRole("button", { name: /02 Designer/ });
     fireEvent.click(designerButton);

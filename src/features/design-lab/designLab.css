@@ -463,13 +463,22 @@
   overflow: hidden;
 }
 
+/*
+ * One surface, not four.
+ *
+ * This drawer used to be a bordered, shadowed card containing a tinted card
+ * containing a bordered measures card — every level with its own background,
+ * inside the panel that already frames the ledger. Nesting filled surfaces is
+ * what made an expanded stage read as clutter rather than as detail.
+ *
+ * The drawer now sits directly on the ledger and separates itself with a rule
+ * and an indent aligned to the stage's own icon column, so the detail reads as
+ * belonging to the row above it.
+ */
 .ledger-stage__drawer-content {
-  margin: 0 8px 18px 84px;
-  padding: 22px;
-  border: 1px solid color-mix(in srgb, var(--forest) 16%, var(--line));
-  border-radius: var(--radius-panel);
-  background: var(--surface);
-  box-shadow: 0 18px 44px rgb(24 42 35 / 6%);
+  margin: 0 8px 22px 84px;
+  padding: 4px 0 0;
+  border-top: 1px solid var(--line);
 }
 
 .ledger-stage__drawer-heading {
@@ -498,14 +507,12 @@
   white-space: nowrap;
 }
 
+/* No fill and no padding: the statement and its measures sit on the drawer. */
 .stage-brief {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(250px, 0.85fr);
   gap: 28px;
-  margin-top: 22px;
-  padding: 24px;
-  border-radius: calc(var(--radius-panel) - 3px);
-  background: color-mix(in srgb, var(--mint) 35%, var(--canvas));
+  margin-top: 18px;
 }
 
 .stage-brief__statement > span {
@@ -529,26 +536,29 @@
   font: var(--type-body-base);
 }
 
+/*
+ * The measures keep their three-column rhythm and hairline dividers, but no
+ * longer sit in a filled, bordered box of their own — that was the fourth
+ * nested surface. The dividers alone carry the grouping.
+ */
 .stage-brief__measures {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-self: stretch;
+  align-self: start;
   margin: 0;
-  border: 1px solid color-mix(in srgb, var(--forest) 14%, var(--line));
-  border-radius: var(--radius-control);
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
 }
 
 .stage-brief__measures > div {
   display: flex;
   min-width: 0;
-  padding: 14px 12px;
+  padding: 2px 14px;
   border-left: 1px solid var(--line);
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .stage-brief__measures > div:first-child {
+  padding-left: 0;
   border-left: 0;
 }
 
@@ -665,6 +675,112 @@
   padding: 24px 0 24px 28px;
   border-left: 2px solid var(--forest);
   font: 400 32px/1.2 var(--font-editorial);
+}
+
+/* --- Overview ----------------------------------------------------------- */
+
+/*
+ * The at-a-glance panel. It carries no surface of its own — the case panel
+ * already frames it — so grouping comes from rules and rhythm rather than from
+ * another filled card.
+ */
+.case-overview__objective {
+  font-size: 26px;
+}
+
+.case-overview__figures {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-5);
+  margin: 0 0 var(--space-6);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--line);
+}
+
+.case-overview__figures > div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.case-overview__figures dd {
+  display: flex;
+  align-items: baseline;
+  margin: 0;
+  color: var(--forest);
+  font: 650 clamp(28px, 3vw, 40px)/1 var(--font-display);
+  letter-spacing: -0.035em;
+}
+
+.case-overview__suffix {
+  color: var(--ink-soft);
+  font-size: 0.55em;
+  letter-spacing: -0.02em;
+}
+
+.case-overview__figures dt {
+  color: var(--ink-soft);
+  font: var(--type-label-small);
+  line-height: 1.3;
+}
+
+/* The five specialists in order — the same order the pipeline enforces. */
+.case-overview__arc {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: arc;
+}
+
+.case-overview__arc li {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding-top: 14px;
+  border-top: 2px solid color-mix(in srgb, var(--forest) 22%, var(--line));
+}
+
+.case-overview__arc-node {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  margin-bottom: 4px;
+  place-items: center;
+  color: var(--forest);
+  border-radius: 50%;
+  background: var(--mint);
+}
+
+.case-overview__arc strong {
+  font: var(--type-label-base);
+}
+
+.case-overview__arc small {
+  color: var(--ink-soft);
+  font: var(--type-label-small);
+}
+
+.case-overview__boundary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: var(--space-6) 0 0;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
+  font: var(--type-body-base);
+}
+
+.case-overview__boundary svg {
+  flex: none;
+  color: var(--forest);
+}
+
+.case-overview__boundary strong {
+  color: var(--ink);
 }
 
 .experience-columns {
@@ -1010,7 +1126,6 @@
   .stage-brief {
     grid-template-columns: 1fr;
     gap: 20px;
-    padding: 18px;
   }
 
   .stage-brief__statement h3 {
@@ -1022,7 +1137,35 @@
   }
 
   .stage-brief__measures > div {
-    padding: 12px 8px;
+    padding: 2px 10px;
+  }
+
+  .case-overview__figures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  /* Five abreast is unreadable on a narrow screen; the order still reads down. */
+  .case-overview__arc {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .case-overview__arc li {
+    grid-template-columns: 30px 1fr;
+    align-items: center;
+    gap: 4px 12px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .case-overview__arc-node {
+    grid-row: span 2;
+    margin-bottom: 0;
+  }
+
+  .case-overview__objective {
+    font-size: 22px;
   }
 
   .ledger-stage__drawer-content .stage-brief__provenance {

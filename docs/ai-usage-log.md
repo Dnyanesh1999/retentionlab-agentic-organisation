@@ -636,3 +636,31 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
   across 346 tracked files. Browser measurements at 1280×800, 1440×820, 390×844 and 1280×600 are
   recorded in `docs/qa-assistant-viewport-anchor.md`, including the before/after occlusion figures. The
   `model-cited` answer tier was re-confirmed after the change.
+
+## Entry 042 — Overview and Workstream rendered the same panel
+
+- Date: 16 August 2026
+- Tools/models: Claude Code (Opus). Presentation work only; no pipeline, contract or migration change.
+- User prompt: "in active cases overview and workstream shows same content and inside that dropdown we
+  are showing content in another box / It not looking good".
+- AI contribution: confirmed both reports in the source. `CaseRecordScreen` routed only `experience` and
+  `decision` to their own panels and let everything else fall through to `StageLedger`, so Overview and
+  Workstream rendered the identical component — a non-functional tab, which `CLAUDE.md` prohibits. Added
+  an Overview panel that summarises the case: the run objective, four counted figures, the five
+  specialists in enforced order, and the boundary the chain stopped at. Every figure is read from the
+  sealed run rather than written into the component, and `AnimatedNumber` settles on the exact value.
+  Separately, an expanded stage nested four filled surfaces — drawer card inside tinted brief inside
+  bordered measures card, inside the panel already framing the ledger. Removed the three inner surfaces
+  so the detail sits on the ledger and is separated by a rule and an indent instead.
+- Reuse rather than addition: the panel is built from motion primitives that already existed and were
+  already tested. `StaggerReveal` gained `dl` as an allowed tag so a figure list can stagger without
+  giving up description-list semantics.
+- Tests corrected, not deleted: three tests asserted the five stage drawers on the default tab, which
+  only passed because of the duplication. They now select Workstream first and wait for the ledger, and
+  a new test asserts Overview shows no stage drawers.
+- Student responsibility: confirm the Overview composition and wording are what the case should lead
+  with, and re-check the public URL after Pages deploys.
+- Verification: 489 Vitest tests, typecheck, agent pipeline check, ESLint, production build, 21 release
+  tests, 2 data tests, secret scan clean across 347 tracked files, Pages JS 616,764 / 1,200,000. Browser
+  QA at 1280×1250, 1440×900 and 390×1000: no page overflow, and the three former nested surfaces measure
+  transparent with no radius and no shadow.
