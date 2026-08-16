@@ -6,37 +6,60 @@ This document lets a fresh Claude Code session continue without the prior conver
 repository code, committed QA evidence and live read-only checks as authoritative when they disagree
 with any summary — including this one.
 
-## 0. Start here — state on 15 August 2026
+## 0. Start here — state on 16 August 2026
 
-**The human-approval loop is closed and proven in production.** Run
-`982ac99a-d9aa-47a6-ba61-09f366143715` was approved by the named human operator at **01:58:54 UTC on
-15 August 2026**. Its status is `approved`, it has 29 events, and all eight earlier `run_failed` events
-survived unchanged.
+**The engineering is complete, deployed and verified. What remains is the student's writing.**
 
-- PR #9 (human approval and portfolio promotion) is **merged**: `main` at `27df2a5`.
-- PR #10 (motion primitive layer) is **merged**: `main` at `015e6d4`.
-- Both are deployed. GitHub Pages serves the decision sheet, the promoted case and the motion layer;
-  verified against the deployed asset hashes, not just a green workflow.
-- `main` equals `origin/main` and the worktree is clean.
+`main` is at `601f6a5`, equals `origin/main`, worktree clean, no open pull requests.
 
-### Do these first, in this order
+Verified live on 16 August 2026, against the deployed build rather than a green workflow:
 
-1. ~~Decide the stray run `4f505d07`.~~ **Closed — it was never at the approval boundary.** It has been
-   `failed` since 15 August 2026, so it could not be rejected. The handoff's earlier claim that it was
-   "executing or paused" was wrong. Nothing is blocked by it: a failed run is not open, so the account
-   is free.
+| Check | Result |
+| --- | --- |
+| Public site + 404 fallback | 200 |
+| Accepted run `982ac99a…` | `approved`, 29 events, **8 earlier `run_failed` events intact** |
+| Promoted case | 1 · Marble Current · `external_actions_permitted = 0` |
+| Digest in the public run projection | none |
+| Run gateway / assistant without a key | 401 / 401 |
+| Assistant | answers with verified citations; refuses injection, full-hash and out-of-scope questions |
+| Local gates | 487 Vitest · 29 Deno · lint · typecheck · build · release · data · secret scan clean (346 files) · Pages JS 614,661 / 1,200,000 |
 
-2. **Two gaps remain in §5.4 of `docs/qa-human-approval.md`**: idempotent replay against production,
-   and 390×844 QA of the decision sheet. The `reject` path is **closed as a deliberate decision**, not
-   an outstanding task — see §5.4 for why the citation-integrity guard was not relaxed to force a run
-   to the boundary.
-3. ~~Confirm reduced-motion parity in a real browser.~~ **Done against the deployed build — see §10.1**,
-   including the counters. No item remains here.
+### What is left
+
+1. **The student's writing — the only thing blocking submission.** The cited GDPR / EU AI Act section
+   and the reflection. Do not write either; see below.
+2. **Two optional live probes**, both needing operator sign-in, both already disclosed honestly in
+   `docs/qa-human-approval.md` §5.4: idempotent replay against production, and 390×844 QA of the
+   decision sheet. Neither is a correctness gap.
+3. **Post-submission:** the eight-week availability monitoring row in `docs/brief-compliance.md`.
+4. **Possibly stale:** that same file records "AI-generated content cited" as *Planned*, but
+   `docs/ai-usage-log.md` now carries 40 entries with models, timestamps and verification. Whether the
+   row's evidence bar is met is an assessment judgement and therefore the student's call, not an edit
+   to make unilaterally.
+
+### The reject path is closed by decision, not outstanding
+
+Four attempts were made on 16 August to bring a run to `awaiting_human_approval` so a live rejection
+could be recorded. Each got further — past the model endpoint, past the JSON Schema, to a valid
+ResearchBrief — and each was refused by the Researcher's citation-integrity guard, because the model
+named a real evidence key but attributed it to the wrong `source_tool`.
+
+That guard was **not** relaxed. Doing so would have bought a demonstration at the cost of the
+exact-`source_tool` provenance claim, which is among the strongest things this project asserts. Two
+capable models attempted to mis-attribute provenance and both were refused; those refusals are better
+evidence than the demonstration would have been. Do not reopen this as a task without a deliberate
+decision from the student. Full reasoning in `docs/qa-human-approval.md` §5.4.
 
 ### What is still the student's own work — do not write it
 
 The academic reflection, the cited GDPR / EU AI Act submission section, and any first-person claim about
-learning or authorship. `docs/brief-compliance.md` still records the submission section as pending.
+learning or authorship. `docs/brief-compliance.md` records the submission section as pending.
+
+For that section the product controls already exist and are visible in the live UI — the Control Room's
+"Human decision retained · External actions 0", the case Decision boundary card, the Decision tab's
+consent boundary, and the assistant's per-answer provenance. Point the student at those as evidence to
+cite, and at `docs/claude-handoff.md` §7 for honest limitations. Supplying an outline and evidence
+locations is help; supplying the cited claims is not.
 
 ## 1. Current outcome
 
@@ -530,24 +553,27 @@ first-person reflection or invent academic claims; those remain the student's re
 
 Use this prompt verbatim if helpful:
 
-> Read `CLAUDE.md` and `docs/claude-handoff.md` completely, starting with §0. Then check the live state
-> yourself before trusting any summary: current branch, whether PR #9 is merged, the status of run
-> `982ac99a-d9aa-47a6-ba61-09f366143715`, and what happened to the stray run `4f505d07`. Do not
-> implement anything yet. Return: (1) the verified current state with evidence, (2) anything in this
-> handoff that is now stale, with file or live evidence, and (3) a short plan for the next step —
-> normally closing the §5.4 verification gaps and deciding the stray run. Preserve exactly five agents,
-> private artefacts, append-only failures, exact hash lineage, synthetic data, mandatory human approval
-> and zero autonomous external actions. Never write the student's reflection or academic claims.
+> Read `CLAUDE.md` and `docs/claude-handoff.md` completely, starting with §0, then inspect the
+> referenced source and QA files. The engineering is complete and deployed; what remains is the
+> student's own writing, so do not begin implementing. Confirm the current branch, clean worktree, and
+> the live state recorded in §0. Return: (1) your verified understanding, (2) any handoff claim you can
+> show to be stale with file or live evidence, and (3) what you believe is genuinely outstanding.
+> Preserve exactly five agents, private artefacts, append-only failures, exact hash lineage, synthetic
+> data and zero autonomous external actions. Do not relax a governance guard to make a demonstration
+> pass — §0 records why the `reject` path was closed by decision. Do not write the reflection or the
+> cited GDPR / EU AI Act section.
 
 ### Working notes for whoever picks this up
 
-- The student writes in Hinglish when they want the reasoning rather than the steps. Lead with why,
-  then give short copy-pasteable instructions.
-- Any step needing the operator credential is theirs, not yours. The password was never shared and
-  should stay that way; a local script that prompts for it is the pattern that worked
-  (`read -s`, token used in-process, never written down).
-- The approval itself must always be performed by the named human. An AI performing it would falsify
-  the project's central claim.
+- Read §8.0–§8.2 before touching models or deploying. Google models cannot serve the workers' schemas;
+  the usable model set was measured, not guessed; and deploying any Edge Function re-provisions the
+  project's platform secrets, so redeploy the others afterwards or writes fail silently while reads
+  keep working.
+- `get_run` schedules a hosted worker. Never call it just to inspect a run's state — use a read-only
+  SQL query in the dashboard instead.
+- The assistant runs on its own OpenRouter key and model, separate from the five workers, so abuse of
+  the chatbot cannot drain the pipeline's quota.
+
 
 ## 13. Definition of a successful handoff
 
