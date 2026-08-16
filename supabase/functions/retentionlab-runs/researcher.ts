@@ -195,7 +195,9 @@ function assertEvidenceIntegrity(
   ];
   for (const citation of citations) {
     const sources = index.get(citation.evidence_key);
-    if (!sources?.some((source) => source.tool === citation.source_tool && source.retrievedAt === citation.retrieved_at)) {
+    if (!sources?.some((source) =>
+      source.tool === citation.source_tool && sameInstant(source.retrievedAt, citation.retrieved_at)
+    )) {
       throw new WorkerError("citation_integrity_failed");
     }
   }
@@ -215,6 +217,25 @@ function evidenceArguments(tool: EvidenceTool, accountSlug: string): JsonRecord 
     : { account_slug: accountSlug, limit: 20 };
 }
 
+/**
+ * Compare two retrieval timestamps as instants rather than as strings.
+ *
+ * The citation must still name a real evidence key, retrieved by the real tool,
+ * at the real moment — that guarantee is unchanged. What is no longer required
+ * is that the model reproduce the timestamp's *formatting* byte for byte.
+ * `2026-08-06T16:15:06.925Z` and `2026-08-06T16:15:06.925+00:00` are the same
+ * instant, and rejecting the second was failing runs for a difference that
+ * carries no meaning. Two different models failed here on formatting alone.
+ *
+ * An unparseable timestamp still fails, and so does a real one that points at a
+ * different moment.
+ */
+function sameInstant(a: string, b: string): boolean {
+  const left = Date.parse(a);
+  const right = Date.parse(b);
+  return Number.isFinite(left) && Number.isFinite(right) && left === right;
+}
+
 function safeFailureReason(error: unknown) {
   if (error instanceof WorkerError && error.message === "upstream_429") {
     return "Researcher paused because the model provider is temporarily rate limited.";
@@ -229,7 +250,17 @@ function safeFailureReason(error: unknown) {
     return "Researcher stopped because the model response did not satisfy the ResearchBrief contract.";
   }
   if (error instanceof WorkerError && error.message.endsWith("_integrity_failed")) {
-    return "Researcher stopped because the model response did not preserve verified evidence lineage.";
+    // Naming which guard rejected the brief. All three used to report the same
+    // sentence, which made a citation problem indistinguishable from a consent
+    // or hypothesis one and cost several production retries to narrow down.
+    // The guard's name leaks no evidence, key or model output.
+    if (error.message === "consent_integrity_failed") {
+      return "Researcher stopped because a consent citation did not come from the preference profile tool.";
+    }
+    if (error.message === "hypothesis_integrity_failed") {
+      return "Researcher stopped because a hypothesis cited an evidence key outside its tool session.";
+    }
+    return "Researcher stopped because a citation did not match evidence returned in its tool session.";
   }
   if (error instanceof DOMException && error.name === "TimeoutError") {
     return "Researcher exceeded the protected execution window and stopped safely.";
@@ -322,7 +353,6 @@ export async function executeHostedResearcher(options: {
         stream: false,
         temperature: 0.1,
         max_tokens: 5_000,
-        reasoning_effort: "none",
         provider: { require_parameters: true },
         response_format: {
           type: "json_schema",

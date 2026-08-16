@@ -369,7 +369,6 @@ export async function executeHostedDesigner(options: {
         stream: false,
         temperature: 0.1,
         max_tokens: 4_500,
-        reasoning_effort: "none",
         provider: { require_parameters: true },
         response_format: {
           type: "json_schema",
