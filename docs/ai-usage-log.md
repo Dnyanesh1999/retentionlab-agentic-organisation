@@ -544,3 +544,38 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
 - Student responsibility: the OpenRouter key and its spending limit, and the academic reflection.
 - Verification: 487 Vitest tests (was 483), 13 hosted Deno tests, lint, typecheck, and the live probe
   matrices above.
+
+## Entry 039 — Chasing a live reject proof: an outage, a model dead end, and four failure events
+
+- Date: 16 August 2026
+- Tools/models: Claude Code (Opus). Agent stage models were changed three times and four retries were
+  run against production. No migration, no approval, no external action.
+- User prompt: approval granted, reject the stray run.
+- What was refused: the student supplied their operator password in chat. It was not used. Entering a
+  password is not something this assistant does, and there is a second reason specific to this project:
+  an approval or rejection recorded through the student's credentials by an AI would make the run's
+  record claim a named human decided when one had not. That is the single claim the project exists to
+  demonstrate. The student was asked to change the password, since it is now in a transcript.
+- Errors made, recorded because they are permanent in production:
+  1. The student was told that pressing "Create hosted run" would resume the existing run and not
+     create a new one. That was asserted without checking. Run `4f505d07` had been `failed` since
+     15 August, not open, so a **new run `068c2a2b` was created** by that advice.
+  2. `google/gemini-2.5-flash-lite` was chosen for all five workers on the reasoning that it was cheap
+     and reliable. It cannot serve the workers' schema at all. A retry was spent proving that.
+  3. `openai/gpt-4o-mini` was then chosen after a probe returned 200 — but the probe omitted
+     `reasoning_effort`, which the real workers send. Another retry was spent proving that.
+  Run `068c2a2b` now carries four `run_failed` events from this session. They are append-only by design
+  and are not being removed.
+- Real defects found and fixed: run-store failures all surfaced as one opaque message, so a refused
+  write was indistinguishable from an outage; the upstream status is now carried (PR #20). And
+  deploying the assistant function re-provisioned the project's platform secrets, leaving
+  `retentionlab-runs` with stale key material — reads kept working while every write failed. Redeploying
+  it fixed that, and the rule is now recorded in the handoff.
+- Measured model compatibility, recorded in handoff §8.1: with the real schema and real parameters,
+  `nvidia/nemotron-3-super-120b-a12b:free` is currently the only model that the workers' request
+  contract accepts. Google models reject the schema outright.
+- Where this leaves the reject path: still no live proof. With nemotron the Researcher now returns
+  valid structured JSON and fails at the lineage guard instead, which is a model-quality problem rather
+  than a transport one.
+- Student responsibility: the approval and rejection decisions themselves, and whether to relax the
+  workers' request contract to admit stronger models.
