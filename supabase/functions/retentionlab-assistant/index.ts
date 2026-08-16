@@ -30,6 +30,25 @@ const corsHeaders = {
   "access-control-allow-methods": "POST, OPTIONS",
 } as const;
 
+/**
+ * The platform supplies the publishable key as `SUPABASE_PUBLISHABLE_KEYS`: a
+ * JSON map of named keys, not a bare string. Reading a singular
+ * `SUPABASE_PUBLISHABLE_KEY` yields undefined and rejects every caller, which
+ * is exactly what happened on this function's first deployment. Kept identical
+ * to the run gateway's `namedKey` so the two cannot drift.
+ */
+function publishableDefaultKey(): string {
+  const raw = Deno.env.get("SUPABASE_PUBLISHABLE_KEYS");
+  if (!raw) throw new Error("Missing SUPABASE_PUBLISHABLE_KEYS");
+
+  const parsed = JSON.parse(raw) as Record<string, unknown>;
+  const value = parsed.default;
+  if (typeof value !== "string" || value.length < 12) {
+    throw new Error("Missing default key in SUPABASE_PUBLISHABLE_KEYS");
+  }
+  return value;
+}
+
 function json(body: unknown, status = 200) {
   return Response.json(body, {
     status,
@@ -72,13 +91,19 @@ Deno.serve(async (request) => {
     return json({ error: "Method not allowed" }, 405);
   }
 
-  const publishableKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
+  // The same caller check the run gateway uses: this function is deployed with
+  // verify_jwt disabled, so it validates the publishable key itself.
+  let publishableKey: string;
+  try {
+    publishableKey = publishableDefaultKey();
+  } catch {
+    return json({ error: "Server configuration unavailable" }, 500);
+  }
+
   const presented = request.headers.get("apikey") ??
     request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
 
-  // The same caller check the run gateway uses: this function is deployed with
-  // verify_jwt disabled, so it validates the publishable key itself.
-  if (!publishableKey || presented !== publishableKey) {
+  if (presented !== publishableKey) {
     return json({ error: "Unauthorised" }, 401);
   }
 

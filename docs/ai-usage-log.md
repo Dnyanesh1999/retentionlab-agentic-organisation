@@ -449,3 +449,34 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
   non-JSON replies and endpoint failure, plus 5 corpus drift tests wired into `test:release`.
   TypeScript, `deno check`, agent pipeline check, ESLint, build, data tests and a clean secret scan
   across 334 tracked files all pass. Pages JS 609,638 of 1,200,000 bytes.
+
+## Entry 036 — Assistant deployment, and a caller-check defect only deployment could find
+
+- Date: 16 August 2026
+- Tools/models: Claude Code (Opus). Deployed the assistant Edge Function and probed it. No model call
+  was made by the assistant — `OPENROUTER_ASSISTANT_MODEL` is deliberately not yet set, so every probe
+  exercised the fail-closed path. No migration was applied and no external action was taken.
+- User prompt: summarise progress and deploy the changes.
+- AI contribution: merged the two assistant pull requests, confirmed the Pages deployment, and deployed
+  `retentionlab-assistant`. Deploying early paid for itself twice. It confirmed that the function's
+  import of `runtime/assistant/contracts.ts` — a path outside its own directory — is bundled correctly
+  by the CLI, which had been an open assumption. And it exposed a defect no local test could reach: the
+  function read `SUPABASE_PUBLISHABLE_KEY`, but the platform supplies `SUPABASE_PUBLISHABLE_KEYS`, a
+  JSON map of named keys. The singular name is always undefined, so the deployed function returned 401
+  to every caller including a correctly authorised one. Fixed to use the same `default`-key lookup the
+  run gateway uses, redeployed, and re-probed. A source-level regression test now fails if the singular
+  name reappears.
+- Live probe matrix after the fix, against the deployed function:
+  no key → 401; wrong key → 401; empty question → 400; 500-character question → 400; valid question →
+  200 `{"status":"refused","reason":"not-configured"}`.
+  The last line is the intended behaviour, not a failure: with no assistant model configured the
+  function refuses honestly rather than erroring, and the browser falls back to its sealed-record tier.
+- Not done, and why: `OPENROUTER_ASSISTANT_MODEL` was not set. Which model answers is a cost and quality
+  decision belonging to the student, and this project's own handoff records that the free OpenRouter
+  route frequently returns structured output that fails validation — so the choice materially changes
+  how often the assistant can answer at all. The browser is also not yet wired to the function, so
+  setting it now would change nothing a visitor can see.
+- Student responsibility: choosing and setting the assistant model, confirming the in-memory rate-limit
+  trade recorded in entry 035, and the academic reflection.
+- Verification: 13 hosted Deno tests for the assistant (was 12), 470 Vitest tests, and the live probe
+  matrix above.
