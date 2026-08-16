@@ -1,0 +1,131 @@
+/*
+ * The plot is a square that the nodes are positioned over in percentages, so the
+ * SVG and the buttons stay aligned at any width without measuring anything in
+ * JavaScript.
+ */
+.lineage-constellation__plot {
+  position: relative;
+  width: min(100%, 520px);
+  margin: var(--space-6) auto 0;
+  aspect-ratio: 1;
+}
+
+.lineage-constellation__edges {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.lineage-edge {
+  fill: none;
+  stroke: color-mix(in srgb, var(--forest) 34%, transparent);
+  stroke-width: 0.7;
+  stroke-linecap: round;
+  transition:
+    stroke var(--motion-duration-standard) var(--motion-ease-standard),
+    stroke-width var(--motion-duration-standard) var(--motion-ease-standard);
+}
+
+.lineage-edge.is-active {
+  stroke: var(--forest);
+  stroke-width: 1.4;
+}
+
+/*
+ * An unverified link must not look like a verified one. It is dashed and in the
+ * warning tone, so a chain that did not check out is visibly incomplete rather
+ * than quietly drawn as though it passed.
+ */
+.lineage-edge.is-unverified {
+  stroke: var(--warning, #b4541f);
+  stroke-dasharray: 2 2;
+}
+
+.lineage-constellation__nodes {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lineage-constellation__nodes > li {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.lineage-node {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--radius-panel);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--motion-duration-standard) var(--motion-ease-standard);
+}
+
+.lineage-node:hover,
+.lineage-node.is-active {
+  background: color-mix(in srgb, var(--mint) 46%, transparent);
+}
+
+.lineage-node:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.lineage-node__label {
+  display: grid;
+  gap: 1px;
+  text-align: center;
+}
+
+.lineage-node__label strong {
+  font: var(--type-label-base);
+}
+
+.lineage-node__label small {
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.lineage-constellation__readout {
+  margin: var(--space-5) 0 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
+  font: var(--type-body-base);
+  text-wrap: pretty;
+}
+
+.lineage-constellation__readout strong {
+  color: var(--ink);
+}
+
+/* Under reduced motion the highlight is a state change, not a transition. */
+.lineage-constellation.is-static .lineage-edge,
+.lineage-constellation.is-static .lineage-node {
+  transition: none;
+}
+
+@media (max-width: 680px) {
+  .lineage-constellation__plot {
+    width: 100%;
+  }
+
+  .lineage-node {
+    padding: 4px;
+  }
+
+  .lineage-node__label strong {
+    font-size: 12px;
+  }
+
+  .lineage-node__label small {
+    display: none;
+  }
+}

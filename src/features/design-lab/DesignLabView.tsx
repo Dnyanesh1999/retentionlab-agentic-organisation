@@ -18,7 +18,9 @@ import {
 } from "lucide-react";
 
 import { BrandMark } from "../../components/BrandMark";
+import { ArtifactGlyph } from "../../components/glyph/ArtifactGlyph";
 import { HashLink } from "../../components/HashLink";
+import { LineageConstellation } from "../lineage/LineageConstellation";
 import {
   AnimatedNumber,
   ProgressVeil,
@@ -390,7 +392,16 @@ function StageLedger({ selectedId, onSelect }: { selectedId: StageId; onSelect: 
                   <div className="ledger-stage__drawer-content">
                     <div className="ledger-stage__drawer-heading">
                       <span>{stageLabel(stage.id)} contribution</span>
-                      <em><FileCheck2 aria-hidden="true" size={14} /> Sealed output</em>
+                      {/*
+                        The seal is drawn from this artefact's own SHA-256, and
+                        the truncated hash beside it is the text the mark stands
+                        for — the mark never replaces it.
+                      */}
+                      <em className="ledger-stage__seal">
+                        <ArtifactGlyph draw={active} sha256={stage.sha256} size={26} />
+                        <span>{stage.sha256.slice(0, 10)}…</span>
+                        <FileCheck2 aria-hidden="true" size={14} /> Sealed output
+                      </em>
                     </div>
                     <div className="stage-brief">
                       <div className="stage-brief__statement">
@@ -479,6 +490,8 @@ function OverviewPanel() {
           );
         })}
       </ol>
+
+      <LineageConstellation />
 
       <p className="case-overview__boundary">
         <ShieldCheck aria-hidden="true" size={16} />
