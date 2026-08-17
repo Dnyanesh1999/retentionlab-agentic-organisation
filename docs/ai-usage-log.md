@@ -664,3 +664,45 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
   tests, 2 data tests, secret scan clean across 347 tracked files, Pages JS 616,764 / 1,200,000. Browser
   QA at 1280×1250, 1440×900 and 390×1000: no page overflow, and the three former nested surfaces measure
   transparent with no radius and no shadow.
+
+## Entry 043 — Four new visual surfaces for the sealed record
+
+- Date: 17 August 2026
+- Tools/models: Claude Code (Opus). Presentation and read-model work only; no pipeline, contract,
+  migration or Edge Function change.
+- User prompt: "Dont use the previous things / What new we can built", after asking how to make the
+  interface less basic and whether open-source animated component libraries could be introduced.
+- Recommendation given first: not to install a Tailwind-based component kit. Aceternity UI, Magic UI,
+  React Bits and Motion Primitives are copy-paste collections built on Tailwind and framer-motion; this
+  project has no Tailwind, has 60 hand-written design tokens and a design system `CLAUDE.md` mandates,
+  and `motion` v12 — the same engine those kits use — is already a dependency. The established pattern
+  here is to port the technique and credit it in the source, which `StateSwap` and `HandoffTrace`
+  already do. All four surfaces below follow that pattern and add no dependency.
+- AI contribution:
+  - `ArtifactGlyph` draws a sealed artefact's SHA-256 as a deterministic mark. All 32 bytes fold into
+    twelve values through FNV-1a with an avalanche finaliser; a test flips every one of the 32 byte
+    positions to prove none is ignored. The claim is stated no more strongly than it holds: twelve
+    values are a lossy projection of 256 bits, so the seal is a recognition aid, not a comparison
+    function, and verification stays in code against the stored hash.
+  - `LineageConstellation` draws the five artefacts as a pentagon in stage order with the real lineage
+    links as edges, so the chain reads around the rim and the Manager's four verifications fall across
+    the middle as a fan. An unverified link is dashed and in the warning tone.
+  - `EventScrubber` plays back the append-only stream. This is the first time the assessed run's
+    recorded failure — the Communicator citing a claim absent from the Maker handoff — has been visible
+    in the interface. It never advances on its own, because a timeline that plays itself invents a pace
+    the run did not have.
+  - A conic-gradient boundary beam on the approval-boundary cards, and native
+    `document.startViewTransition` for route changes. The latter is what finally gives routes an exit
+    animation: `AnimatePresence mode="wait"` was ruled out because it holds the outgoing route mounted,
+    duplicating the `<main>` landmark and stalling navigation in throttled tabs. A view transition
+    animates a snapshot, so the DOM swap stays synchronous.
+- Read-model change: `gate9Run` now exposes the transcript's 14 hash-chained events, schema-validated
+  like the rest of it, and throws if the stream length disagrees with the recorded event count.
+- Honesty boundaries kept: full hashes still never reach the interface — every caption is truncated.
+  The hosted public projection carries no artefact identities, so the scrubber omits the hash row for a
+  live run rather than showing a stand-in. No failure is filtered out of any stream.
+- Student responsibility: confirm the visual direction, and re-check the public URL after Pages deploys.
+- Verification: 510 Vitest tests (21 added), 29 hosted Deno tests, typecheck, agent pipeline check,
+  ESLint, production build, 21 release tests, 2 data tests, secret scan clean across 354 tracked files,
+  Pages JS 625,718 / 1,200,000. Browser QA on a cold load: clean console, and the constellation,
+  scrubber, seals and beam all verified rendering from real transcript data.

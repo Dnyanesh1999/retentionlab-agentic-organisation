@@ -1323,3 +1323,34 @@
   background: color-mix(in srgb, var(--mint) 32%, var(--surface));
   font: var(--type-body-base);
 }
+
+/*
+ * The stage's identity: its seal, the truncated hash it is drawn from, and the
+ * sealed-output marker. The mark is decorative — the hash beside it is the text.
+ */
+.ledger-stage__seal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ledger-stage__seal > span {
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* The constellation is its own region inside the overview, not another card. */
+.case-overview .lineage-constellation {
+  margin-top: var(--space-7);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--line);
+}
+
+/* The stream sits under the ledger as its own region, sharing the panel. */
+.case-ledger .event-scrubber {
+  margin-top: var(--space-7);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--line);
+}

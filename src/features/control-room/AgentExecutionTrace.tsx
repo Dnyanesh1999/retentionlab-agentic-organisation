@@ -7,6 +7,8 @@ import {
   type HostedRun,
   type HostedStage,
 } from "../../../runtime/hosted/contracts";
+import { EventScrubber, type ScrubberEvent } from "../lineage/EventScrubber";
+import type { StageId } from "../organisation/gate9Run";
 import "./executionTrace.css";
 
 // A truthful five-stage trace for a hosted run. Every claim it renders is derived only from the run's
@@ -190,7 +192,7 @@ export function AgentExecutionTrace({ run, className }: AgentExecutionTraceProps
         })}
       </ol>
       {atHumanBoundary ? (
-        <div className="execution-trace__boundary" role="note">
+        <div className="execution-trace__boundary boundary-beam" role="note">
           <LockKeyhole className="execution-trace__boundary-icon" aria-hidden="true" strokeWidth={2} />
           <span className="execution-trace__boundary-copy">
             Awaiting human approval. No further action without an operator decision.
@@ -198,11 +200,42 @@ export function AgentExecutionTrace({ run, className }: AgentExecutionTraceProps
         </div>
       ) : null}
       {decisionSummary ? (
-        <div className="execution-trace__boundary" role="note">
+        <div className="execution-trace__boundary boundary-beam" role="note">
           <ShieldCheck className="execution-trace__boundary-icon" aria-hidden="true" strokeWidth={2} />
           <span className="execution-trace__boundary-copy">{decisionSummary}</span>
         </div>
       ) : null}
+
+      {/*
+        The same stream the case record shows, for a live run. Failures stay in
+        it: a run that failed and was retried should read that way here too,
+        not only once it is archived.
+      */}
+      <EventScrubber
+        description="Every event the service recorded for this run, in order."
+        events={scrubberEvents(run)}
+        title="Recorded events"
+      />
     </section>
   );
+}
+
+/**
+ * Map the public run projection onto what the scrubber needs.
+ *
+ * The projection carries no artefact identities by design, so no hash is
+ * supplied and the scrubber omits that row rather than showing a stand-in.
+ */
+function scrubberEvents(run: HostedRun): ScrubberEvent[] {
+  return [...run.events]
+    .sort((first, second) => first.sequence - second.sequence)
+    .map((event) => ({
+      seq: event.sequence,
+      type: event.type,
+      stage: "stage" in event && event.stage ? (event.stage as StageId) : null,
+      note: "reason" in event && event.reason
+        ? event.reason
+        : ("public_summary" in event && event.public_summary ? event.public_summary : null),
+      occurredAt: event.occurred_at,
+    }));
 }
