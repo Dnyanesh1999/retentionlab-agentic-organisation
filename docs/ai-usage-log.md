@@ -706,3 +706,36 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
   ESLint, production build, 21 release tests, 2 data tests, secret scan clean across 354 tracked files,
   Pages JS 625,718 / 1,200,000. Browser QA on a cold load: clean console, and the constellation,
   scrubber, seals and beam all verified rendering from real transcript data.
+
+## Entry 044 — Control Room orientation band for cold visitors
+
+- Date: 17 August 2026
+- Tool/model: Claude Code, Claude Opus 5 (`claude-opus-5`).
+- User prompt: “A cold-visitor entry path… on the first go samaj hi nahi aa raha ki kya he website kis
+  liye he kya karti he… to ye pehale complete kar best quality ui bana matlab we just want to improve it
+  now.”
+- Problem measured before changing anything: the deployed Control Room opened on a slogan, and the
+  words “agent”, “Researcher”, “pipeline” and “handoff” appeared nowhere on the first screen. A visitor
+  could not tell that a five-agent organisation existed, let alone what to press.
+- AI contribution: added `src/features/control-room/OrientationBand.tsx` and its styles — a heading and
+  one paragraph naming the organisation, the inherited-hash rule and the human boundary; a five-item
+  chain read from `HOSTED_STAGE_ORDER` rather than retyped; and three doors (start a governed run, read
+  the finished case, browse the archive). Rendered outside the directory `StateSwap` so it survives a
+  loading or failed directory. Added five unit tests.
+- Defect found by measuring, not by tests: the chain was first built with `StaggerReveal`, and in an
+  unfocused tab at 1280 agents 2–5 stayed frozen at partial opacity indefinitely, because a throttled
+  tab starves the reveal of animation frames. The reveal was removed rather than tuned — these five
+  names are the one thing the band exists to say. Same failure shape as the `StateSwap` defect in
+  `docs/claude-handoff.md` §10.1.
+- Also observed and deliberately left alone: `TextReveal` shows the same rAF-throttling behaviour on
+  the hero `h1`. Logged as separate work rather than widened into this change.
+- Boundaries kept: no agent, contract, artefact, lineage, consent, migration or Edge Function changed.
+  The primary door opens the existing governed launch sheet and creates no run; run creation still
+  needs an explicit action inside the sheet. No dependency added.
+- Student responsibility: confirm the wording of the orientation copy reads as his own product voice,
+  and re-check the public URL after Pages deploys.
+- Verification: 515 Vitest tests (5 added), 15 hosted worker Deno tests and 46 across all Edge
+  Functions, typecheck, agent pipeline check, ESLint, production build, 21 release tests, 2 data tests,
+  secret scan clean, Pages JS 628,974 / 1,200,000. Browser measurement at 1440, 1280 and 390: zero
+  horizontal overflow at every width and all three doors reachable by `elementFromPoint`. Full numbers
+  in `docs/qa-control-room-orientation.md`.
