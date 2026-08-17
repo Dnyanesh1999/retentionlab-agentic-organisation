@@ -16,7 +16,9 @@
 
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdtempSync, readFileSync, rmSync, mkdirSync, writeFileSync, statSync } from "node:fs";
+import {
+  mkdtempSync, readFileSync, renameSync, rmSync, mkdirSync, writeFileSync, statSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -41,6 +43,24 @@ const DENY_PATH_PATTERNS = [
   /\.p12$/,
   /(^|\/)id_rsa$/,
   /(^|\/)\.DS_Store$/,
+];
+
+/**
+ * Tracked files that belong to the agent tooling or to stale build output rather than to the
+ * submitted codebase. These are stripped from the ZIP only — they stay in the repository, which is
+ * public and linked from the submission, so this is tidying rather than concealment.
+ *
+ * The line is drawn at *tooling*, not at *AI*. `docs/ai-usage-log.md` and the `docs/qa-*.md` evidence
+ * stay in the archive on purpose: the brief requires AI contributions to be cited with their model and
+ * prompt, the submission document's appendix points a reader at that log by name, and the QA records
+ * are the evidence of iteration the marking rubric asks for. Removing them would break a stated
+ * requirement and contradict the submitted document.
+ */
+const TOOLING_PATH_PATTERNS = [
+  /^CLAUDE\.md$/,
+  /^docs\/claude-handoff\.md$/,
+  /^\.claude\//,
+  /^output\//,
 ];
 
 const REQUIRED_FILES = ["package.json", "README.md", ".env.example"];
@@ -115,33 +135,52 @@ export function packageCodeZip({ ref = "HEAD", outDir } = {}) {
       throw new Error(`Secret scan found ${findings.length} issue(s):\n${report}`);
     }
 
-    // (3) required files
-    const missing = REQUIRED_FILES.filter((required) => !relPaths.includes(required));
+    // (3) prune agent tooling and stale build output. Done after the scan above, not before, so a
+    //     secret hiding in an excluded file still fails the build rather than slipping out silently.
+    const excluded = relPaths.filter((rel) =>
+      TOOLING_PATH_PATTERNS.some((pattern) => pattern.test(rel)),
+    );
+    const shipped = relPaths.filter((rel) => !excluded.includes(rel));
+
+    // (4) required files, checked against what actually ships
+    const missing = REQUIRED_FILES.filter((required) => !shipped.includes(required));
     if (missing.length > 0) {
       throw new Error(`Archive is missing required files: ${missing.join(", ")}`);
     }
 
-    // Produce the verified ZIP deterministically from the same ref.
+    // The archive is built from the pruned tree rather than straight from `git archive`, because the
+    // exclusions above have no equivalent in a plain archive of the commit. `zip -X` omits extra
+    // filesystem attributes so the result stays stable across machines.
     mkdirSync(resolvedOutDir, { recursive: true });
-    const zipBytes = execFileSync(
-      "git",
-      ["archive", "--format=zip", `--prefix=${name}/`, commit],
-      { cwd: REPO_ROOT, maxBuffer: 256 * 1024 * 1024 },
-    );
-    writeFileSync(zipPath, zipBytes);
+    const stagedRoot = join(work, "staged");
+    mkdirSync(stagedRoot, { recursive: true });
+    const stagedTree = join(stagedRoot, name);
+    renameSync(treeDir, stagedTree);
+    for (const rel of excluded) {
+      rmSync(join(stagedTree, rel), { force: true });
+    }
+    // Directories emptied by the prune would otherwise ship as bare entries.
+    execFileSync("find", [name, "-type", "d", "-empty", "-delete"], { cwd: stagedRoot });
+    rmSync(zipPath, { force: true });
+    // -D omits directory entries, matching what `git archive` produced, so the archive listing is
+    // exactly the file set the manifest counts. -X drops extra filesystem attributes.
+    execFileSync("zip", ["-XDqr", zipPath, name], { cwd: stagedRoot });
+    const zipBytes = readFileSync(zipPath);
 
     const sha256 = createHash("sha256").update(zipBytes).digest("hex");
     const manifest = {
       schema: "retentionlab-code-zip-manifest.v1",
       archive_name: `${name}.zip`,
       source_commit: commit,
-      file_count: relPaths.length,
+      file_count: shipped.length,
+      tracked_file_count: relPaths.length,
+      excluded_tooling: excluded,
       byte_size: statSync(zipPath).size,
       sha256,
       secret_scan: "clean",
       deny_list: "clean",
       required_files_present: REQUIRED_FILES,
-      note: "git archive includes only tracked files at source_commit; git-ignored artefacts and secrets are excluded by construction and re-verified above.",
+      note: "Built from the tracked tree at source_commit; git-ignored artefacts and secrets are excluded by construction and re-verified above. The paths in excluded_tooling are agent tooling and stale build output, removed from the archive only — they remain in the public repository. The AI usage log and QA evidence are deliberately retained, because the brief requires AI contributions to be cited and the submission document references that log by name.",
     };
     writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
     return { manifest, zipPath, manifestPath };
