@@ -71,6 +71,14 @@ schema-validated like the rest of it, and throws if the stream length disagrees 
   same failure mode as the plpgsql gap in §8: a test environment that cannot execute what is being
   asserted. For any positioning or visibility change, measure in a browser at 1280, 1440 and 390 and
   record the numbers. `position: fixed` inside an animated route must be portalled to `document.body`.
+- **A git worktree created *inside* the repository breaks two gates at once, and neither failure names
+  the cause.** A deleted agent session left one at `.claude/worktrees/<name>` on 17 August. Vitest then
+  collected the whole tree twice — 1025 tests instead of 515 — and ESLint failed all 508 files in the
+  copy with "multiple candidate TSConfigRootDirs", none of them real defects. Both tools now ignore
+  `.claude/worktrees`, and it is gitignored. If a gate suddenly reports roughly double the expected
+  test count or a wall of parsing errors, run `git worktree list` before reading a single error: an
+  in-repo worktree is the likely cause, and `git worktree remove <path>` clears it. Check the worktree
+  is clean first — it may hold unmerged work.
 - **Do not stack a pull request on another open PR's branch.** This repository squash-merges, which
   rewrites the base commit; the stacked branch then conflicts and GitHub auto-closes it when the base
   branch is deleted. Open one PR at a time against `main`.
@@ -92,11 +100,14 @@ dependency was added.
    `docs/qa-human-approval.md` §5.4: idempotent replay against production, and 390×844 QA of the
    decision sheet. Neither is a correctness gap.
 3. **Post-submission:** the eight-week availability monitoring row in `docs/brief-compliance.md`.
-4. **Possibly stale:** that same file records "AI-generated content cited" as *Planned*, but
-   `docs/ai-usage-log.md` now carries 43 entries with models, timestamps and verification. Whether the
-   row's evidence bar is met is an assessment judgement and therefore the student's call, not an edit
-   to make unilaterally. Note the row asks for an "AI usage appendix/export" — the log exists, a
-   generated export artefact does not.
+4. ~~**Possibly stale:** the AI-generated-content-cited row.~~ **Closed on 17 August.** The row asked
+   for an "AI usage appendix/export"; the log existed but the export artefact did not.
+   `npm run release:ai-appendix` now generates `output/release/ai-usage-appendix.{md,json}` from
+   `docs/ai-usage-log.md`, and `release:check` runs it, so the submission copy cannot drift from the
+   log. Derived, never authored: a field the log does not record is emitted as *not recorded* rather
+   than filled in, and Entry 039's missing narrative fields are disclosed in the appendix's own
+   completeness section instead of being quietly dropped. It fails the gate only when an entry lacks
+   one of the three fields the brief actually names — date, tool/model, prompt. All 44 carry them.
 5. **Also visible in the UI now, and worth citing:** the case record's Overview carries a lineage
    constellation and the Workstream tab an event scrubber that surfaces the run's recorded failure. Both
    are good evidence for the submission's honesty claims, and neither existed when §7's limitations were
