@@ -1,44 +1,88 @@
 # Claude handoff — RetentionLab
 
-Handoff date: 15 August 2026 (supersedes the 14 August Codex handoff)
+Handoff date: 17 August 2026 (supersedes the 15 August handoff)
 
 This document lets a fresh Claude Code session continue without the prior conversation. Treat
 repository code, committed QA evidence and live read-only checks as authoritative when they disagree
 with any summary — including this one.
 
-## 0. Start here — state on 16 August 2026
+## 0. Start here — state on 17 August 2026
 
 **The engineering is complete, deployed and verified. What remains is the student's writing.**
 
-`main` is at `601f6a5`, equals `origin/main`, worktree clean, no open pull requests.
+`main` is at `5c63972`, equals `origin/main`, worktree clean, no open pull requests. The 16–17 August
+work was entirely presentation: three defects fixed and four new visual surfaces added. **No agent,
+contract, artefact, lineage, consent, migration or Edge Function changed in that window**, so the
+production evidence in §1–§3 stands exactly as recorded.
 
-Verified live on 16 August 2026, against the deployed build rather than a green workflow:
+Measured on 17 August 2026 against the deployed build rather than a green workflow:
 
 | Check | Result |
 | --- | --- |
-| Public site + 404 fallback | 200 |
+| Public site | 200 (a missing path serves the SPA fallback with a 404 status, which is correct) |
 | Accepted run `982ac99a…` | `approved`, 29 events, **8 earlier `run_failed` events intact** |
 | Promoted case | 1 · Marble Current · `external_actions_permitted = 0` |
 | Digest in the public run projection | none |
 | Run gateway / assistant without a key | 401 / 401 |
 | Assistant | answers with verified citations; refuses injection, full-hash and out-of-scope questions |
-| Local gates | 489 Vitest · 29 Deno · lint · typecheck · build · release · data · secret scan clean (347 files) · Pages JS 616,764 / 1,200,000 |
+| Local gates | 510 Vitest · 29 Deno · lint · typecheck · build · release · data · secret scan clean (357 files) · Pages JS 625,718 / 1,200,000 |
 
-One presentation defect was found and fixed after that sweep: the case assistant's trigger was anchored
-into the sticky masthead's band beneath it, and `position: fixed` was being resolved against the
-route-transition wrapper's transform, so on desktop the control appeared during the route entrance and
-then vanished under the masthead. It is now bottom-right at every width, above the masthead in paint
-order, and portalled to `document.body` so no ancestor transform can anchor it. Measurements and the
-re-runnable probe are in `docs/qa-assistant-viewport-anchor.md`. Nothing in the agent pipeline, the
-contracts or the answer ladder changed.
+### 0.1 What changed on 16–17 August, and why it matters
 
-Two further presentation defects were fixed in the case record. `CaseRecordScreen` routed only
-`experience` and `decision` to their own panels, so **Overview and Workstream rendered the same
-component** — a non-functional tab. Overview is now a summary panel (`OverviewPanel`), and the handoff
-ledger belongs to Workstream alone. Separately, an expanded stage nested four filled surfaces; the three
-inner ones were removed so the detail sits on the ledger. Three tests had been asserting the five stage
-drawers on the default tab and only passed because of the duplication; they now select Workstream first.
-Again presentation only — no contract, artefact, lineage or governance surface moved.
+**Three defects, all presentation, all found by measuring rather than by tests.**
+
+1. *The case assistant was unreachable on desktop.* Its trigger was anchored inside the sticky masthead's
+   band with a lower `z-index`, so it was painted under a 91%-opaque blurred bar and `elementFromPoint`
+   returned the masthead — not visible and not clickable. Separately, `position: fixed` was resolving
+   against the route wrapper's entrance transform, so the control moved between two containing blocks
+   mid-animation. It is now bottom-right at every width, above the masthead, and portalled to
+   `document.body`. Evidence and the re-runnable probe: `docs/qa-assistant-viewport-anchor.md`.
+2. *Overview and Workstream rendered the same component.* `CaseRecordScreen` routed only `experience` and
+   `decision` to their own panels and let everything else fall through to `StageLedger` — a
+   non-functional tab, which `CLAUDE.md` prohibits. Overview is now `OverviewPanel`, a summary; the
+   ledger belongs to Workstream alone.
+3. *An expanded stage nested four filled surfaces.* Three inner surfaces were removed so the detail sits
+   on the ledger, separated by a rule.
+
+**Four new surfaces**, in `src/components/glyph` and `src/features/lineage`:
+
+- `ArtifactGlyph` — a sealed artefact's SHA-256 drawn as a deterministic mark. All 32 bytes fold into
+  twelve values via FNV-1a with an avalanche finaliser; a test flips every byte position to prove none is
+  ignored. **Read its docstring before changing it:** the claim is deliberately limited to determinism
+  and one-byte sensitivity, because twelve values are a lossy projection of 256 bits. It is a recognition
+  aid, not a comparison function, and verification stays in code against the stored hash. Do not
+  strengthen that wording.
+- `LineageConstellation` — the five artefacts as a pentagon with the real lineage links as edges; an
+  unverified link is dashed and in the warning tone.
+- `EventScrubber` — playback of the append-only stream, mounted on both the case record and the Control
+  Room. This is the first surface to make the assessed run's recorded failure visible: the Communicator
+  cited a claim absent from the Maker handoff at sequence 8, was retried at 9 and resealed at 11.
+- A conic-gradient boundary beam on the approval-boundary cards, and native `document.startViewTransition`
+  for route changes. The latter is what finally gives routes an exit animation — see the note in
+  `src/app/App.tsx` explaining why `AnimatePresence mode="wait"` was ruled out.
+
+Supporting read-model change: `gate9Run` now exposes the transcript's 14 hash-chained events,
+schema-validated like the rest of it, and throws if the stream length disagrees with the recorded count.
+
+### 0.2 Two rules learned the hard way in this window
+
+- **jsdom has no layout, so the suite cannot catch occlusion, stacking or positioning defects.** 488
+  passing tests said nothing while the chatbot was unreachable for every desktop visitor. This is the
+  same failure mode as the plpgsql gap in §8: a test environment that cannot execute what is being
+  asserted. For any positioning or visibility change, measure in a browser at 1280, 1440 and 390 and
+  record the numbers. `position: fixed` inside an animated route must be portalled to `document.body`.
+- **Do not stack a pull request on another open PR's branch.** This repository squash-merges, which
+  rewrites the base commit; the stacked branch then conflicts and GitHub auto-closes it when the base
+  branch is deleted. Open one PR at a time against `main`.
+
+### 0.3 On making the interface "less basic"
+
+If asked again for animated component libraries — Aceternity UI, Magic UI, React Bits, Motion Primitives
+— the answer is to port the technique, not install the kit. They are Tailwind + framer-motion copy-paste
+collections; this project has no Tailwind, has 60 hand-written tokens, and mandates a design system.
+`motion` v12, the engine those kits use, is already a dependency, and `StateSwap` and `HandoffTrace`
+already credit ported recipes in their docstrings. Every surface in §0.1 was built that way, and no
+dependency was added.
 
 ### What is left
 
@@ -49,9 +93,14 @@ Again presentation only — no contract, artefact, lineage or governance surface
    decision sheet. Neither is a correctness gap.
 3. **Post-submission:** the eight-week availability monitoring row in `docs/brief-compliance.md`.
 4. **Possibly stale:** that same file records "AI-generated content cited" as *Planned*, but
-   `docs/ai-usage-log.md` now carries 40 entries with models, timestamps and verification. Whether the
+   `docs/ai-usage-log.md` now carries 43 entries with models, timestamps and verification. Whether the
    row's evidence bar is met is an assessment judgement and therefore the student's call, not an edit
-   to make unilaterally.
+   to make unilaterally. Note the row asks for an "AI usage appendix/export" — the log exists, a
+   generated export artefact does not.
+5. **Also visible in the UI now, and worth citing:** the case record's Overview carries a lineage
+   constellation and the Workstream tab an event scrubber that surfaces the run's recorded failure. Both
+   are good evidence for the submission's honesty claims, and neither existed when §7's limitations were
+   written.
 
 ### The reject path is closed by decision, not outstanding
 
@@ -579,6 +628,10 @@ Use this prompt verbatim if helpful:
 > pass — §0 records why the `reject` path was closed by decision. Do not write the reflection or the
 > cited GDPR / EU AI Act section.
 
+If the work turns out to be interface work, read §0.1–§0.3 first. They record what the visual layer now
+contains, why a green test run is not evidence that a layout change works, and why installing a
+component library is the wrong trade here.
+
 ### Working notes for whoever picks this up
 
 - Read §8.0–§8.2 before touching models or deploying. Google models cannot serve the workers' schemas;
@@ -602,5 +655,7 @@ Claude is ready to continue when it can correctly explain:
 - why Manager completion is not human approval, and why authentication alone is not authorisation;
 - why approval means internal promotion only and authorises no external action;
 - why `supabase db push` cannot be used here and what the only working route is;
-- why a green test run is not sufficient evidence before deploying SQL;
+- why a green test run is not sufficient evidence before deploying SQL, **or before claiming a layout
+  change works** — jsdom has no layout engine, so the two gaps have the same shape;
+- why the artefact seal is described as a recognition aid rather than a comparison function;
 - which exact checks must pass before the next deployment.
