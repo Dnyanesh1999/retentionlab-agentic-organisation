@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 import { scanRepository } from "./scan-repo.mjs";
 import { packageCodeZip } from "./package-code-zip.mjs";
 import { checkPagesBuild } from "./check-pages-build.mjs";
+import { buildAiUsageAppendix } from "./build-ai-usage-appendix.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(HERE, "..", "..");
@@ -76,11 +77,38 @@ if (existsSync(join(REPO_ROOT, "dist", "index.html"))) {
   record("pages-build", "skip", "no dist/ — run `npm run build` then `npm run release:pages`");
 }
 
+// 4. AI-usage appendix. The brief requires every AI contribution to be cited with its model and
+//    prompt; this regenerates that appendix from docs/ai-usage-log.md so the submission copy cannot
+//    drift from the log. It fails only if an entry lacks a field the brief actually demands.
+let appendixReport = null;
+try {
+  const appendix = buildAiUsageAppendix();
+  appendixReport = {
+    entry_count: appendix.entry_count,
+    required_fields_complete: appendix.required_fields_complete,
+    model_identifiers: appendix.model_identifiers,
+    entries_missing_required: appendix.entries_missing_required,
+    entries_missing_narrative: appendix.entries_missing_narrative,
+  };
+  const gaps = appendix.entries_missing_narrative.length;
+  record(
+    "ai-usage-appendix",
+    appendix.required_fields_complete ? "pass" : "fail",
+    appendix.required_fields_complete
+      ? `${appendix.entry_count} entries cited, ${appendix.model_identifiers.length} model identifiers` +
+        (gaps > 0 ? `, ${gaps} narrative gap(s) disclosed` : "")
+      : `${appendix.entries_missing_required.length} entr(y/ies) missing a required citation field`,
+  );
+} catch (error) {
+  record("ai-usage-appendix", "fail", error.message.split("\n")[0]);
+}
+
 const report = {
   schema: "retentionlab-gate-10-release-checks.v1",
   checks: results,
   code_zip: zipManifest,
   pages_build: pagesReport,
+  ai_usage_appendix: appendixReport,
   not_covered_here: [
     "vitest/typecheck/lint/build (run their own npm scripts)",
     "live GitHub Pages URL reachability",

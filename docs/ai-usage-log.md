@@ -739,3 +739,46 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
   secret scan clean, Pages JS 628,974 / 1,200,000. Browser measurement at 1440, 1280 and 390: zero
   horizontal overflow at every width and all three doors reachable by `elementFromPoint`. Full numbers
   in `docs/qa-control-room-orientation.md`.
+
+## Entry 045 — Generated AI-usage appendix, closing the last Planned compliance row
+
+- Date: 17 August 2026
+- Tool/model: Claude Code, Claude Opus 5 (`claude-opus-5`). No model call was made on behalf of any
+  agent stage, no migration was written and no Edge Function was deployed.
+- User prompt: “merge kar de and complete next task”, continuing the review that identified the
+  AI-usage export as the last outstanding row in `docs/brief-compliance.md`.
+- AI contribution: added `scripts/release/build-ai-usage-appendix.mjs`, exposed as
+  `npm run release:ai-appendix` and run as a fourth check inside `npm run release:check`. It parses
+  this log — handling wrapped fields and both the `Tool/model` and `Tools/models` spellings — and
+  writes `output/release/ai-usage-appendix.{md,json}`: an at-a-glance summary, an entry index, the
+  model-identifier roster, a completeness disclosure and the full entries. Added seven Node tests.
+- Design rule the generator follows: it derives, it never authors. A field this log does not record is
+  emitted as *not recorded*; it is never inferred, summarised by a model, or dropped. Entry 039 carries
+  its work in prose sections rather than the standard field labels, so the appendix names it in a
+  completeness section rather than hiding the gap. The gate fails only when an entry lacks one of the
+  three fields the brief actually demands — a date, the tool or model, and the prompt. All 44 carry
+  them, so the build passes on the merits rather than on a lowered bar.
+- Two defects found and fixed during the work, both in the model-identifier collector, and both found
+  by reading its output rather than by a test. First, it matched every backticked provider-slash-model
+  string, so 24 repository paths (`docs/qa-human-approval.md`, `agents/orchestrator`) were reported as
+  models alongside the 4 real ones. Second, after the path filter was added, this log's own discussion
+  of its field labels leaked in — the collector cannot tell a model from a backticked heading. Both are
+  now excluded by shape, never by a list of expected models: a path is rejected by its extension or its
+  top-level directory, and a non-identifier by case and segment shape. A provider or model never seen
+  before still appears in the roster.
+- Compliance effect: `docs/brief-compliance.md` moves "AI-generated content cited" from *Planned* to
+  *Implemented — Gate 10*. That was the last row in the matrix at *Planned*.
+- Unrelated hazard found and fixed while verifying: an agent session that was started and then deleted
+  left a git worktree at `.claude/worktrees/xenodochial-hawking-fe9164`, inside the repository. Vitest
+  collected the tree twice (1025 tests instead of 515) and ESLint failed all 508 files in the copy with
+  "multiple candidate TSConfigRootDirs". Neither failure named the cause. The worktree was verified
+  clean and detached at the pre-merge commit before removal, so nothing was discarded. Both tools now
+  ignore `.claude/worktrees`, it is gitignored, and the symptom is recorded in the handoff §0.2.
+- Student responsibility: read the generated appendix before attaching it, and confirm the Entry 001–011
+  “exact runtime model identifier to be copied from the Codex task export” placeholders are either
+  filled in from the exports or accepted as-is; the appendix reproduces them verbatim and does not
+  resolve them.
+- Verification: 515 Vitest tests, 28 release tests (7 added), 2 data tests, typecheck, agent pipeline
+  check, ESLint, production build, secret scan clean across 360 tracked files, Pages JS 628,943 /
+  1,200,000, and `npm run release:check` green with the new `ai-usage-appendix` check reporting 44
+  entries and 4 model identifiers.
