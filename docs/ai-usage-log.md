@@ -858,3 +858,35 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
   check, ESLint, production build, secret scan clean across 363 tracked files, Pages JS 631,536 /
   1,200,000. Browser measurement at 1440, 1280 and 390 with the tab hidden: zero horizontal overflow at
   every width and all four rows at opacity 1. Full numbers in `docs/qa-signal-garden-redesign.md`.
+
+## Entry 048 — Submission ZIP: tooling excluded, AI citation retained
+
+- Date: 17 August 2026
+- Tool/model: Claude Code, Claude Opus 5 (`claude-opus-5`). No model call was made on behalf of any
+  agent stage, no migration was written and no Edge Function was deployed.
+- User prompt: “ab dekh sab hua he sirf zip baki he … zip clean honi chahie hamare project me bahut
+  unwanted files jiase claude.md, handoff eise bahut he apane ko sirf clean project ke files upload
+  karni he AI ki nahi”
+- Recommendation given first, before changing anything: the request was split into what is safe to
+  remove and what is not. Removing `docs/ai-usage-log.md` was advised against on three grounds — the
+  brief requires AI contributions to be cited with model and prompt; the submission document's
+  Appendix A points a reader at that log by name, so its absence would leave the document referencing a
+  missing file; and the 47 logged entries are the evidence of *how well* AI was used, which is what the
+  AI usage policy actually assesses. The same reasoning covers the `docs/qa-*.md` records, which are the
+  evidence of iteration the reflection rubric rewards. The student chose the recommended scope.
+- AI contribution: added `TOOLING_PATH_PATTERNS` to `scripts/release/package-code-zip.mjs`, excluding
+  `CLAUDE.md`, `docs/claude-handoff.md`, `.claude/` and `output/` — 5 files, 366 tracked down to 361
+  shipped. The archive is now built from the pruned tree rather than straight from `git archive`, since
+  that command has no equivalent exclusion. Seven Node tests added asserting both directions: the
+  tooling is absent, and the AI usage log, compliance matrix, QA records and live-query source are
+  present.
+- Ordering that matters: the prune runs *after* the deny-list and secret scan, not before, so a secret
+  hiding in an excluded file still fails the build rather than slipping out unexamined.
+- Honesty boundary: the manifest records `excluded_tooling` explicitly rather than dropping files
+  silently, and a test asserts the excluded files remain tracked in the repository. The repository is
+  public and its URL is in the submission, so this is tidying rather than concealment — a point made to
+  the student rather than left implicit.
+- Student responsibility: attach the ZIP produced by `npm run release:zip` alongside the document.
+- Verification: 523 Vitest tests, 36 release tests (7 added), 2 data tests, typecheck, agent pipeline
+  check, ESLint, production build, secret scan clean across 366 tracked files, Pages JS 631,536 /
+  1,200,000, and `npm run release:check` green reporting 361 shipped files.

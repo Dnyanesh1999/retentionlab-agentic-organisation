@@ -25,7 +25,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:data": "node --test scripts/generate-demo-data.node-test.mjs",
-    "test:release": "node --test scripts/release/secret-scan.node-test.mjs scripts/release/static-audit.node-test.mjs scripts/build-assistant-corpus.node-test.mjs scripts/release/ai-usage-appendix.node-test.mjs",
+    "test:release": "node --test scripts/release/secret-scan.node-test.mjs scripts/release/static-audit.node-test.mjs scripts/build-assistant-corpus.node-test.mjs scripts/release/ai-usage-appendix.node-test.mjs scripts/release/code-zip-contents.node-test.mjs",
     "test:watch": "vitest",
     "typecheck": "tsc -b --pretty false",
     "data:generate": "node scripts/generate-demo-data.mjs",
