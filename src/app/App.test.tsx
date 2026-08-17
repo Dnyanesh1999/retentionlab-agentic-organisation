@@ -17,8 +17,33 @@ describe("RetentionLab application shell", () => {
     expect(await screen.findByRole("heading", { name: /accountable path/i })).toBeInTheDocument();
   });
 
+  /*
+   * The handoff ledger lives on Workstream. Overview is a separate summary —
+   * the two tabs used to render the same component, so these assertions passed
+   * without ever selecting a tab.
+   */
+  async function openWorkstream() {
+    fireEvent.click(await screen.findByRole("button", { name: "Workstream" }));
+    // The panels swap through `StateSwap`, which animates, so wait for the
+    // ledger itself rather than for any button to exist.
+    await screen.findByRole("heading", { name: /Handoff ledger/i });
+  }
+
+  it("summarises the case on Overview without listing the stage drawers", async () => {
+    renderApp();
+
+    expect(await screen.findByRole("heading", { name: /Case at a glance/i })).toBeInTheDocument();
+
+    const expandable = (await screen.findAllByRole("button")).filter((button) =>
+      button.hasAttribute("aria-expanded"),
+    );
+
+    expect(expandable).toHaveLength(0);
+  });
+
   it("shows exactly five expandable agent stages", async () => {
     renderApp();
+    await openWorkstream();
 
     const agentButtons = (await screen.findAllByRole("button")).filter((button) =>
       button.hasAttribute("aria-expanded"),
@@ -31,6 +56,7 @@ describe("RetentionLab application shell", () => {
 
   it("reveals each specialist contribution inline", async () => {
     renderApp();
+    await openWorkstream();
 
     fireEvent.click(await screen.findByRole("button", { name: /Maker/ }));
 

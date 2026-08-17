@@ -22,7 +22,7 @@ Verified live on 16 August 2026, against the deployed build rather than a green 
 | Digest in the public run projection | none |
 | Run gateway / assistant without a key | 401 / 401 |
 | Assistant | answers with verified citations; refuses injection, full-hash and out-of-scope questions |
-| Local gates | 488 Vitest · 29 Deno · lint · typecheck · build · release · data · secret scan clean (347 files) · Pages JS 614,807 / 1,200,000 |
+| Local gates | 489 Vitest · 29 Deno · lint · typecheck · build · release · data · secret scan clean (347 files) · Pages JS 616,764 / 1,200,000 |
 
 One presentation defect was found and fixed after that sweep: the case assistant's trigger was anchored
 into the sticky masthead's band beneath it, and `position: fixed` was being resolved against the
@@ -31,6 +31,14 @@ then vanished under the masthead. It is now bottom-right at every width, above t
 order, and portalled to `document.body` so no ancestor transform can anchor it. Measurements and the
 re-runnable probe are in `docs/qa-assistant-viewport-anchor.md`. Nothing in the agent pipeline, the
 contracts or the answer ladder changed.
+
+Two further presentation defects were fixed in the case record. `CaseRecordScreen` routed only
+`experience` and `decision` to their own panels, so **Overview and Workstream rendered the same
+component** — a non-functional tab. Overview is now a summary panel (`OverviewPanel`), and the handoff
+ledger belongs to Workstream alone. Separately, an expanded stage nested four filled surfaces; the three
+inner ones were removed so the detail sits on the ledger. Three tests had been asserting the five stage
+drawers on the default tab and only passed because of the duplication; they now select Workstream first.
+Again presentation only — no contract, artefact, lineage or governance surface moved.
 
 ### What is left
 

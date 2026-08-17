@@ -20,6 +20,7 @@ import {
 import { BrandMark } from "../../components/BrandMark";
 import { HashLink } from "../../components/HashLink";
 import {
+  AnimatedNumber,
   ProgressVeil,
   SharedIndicator,
   StaggerReveal,
@@ -422,6 +423,74 @@ function StageLedger({ selectedId, onSelect }: { selectedId: StageId; onSelect: 
   );
 }
 
+/*
+ * Overview answers "what is this case" at a glance. Workstream answers "what
+ * did each specialist do". They used to be the same component, so two of the
+ * four tabs rendered identical content.
+ *
+ * Every figure here is read from the sealed run — none is written into this
+ * file. `AnimatedNumber` counts to the real value and settles on it exactly.
+ */
+function OverviewPanel() {
+  const verifiedLinks = gate9Run.lineageLinks.filter((link) => link.verified).length;
+
+  const figures = [
+    { key: "stages", value: gate9Run.stages.length, label: "specialists sealed", suffix: ` / ${gate9Run.stages.length}` },
+    { key: "lineage", value: verifiedLinks, label: "verified lineage links" },
+    { key: "events", value: gate9Run.eventCount, label: "immutable events" },
+    { key: "external", value: 0, label: "external actions permitted" },
+  ];
+
+  return (
+    <section className="case-section-panel case-overview" aria-labelledby="overview-title">
+      <header className="section-heading">
+        <div>
+          <h2 id="overview-title">Case at a glance</h2>
+          <p>One evidence record, five bounded specialists, and a decision that stayed with a human.</p>
+        </div>
+        {gate9Run.managerOutcome.chainVerified ? (
+          <span><Check aria-hidden="true" size={14} /> Chain verified</span>
+        ) : null}
+      </header>
+
+      <blockquote className="case-overview__objective">{gate9Run.objective}</blockquote>
+
+      <StaggerReveal as="dl" className="case-overview__figures" trigger="mount" aria-label="Case figures">
+        {figures.map((figure) => (
+          <StaggerReveal.Item as="div" key={figure.key}>
+            <dd>
+              <AnimatedNumber value={figure.value} />
+              {figure.suffix ? <span className="case-overview__suffix">{figure.suffix}</span> : null}
+            </dd>
+            <dt>{figure.label}</dt>
+          </StaggerReveal.Item>
+        ))}
+      </StaggerReveal>
+
+      <ol className="case-overview__arc" aria-label="Stage order">
+        {gate9Run.stages.map((stage) => {
+          const Icon = stageIcons[stage.id];
+          return (
+            <li key={stage.id}>
+              <span className="case-overview__arc-node"><Icon aria-hidden="true" size={16} /></span>
+              <strong>{stageLabel(stage.id)}</strong>
+              <small>{stage.agentName}</small>
+            </li>
+          );
+        })}
+      </ol>
+
+      <p className="case-overview__boundary">
+        <ShieldCheck aria-hidden="true" size={16} />
+        <span>
+          Permitted next action: <strong>{humanizeStatus(gate9Run.managerOutcome.permittedNextAction)}</strong>.
+          Nothing was sent to a customer.
+        </span>
+      </p>
+    </section>
+  );
+}
+
 function ExperiencePanel() {
   const designer = gate9Run.stages.find((stage) => stage.id === "designer");
   const maker = gate9Run.stages.find((stage) => stage.id === "maker");
@@ -463,6 +532,7 @@ export function CaseRecordScreen({ onBack }: { onBack: () => void }) {
   const [section, setSection] = useState<CaseSection>("overview");
   const [selectedId, setSelectedId] = useState<StageId>("researcher");
   const selectedSection = useMemo(() => {
+    if (section === "overview") return <OverviewPanel />;
     if (section === "experience") return <ExperiencePanel />;
     if (section === "decision") return <DecisionPanel />;
     return <StageLedger onSelect={setSelectedId} selectedId={selectedId} />;

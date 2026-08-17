@@ -12,7 +12,9 @@ import { motion, type Variants } from "motion/react";
 
 import { useMotionConfig, useResolvedReducedMotion } from "./motionContext";
 
-type SemanticTag = "div" | "ul" | "ol" | "section" | "li";
+// `dl` is included so a figure list can stagger without giving up the
+// description-list semantics that pair each value with its label.
+type SemanticTag = "div" | "ul" | "ol" | "section" | "li" | "dl";
 
 // The component references are module-level constants. Creating them through
 // a function during render breaks React's static-component invariant.
@@ -22,6 +24,7 @@ const motionTags: Record<SemanticTag, typeof motion.div> = {
   ol: motion.ol as typeof motion.div,
   section: motion.section as typeof motion.div,
   li: motion.li as typeof motion.div,
+  dl: motion.dl as typeof motion.div,
 };
 
 type StaggerContextValue = {
