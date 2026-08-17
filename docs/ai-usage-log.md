@@ -813,3 +813,48 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
 - Verification: 515 Vitest tests, 29 release tests, 2 data tests, typecheck, agent pipeline check,
   ESLint, production build, secret scan clean, and `npm run release:check` green. Documentation-only
   change: no source file, contract or agent was modified.
+
+## Entry 047 — Signal Garden: a line across the rows, and three animations that hid the page
+
+- Date: 17 August 2026
+- Tool/model: Claude Code, Claude Opus 5 (`claude-opus-5`). No model call was made on behalf of any
+  agent stage, no migration was written and no Edge Function was deployed.
+- User prompt: “I want you to improve the recovery room - the signal garden … on the first go samaj me
+  hi nahi aa rha ki ye kya he aur achha bhi nahi dikh raha … wo dropdown ke upper se line ja rahi he …
+  usko elegent bana wo kya he wo smajana chahie kya kam karta he kya stats deta he … add good animation”
+- Defect the student reported, confirmed by measurement: `.signal-canvas::before` drew a decorative
+  rounded frame at `inset: 39px -64px` behind strand cards whose background was only 38% opaque, so its
+  edges showed through the collapsed rows as a stray line. The frame is removed and the card surfaces
+  are opaque.
+- AI contribution: added an orientation paragraph and consent assurance to the Signal Garden header;
+  added `SignalSummary`, four tiles derived from the sealed snapshot; added a relative-change figure to
+  each strand; rebuilt the strand, seat-utilisation and summary styling; added interaction motion.
+  Seven unit tests added for the summary, one added for the zero-previous-value path.
+- Honesty boundary held: every figure added is counted or divided from the snapshot already rendered —
+  nothing was fetched separately and nothing estimated. The relative change returns nothing when the
+  previous value is zero rather than printing an infinite ratio. Seat utilisation was deliberately left
+  out of the summary because it has its own evidence-bound row and two copies could drift. The copy
+  stays inside the Maker's contract: aggregate, non-causal, no urgency.
+- The animation, built three times and measured failing three times: `StaggerReveal` left rows 2–4 at
+  opacity 0 in a backgrounded tab because Chrome pauses `requestAnimationFrame`; a keyframe with a
+  `both` fill left all four at opacity 0 because the animation timeline did not advance either; a
+  transition out of `@starting-style` left rows 1–3 at opacity 0 five seconds after load, because a
+  transition that has begun and then stops receiving frames stays at its starting value. The third was
+  chosen precisely because its resting state was visible, and it still failed. Conclusion recorded in
+  the code: any entrance starting from invisible stays invisible when frames stop, and an entrance runs
+  at the one moment nobody is watching. The page now animates interactions only — hover, disclosure,
+  detail reveal — because a hover or click proves the tab has frames.
+- Correction to a claim made during the work: the assistant asserted in a code comment that CSS
+  animations advance on the document timeline while a tab is hidden. That was measured false in this
+  environment and the comment was rewritten rather than left standing.
+- Two defects the suite caught: an axe `definition-list` violation from building the summary as a `<dl>`
+  containing icons and captions, and a `react-hooks/purity` error from `Date.now()` as a default
+  parameter. Both fixed.
+- One committed test changed rather than kept passing: `SignalStrand.test.tsx`'s accessible-name
+  assertion, because the name now carries the relative change that is rendered visibly beside it.
+- Student responsibility: confirm the orientation copy reads in his own product voice, and re-check the
+  public URL after Pages deploys.
+- Verification: 523 Vitest tests (8 added), 29 release tests, 2 data tests, typecheck, agent pipeline
+  check, ESLint, production build, secret scan clean across 363 tracked files, Pages JS 631,536 /
+  1,200,000. Browser measurement at 1440, 1280 and 390 with the tab hidden: zero horizontal overflow at
+  every width and all four rows at opacity 1. Full numbers in `docs/qa-signal-garden-redesign.md`.

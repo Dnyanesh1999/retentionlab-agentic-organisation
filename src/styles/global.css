@@ -204,34 +204,143 @@ a {
   line-height: 1.5;
 }
 
+.signal-garden__lede {
+  max-width: 68ch;
+  font-size: 14.5px !important;
+  line-height: 1.62 !important;
+}
+
+.signal-garden__assurance {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px !important;
+  padding: 6px 13px 6px 11px;
+  color: var(--forest-deep) !important;
+  border: 1px solid color-mix(in srgb, var(--forest) 26%, var(--line));
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--mint) 40%, transparent);
+  font-size: 12.5px !important;
+  font-weight: 600;
+}
+
+/*
+ * Four derived tiles that say what the snapshot holds before anything is opened. Quiet by design —
+ * a hairline grid rather than four filled cards, so the signals below stay the loudest thing here.
+ */
+.signal-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  width: min(100%, 1110px);
+  margin: 0 auto 26px;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  list-style: none;
+}
+
+.signal-summary__tile {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  grid-template-areas:
+    "icon label"
+    "value value"
+    "detail detail";
+  gap: 2px 10px;
+  align-content: start;
+  padding: 16px 20px;
+  border-left: 1px solid var(--line);
+}
+
+.signal-summary__tile:first-child { padding-left: 0; border-left: 0; }
+
+.signal-summary__tile svg {
+  grid-area: icon;
+  width: 15px;
+  height: 15px;
+  margin-top: 2px;
+  color: var(--forest);
+}
+
+.signal-summary__label {
+  grid-area: label;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.signal-summary__value {
+  grid-area: value;
+  margin: 4px 0 0;
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.signal-summary__detail {
+  grid-area: detail;
+  margin: 5px 0 0;
+  color: var(--ink-soft);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
 .signal-canvas {
   position: relative;
   display: grid;
   width: min(100%, 1110px);
-  gap: 20px;
+  gap: 12px;
   margin: 0 auto;
-  isolation: isolate;
 }
 
-.signal-canvas::before {
-  position: absolute;
-  inset: 39px -64px;
-  z-index: -1;
-  border: 1px solid color-mix(in srgb, var(--forest) 42%, var(--line));
-  border-radius: 55px;
-  content: "";
-  pointer-events: none;
-}
-
+/*
+ * The decorative rounded frame that used to sit behind this stack is gone. It was drawn at
+ * `inset: 39px -64px` behind cards whose background was only 38% opaque, so its top and bottom edges
+ * read as a stray line crossing the collapsed rows — measured at 1440 on 17 August. Card surfaces are
+ * opaque now, so nothing can bleed through a row again.
+ */
 .signal-strand {
   position: relative;
-  z-index: 1;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--surface) 38%, transparent);
-  transition: border-color 180ms ease, background 180ms ease;
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+  box-shadow: var(--elevation-subtle);
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-standard),
+    transform var(--motion-duration-fast) var(--motion-ease-standard);
 }
+
+.signal-strand:hover:not(.signal-strand--expanded) {
+  border-color: var(--line-strong);
+  box-shadow: var(--elevation-panel);
+  transform: translateY(-1px);
+}
+
+/*
+ * There is deliberately NO arrival animation on these rows.
+ *
+ * Three approaches were built and all three were measured failing the same way, with the tab
+ * backgrounded (`document.hidden === true`):
+ *
+ *   1. `StaggerReveal` (framer-motion) — Chrome pauses requestAnimationFrame in a hidden tab, so
+ *      rows 2 to 4 sat at opacity 0 indefinitely.
+ *   2. A keyframe `animation … both` — the animation timeline did not advance either, and the fill
+ *      held all four rows at the `from` state.
+ *   3. A transition out of `@starting-style` — a transition that has begun but stops receiving
+ *      frames stays at its starting value. Rows 1 to 3 were still at opacity 0 five seconds in.
+ *
+ * The common factor is not the technique. It is that any entrance starting from invisible will stay
+ * invisible when frames stop — and an arrival animation runs at the one moment nobody is watching to
+ * notice it broke. So the motion on this page is interaction-driven only: hover lift, and the detail
+ * reveal below. A click or a hover proves the tab is visible, which is exactly the guarantee an
+ * entrance cannot make. These rows are the page; they render immediately, always.
+ */
 
 .signal-strand--expanded {
   border-color: var(--violet);
@@ -315,29 +424,92 @@ a {
   display: inline-flex;
   align-items: center;
   justify-self: end;
-  gap: 10px;
+  gap: 8px;
+  padding: 5px 11px 5px 8px;
   color: var(--ink);
-  font-size: 14px;
-  font-weight: 600;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--canvas) 60%, transparent);
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
 }
 
 .signal-strand__direction svg {
-  width: 22px;
-  height: 22px;
+  width: 17px;
+  height: 17px;
   color: var(--forest);
 }
 
+/*
+ * The signed percentage is arithmetic on the two values already shown, so it is styled as a
+ * companion to the direction word rather than as a separate metric.
+ */
+.signal-strand__change {
+  padding-left: 8px;
+  border-left: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Direction is carried by the word and the arrow, never by colour alone — a red/green pair would
+ * also read as good/bad, and these signals are deliberately reported without judgment.
+ */
+.signal-strand[data-direction="decreased"] .signal-strand__direction svg { color: var(--warning); }
+.signal-strand[data-direction="unchanged"] .signal-strand__direction svg { color: var(--ink-soft); }
+
+/*
+ * Interaction-driven, so it is safe: a hover or a click proves the tab has frames. Unlike an arrival
+ * animation, this cannot strand content in an invisible state when nobody is watching.
+ */
 .signal-strand__disclosure {
   justify-self: end;
   width: 20px;
   height: 20px;
   color: var(--ink-soft);
+  transition:
+    color var(--motion-duration-fast) var(--motion-ease-standard),
+    transform var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.signal-strand__trigger:hover .signal-strand__disclosure {
+  color: var(--ink);
+  transform: translateY(2px);
+}
+
+.signal-strand--expanded .signal-strand__trigger:hover .signal-strand__disclosure {
+  transform: translateY(-2px);
+}
+
+.signal-strand__icon {
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.signal-strand__trigger:hover .signal-strand__icon {
+  border-color: var(--forest);
+  background: color-mix(in srgb, var(--mint) 45%, transparent);
 }
 
 .signal-strand--expanded .signal-strand__disclosure {
   color: var(--violet);
 }
 
+/*
+ * The detail is mounted and unmounted rather than hidden, so the reveal is a CSS entrance rather
+ * than a presence animation. That keeps a collapsed strand genuinely absent from the accessibility
+ * tree — and keeps the DOM assertions in SignalStrand.test.tsx meaningful, which an exit animation
+ * would have quietly broken by leaving the node mounted after collapse.
+ *
+ * It uses the same `@starting-style` shape as the rows above rather than a keyframe with a `both`
+ * fill. A `both` fill looked safe here — the element only mounts on a click — but it was measured
+ * holding the detail at opacity 0 all the same. The rule is: the resting state is the readable one,
+ * everywhere on this page, without exception.
+ */
 .signal-strand__detail {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 0.9fr);
@@ -345,6 +517,23 @@ a {
   min-height: 86px;
   padding: 22px 34px;
   border-top: 1px solid color-mix(in srgb, var(--violet) 54%, var(--line));
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--motion-duration-standard) var(--motion-ease-standard),
+    transform var(--motion-duration-standard) var(--motion-ease-standard);
+}
+
+@starting-style {
+  .signal-strand__detail {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.signal-strand--reduced-motion .signal-strand__detail,
+.signal-strand[data-reduced-motion="true"] .signal-strand__detail {
+  transition: none;
 }
 
 .signal-strand__explanation,
@@ -788,23 +977,32 @@ a {
   to { opacity: 1; }
 }
 
+/*
+ * Sits in the same card language as the strands above it rather than as a pair of dashed rules,
+ * which read as an orphaned footer once the strands became solid cards. It stays a separate row
+ * because, unlike the three signals, it has no previous value to compare against — there is nothing
+ * to expand into.
+ */
 .seat-utilisation {
   display: grid;
-  grid-template-columns: 54px minmax(240px, 1.25fr) minmax(150px, 0.8fr) minmax(180px, 1.25fr);
+  grid-template-columns: 42px minmax(200px, 1fr) auto;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
   width: min(100%, 1110px);
   min-height: 68px;
-  margin: 20px auto 0;
-  padding: 8px 20px;
-  border-top: 1px dashed var(--line-strong);
-  border-bottom: 1px dashed var(--line-strong);
+  margin: 12px auto 0;
+  padding: 12px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
 }
 
 .seat-utilisation > svg {
-  width: 27px;
-  height: 27px;
-  color: var(--ink);
+  display: block;
+  width: 22px;
+  height: 22px;
+  justify-self: center;
+  color: var(--forest);
 }
 
 .seat-utilisation > span {
@@ -3357,8 +3555,32 @@ a {
     gap: 12px;
   }
 
-  .signal-canvas::before {
-    display: none;
+  /* Four tiles across a phone gives ~115px each, which wraps every caption. Two by two instead. */
+  .signal-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .signal-summary__tile {
+    padding: 14px 16px;
+  }
+
+  .signal-summary__tile:nth-child(odd) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .signal-summary__tile:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
+  }
+
+  .signal-summary__value {
+    font-size: 22px;
+  }
+
+  .seat-utilisation {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: 12px;
+    padding: 12px 16px;
   }
 
   .signal-strand__graphic {
@@ -4143,6 +4365,24 @@ a {
 @media (prefers-reduced-motion: reduce) {
   .boundary-beam::before {
     animation: none;
+  }
+
+  /*
+   * Reduced-motion parity for the Signal Garden. This motion is CSS rather than a motion primitive,
+   * so `useResolvedReducedMotion` does not cover it and it must be switched off explicitly here.
+   * `transition: none` lands on the resting state, which on this page is always the readable one.
+   */
+  .signal-strand__detail,
+  .signal-strand__disclosure,
+  .signal-strand__icon {
+    transition: none;
+  }
+
+  .signal-strand,
+  .signal-strand:hover:not(.signal-strand--expanded),
+  .signal-strand__trigger:hover .signal-strand__disclosure {
+    transition: none;
+    transform: none;
   }
 }
 

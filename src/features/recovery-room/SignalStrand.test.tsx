@@ -110,7 +110,10 @@ describe("SignalStrand", () => {
   });
 
   describe("semantics and accessibility", () => {
-    it("exposes the strand graphic as role=img describing label, previous and current", () => {
+    // The accessible name now carries the relative change too, because the change is rendered
+    // visibly beside the direction word. Leaving it out would give a screen-reader user strictly
+    // less than a sighted reader gets from the same row.
+    it("exposes the strand graphic as role=img describing label, previous, current and the change", () => {
       render(
         <SignalStrand
           reading={makeReading({ unit: "percent", previous_value: 63.5, current_value: 12.5 })}
@@ -120,8 +123,21 @@ describe("SignalStrand", () => {
       );
 
       expect(screen.getByRole("img")).toHaveAccessibleName(
-        "Feature adoption: previous 63.5%, current 12.5%",
+        "Feature adoption: previous 63.5%, current 12.5%, decreased −80.3%",
       );
+    });
+
+    it("omits the change from the name when the previous value is zero", () => {
+      // A change from zero has no defined percentage; the row must say nothing rather than invent one.
+      render(
+        <SignalStrand
+          reading={makeReading({ unit: "count", previous_value: 0, current_value: 12 })}
+          expanded={false}
+          onExpandedChange={vi.fn()}
+        />,
+      );
+
+      expect(screen.getByRole("img")).toHaveAccessibleName("Feature adoption: previous 0, current 12");
     });
 
     it("uses a native button trigger with aria-expanded reflecting the prop", () => {
