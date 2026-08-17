@@ -31,6 +31,7 @@ import type {
   HostedRunEvent,
 } from "../../../runtime/hosted/contracts";
 import { AgentExecutionTrace } from "./AgentExecutionTrace";
+import { OrientationBand } from "./OrientationBand";
 import {
   createControlRoomClient,
   type AccountListResult,
@@ -582,6 +583,16 @@ export function CommandCenterView({ client: suppliedClient }: { client?: Control
           <span>Approval <b>enforced</b></span>
         </div>
       </header>
+
+      {/*
+        Rendered outside the directory StateSwap on purpose: a visitor who arrives while the live
+        directory is loading, or when it has failed, still needs to know what this is and where
+        else to go. Its primary door stays disabled until an account is actually selectable.
+      */}
+      <OrientationBand
+        accountName={selected?.display_name}
+        onStartRun={selected && clientResult.client ? () => setLaunchOpen(true) : undefined}
+      />
 
       <StateSwap className="control-room__body" state={directory.status}>
         {directory.status === "loading" ? <DirectorySkeleton /> : null}

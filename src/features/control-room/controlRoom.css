@@ -457,7 +457,148 @@
 .decision-confirm div button { min-height: 34px; flex: 1; padding: 0 12px; color: var(--forest); border: 1px solid var(--line-strong); border-radius: 4px; background: transparent; font-size: 9px; font-weight: 700; cursor: pointer; }
 .decision-action--confirm { color: var(--surface); border: 0; background: var(--forest-deep); }
 
+/*
+ * Orientation band — the cold-visitor answer to "what is this and what do I press".
+ *
+ * It sits between the hero and the live directory and is deliberately quiet: a hairline top and
+ * bottom rule instead of another filled card, because the Control Room already has three of those
+ * and a fourth would read as a dashboard. The chain and the doors carry the weight.
+ */
+.orientation {
+  display: grid;
+  gap: 22px;
+  margin-bottom: 34px;
+  padding: 26px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.orientation__lede {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(320px, 1.6fr);
+  gap: 12px 40px;
+  align-items: start;
+}
+
+.orientation__lede h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -.02em;
+  line-height: 1.15;
+}
+
+.orientation__lede p {
+  max-width: 68ch;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  line-height: 1.62;
+}
+
+/*
+ * The chain reads left to right as a sequence. The connector is a border on the pseudo-element
+ * rather than a gap fill, so it disappears cleanly when the row wraps to one column on mobile.
+ */
+.orientation__chain {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.orientation__stage {
+  position: relative;
+  display: grid;
+  gap: 3px;
+  padding: 0 18px;
+  border-left: 1px solid var(--line);
+}
+
+.orientation__stage:first-child { padding-left: 0; border-left: 0; }
+.orientation__stage:last-child { padding-right: 0; }
+
+.orientation__index {
+  color: var(--forest);
+  font-size: 10px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .08em;
+}
+
+.orientation__stage strong {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+
+.orientation__stage small {
+  color: var(--ink-soft);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.orientation__doors {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.orientation__door {
+  display: grid;
+  grid-template-columns: 18px 1fr 16px;
+  gap: 12px;
+  align-items: center;
+  min-height: 62px;
+  padding: 12px 16px;
+  color: inherit;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--surface) 68%, transparent);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    transform var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.orientation__door span { display: grid; gap: 2px; }
+.orientation__door strong { color: var(--ink); font-size: 13px; font-weight: 700; }
+.orientation__door small { color: var(--ink-soft); font-size: 11.5px; line-height: 1.45; }
+.orientation__door svg { width: 16px; height: 16px; color: var(--forest); }
+.orientation__door > svg:last-child { width: 14px; height: 14px; color: var(--ink-soft); }
+
+.orientation__door:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--surface);
+  transform: translateY(-1px);
+}
+
+.orientation__door:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.orientation__door--primary {
+  border-color: color-mix(in srgb, var(--forest) 34%, var(--line));
+  background: color-mix(in srgb, var(--mint) 42%, var(--surface));
+}
+
+.orientation__door:disabled { cursor: default; opacity: .55; }
+
 @media (max-width: 1080px) {
+  .orientation__lede { grid-template-columns: 1fr; }
+  .orientation__chain { grid-template-columns: repeat(3, 1fr); gap: 16px 0; }
+  .orientation__stage:nth-child(3n + 1) { padding-left: 0; border-left: 0; }
+  .orientation__doors { grid-template-columns: 1fr; }
   .account-command { grid-template-columns: 1fr; }
   .account-command dl { border-top: 1px solid var(--line); }
   .account-command__action { min-height: 52px; }
@@ -471,6 +612,11 @@
 @media (max-width: 760px) {
   .control-room { width: min(100% - 28px, 1420px); padding-top: 30px; }
   .control-room__hero h1 { font-size: clamp(42px, 13vw, 62px); }
+  .orientation { gap: 18px; padding: 20px 0; }
+  .orientation__chain { grid-template-columns: 1fr; gap: 12px; }
+  .orientation__stage { padding: 0 0 0 14px; border-left: 1px solid var(--line); }
+  .orientation__stage:nth-child(3n + 1) { padding-left: 14px; border-left: 1px solid var(--line); }
+  .orientation__stage:first-child { padding-left: 14px; border-left: 1px solid var(--line); }
   .readiness-line { display: grid; grid-template-columns: 1fr 1fr; }
   .readiness-line > span { padding: 8px 0; border-left: 0; border-bottom: 1px solid var(--line); }
   .account-command dl { grid-template-columns: 1fr 1fr; }
@@ -501,4 +647,6 @@
   .account-command__action, .account-command__action svg, .hosted-run-retry, .hosted-run-retry svg { transition: none; }
   .hosted-run-creating svg, .hosted-run > header i { animation: none; }
   .decision-loading svg { animation: none; }
+  .orientation__door { transition: none; }
+  .orientation__door:hover:not(:disabled) { transform: none; }
 }
