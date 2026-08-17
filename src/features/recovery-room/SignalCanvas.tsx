@@ -10,6 +10,7 @@ import { ClarificationDialog } from "./ClarificationDialog";
 import type { ClarificationClient } from "./clarificationClient";
 import type { SignalGardenSnapshot, SignalReading } from "./contracts";
 import { SignalStrand } from "./SignalStrand";
+import { SignalSummary } from "./SignalSummary";
 import { SupportCaseStrand } from "./SupportCaseStrand";
 import { useClarificationFlow } from "./useClarificationFlow";
 
@@ -70,10 +71,31 @@ export function SignalCanvas({ snapshot, clarificationClient = null, reducedMoti
         <Sprout aria-hidden="true" className="signal-garden__mark" strokeWidth={1.5} />
         <div>
           <h2 id="signal-garden-title">Your signal garden</h2>
-          <p>Inspect any signal to learn more. No action required.</p>
+          {/*
+            The page used to open on "Inspect any signal to learn more", which tells a first-time
+            reader nothing about what they are looking at. These two sentences say what the page is,
+            where the numbers came from, and what will not happen — and they stay inside the Maker's
+            contract: aggregate, non-causal, and with no pressure to act.
+          */}
+          <p className="signal-garden__lede">
+            A read-only view of the aggregate signals recorded against this account over the last 30
+            days. Each one carries the evidence key it came from, so you can see exactly what it is
+            based on.
+          </p>
+          <p className="signal-garden__assurance">
+            Nothing here is a recommendation, and nothing is shared unless you choose to share it.
+          </p>
         </div>
       </header>
 
+      <SignalSummary snapshot={snapshot} />
+
+      {/*
+        The staggered entrance lives in CSS, not in `StaggerReveal`, and the rule is written so the
+        resting state is the visible one — see `.signal-canvas > *` in global.css for why two earlier
+        attempts left every row invisible in a backgrounded tab. These strands are the page, not
+        decoration on it, so the animation must be the thing that fails, never the content.
+      */}
       <div className="signal-canvas" aria-label="Main inspection area">
         {signalOrder.map((code) => {
           const reading = readingsByCode.get(code);

@@ -56,6 +56,23 @@ function formatSignalValue(unit: SignalReading["unit"], value: number): string {
 }
 
 /**
+ * Relative change between the two cited values, as a signed percentage.
+ *
+ * This is arithmetic on the same two numbers already displayed, not a new measurement — no extra
+ * evidence is consulted and nothing is estimated. It is returned as null when the previous value is
+ * zero, because a change from zero has no defined percentage and printing "Infinity%" would be a
+ * fabricated reading.
+ */
+function relativeChange(previous: number, current: number): string | null {
+  if (previous === 0) return null;
+  const ratio = ((current - previous) / Math.abs(previous)) * 100;
+  if (!Number.isFinite(ratio)) return null;
+  const magnitude = Math.abs(ratio).toLocaleString(undefined, { maximumFractionDigits: 1 });
+  if (ratio === 0) return "0%";
+  return `${ratio > 0 ? "+" : "−"}${magnitude}%`;
+}
+
+/**
  * Purely directional description of the change between previous and current.
  * This is a factual direction, not a causal or positive/negative judgment.
  */
@@ -87,10 +104,13 @@ export function SignalStrand({
   const previousText = formatSignalValue(reading.unit, reading.previous_value);
   const currentText = formatSignalValue(reading.unit, reading.current_value);
   const direction = describeDirection(reading.previous_value, reading.current_value);
+  const change = relativeChange(reading.previous_value, reading.current_value);
   const MetricIcon = METRIC_ICONS[reading.code];
   const DirectionIcon = direction.icon;
   const DisclosureIcon = expanded ? ChevronUp : ChevronDown;
-  const graphicLabel = `${label}: previous ${previousText}, current ${currentText}`;
+  const graphicLabel = change
+    ? `${label}: previous ${previousText}, current ${currentText}, ${direction.label.toLowerCase()} ${change}`
+    : `${label}: previous ${previousText}, current ${currentText}`;
 
   // Controlled requests only. Never call the callback when we are already in the
   // requested state, so focus + click cannot double-invoke onExpandedChange.
@@ -165,6 +185,7 @@ export function SignalStrand({
           <span className="signal-strand__direction" aria-hidden="true">
             <DirectionIcon strokeWidth={1.5} />
             <span>{direction.label}</span>
+            {change ? <em className="signal-strand__change">{change}</em> : null}
           </span>
           <DisclosureIcon aria-hidden="true" className="signal-strand__disclosure" strokeWidth={1.6} />
         </span>
