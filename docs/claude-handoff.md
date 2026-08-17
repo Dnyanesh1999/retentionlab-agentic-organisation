@@ -96,6 +96,13 @@ dependency was added.
 
 1. **The student's writing — the only thing blocking submission.** The cited GDPR / EU AI Act section
    and the reflection. Do not write either; see below.
+
+   For the *Pipeline in Action* section — which is evidence, not a first-person claim, and therefore
+   fair to prepare — `docs/submission-pipeline-evidence.md` assembles every id, hash, count and
+   timestamp from committed transcripts and recorded QA, plus a screenshot map naming which screen
+   proves which claim. Start there rather than re-deriving figures; it also disambiguates the two runs
+   (local `a9f629aa…` on `copper-finch` vs hosted `982ac99a…` on `marble-current`), which is the
+   easiest thing in this project to get wrong in writing.
 2. **Two optional live probes**, both needing operator sign-in, both already disclosed honestly in
    `docs/qa-human-approval.md` §5.4: idempotent replay against production, and 390×844 QA of the
    decision sheet. Neither is a correctness gap.
