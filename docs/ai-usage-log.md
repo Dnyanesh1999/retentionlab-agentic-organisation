@@ -782,3 +782,34 @@ The approved Case Theatre image was generated in an earlier Codex design task. I
   check, ESLint, production build, secret scan clean across 360 tracked files, Pages JS 628,943 /
   1,200,000, and `npm run release:check` green with the new `ai-usage-appendix` check reporting 44
   entries and 4 model identifiers.
+
+## Entry 046 — Pipeline-in-Action evidence sheet
+
+- Date: 17 August 2026
+- Tool/model: Claude Code, Claude Opus 5 (`claude-opus-5`). No model call was made on behalf of any
+  agent stage, no migration was written, no Edge Function was deployed and no run was created.
+- User prompt: “kar de bro”, continuing the agreed next task after the AI-usage appendix — an evidence
+  sheet for the submission's “The Pipeline in Action” section.
+- AI contribution: added `docs/submission-pipeline-evidence.md`. It assembles the handoff mechanism,
+  the five sealed artefact hashes, the seven verified lineage links, the fourteen hash-chained events,
+  what each agent actually sealed in both runs, the recorded failures, the human approval, an explicit
+  list of what is *not* demonstrated live, a screenshot map naming which screen proves which claim, and
+  a quotable figures table.
+- Sourcing rule followed: every id, hash, count and timestamp is copied from a committed transcript or
+  recorded QA — `design/specifications/gate-9-live-pipeline-transcript.v1.json` for the event chain and
+  artefact hashes, `docs/qa-human-approval.md` for the probes and the approval, `docs/qa-hosted-five-
+  agent-pipeline.md` and handoff §3 for the hosted run. Nothing was estimated, rounded or
+  reconstructed. Claims with no live proof are listed rather than omitted.
+- Verified rather than assumed while writing: the five evidence tools in `researcher.ts`, the four case
+  tab labels in `DesignLabView.tsx`, and that `EventScrubber` renders under Workstream while
+  `LineageConstellation` renders under Overview — the screenshot map names specific tabs, so a wrong
+  tab would send the student to the wrong screen.
+- Scope boundary: this is a source sheet, not the submission section. It deliberately does not draft
+  prose for the student to submit, and it does not touch the reflection or the cited GDPR / EU AI Act
+  section. The §7 note on the unrelaxed citation-integrity guard is flagged as good reflection
+  material, but the reflection paragraph itself is not written.
+- Student responsibility: write the section in his own words, take the eleven screenshots, and confirm
+  the two-run distinction is stated correctly wherever he cites a figure.
+- Verification: 515 Vitest tests, 29 release tests, 2 data tests, typecheck, agent pipeline check,
+  ESLint, production build, secret scan clean, and `npm run release:check` green. Documentation-only
+  change: no source file, contract or agent was modified.
